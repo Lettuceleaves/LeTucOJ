@@ -1,0 +1,20 @@
+server:
+  port: 9999
+
+logging:
+  level:
+    root: INFO
+    org.springframework: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.mybatis: DEBUG
+    com.OMS.user_service.client: DEBUG
+
+spring:
+  ai:
+    openai:
+      api-key: sk-358de82e653d470f9acc00ae1de4b10c
+      base-url: https://api.deepseek.com
+      chat:
+        options:
+          model: deepseek-chat
+

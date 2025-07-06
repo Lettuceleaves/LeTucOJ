@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  debian-service:
+    build:
+      context: ./practice
+      dockerfile: Dockerfile
+    ports:
+      - "2222:2222"  # 假设 run.jar 监听 8080 端口
+    networks:
+      - my-network
+
+  alpine-service:
+    build:
+      context: ./run
+      dockerfile: Dockerfile
+    ports:
+      - "1111:8089"  # 假设 practice.jar 监听 8081 端口
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge

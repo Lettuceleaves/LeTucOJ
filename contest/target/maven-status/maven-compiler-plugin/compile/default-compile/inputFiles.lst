@@ -1,0 +1,14 @@
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\client\practiceClient.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\config\minioConfig.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\ContestApplication.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\controller\contestCtrller.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\model\contest.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\model\problemlist.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\repos\contestMybatisRepos.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\repos\impl\minioReposImpl.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\repos\minioRepos.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\repos\problemlistMybatisRepos.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\service\contestService.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\service\impl\contestServiceImpl.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\tool\ContestRequest.java
+E:\projects\OMS2.0\contest\src\main\java\com\OMS\contest\tool\CustomMultipartFile.java

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  debian-service:
+    build:
+      context: ./practicePod
+      dockerfile: Dockerfile
+    ports:
+      - "2222:2222"  # 假设 run.jar 监听 8080 端口
+    networks:
+      - my-network
+
+  alpine-service:
+    build:
+      context: ./runPod
+      dockerfile: Dockerfile
+    ports:
+      - "1111:8089"  # 假设 practice.jar 监听 8081 端口
+    networks:
+      - my-network
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    volumes:
+      - ./config.json:/config.json
+    command: server /data --console-address ":9090"
+
+
+networks:
+  my-network:
+    driver: bridge

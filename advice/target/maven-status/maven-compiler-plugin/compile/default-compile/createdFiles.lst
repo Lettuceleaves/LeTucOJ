@@ -1,0 +1,5 @@
+com\OMS\advice\AdviceApplication.class
+com\OMS\advice\service\impl\adviceServiceImpl.class
+com\OMS\advice\config\configApplication.class
+com\OMS\advice\controller\controllerApplication.class
+com\OMS\advice\service\adviceService.class

@@ -1,0 +1,14 @@
+# 使用官方的 Alpine Linux 镜像作为基础镜像
+FROM alpine:latest
+
+# 更新软件包索引并安装 Java 17 和 GCC 编译环境
+RUN apk add --no-cache \
+        openjdk17-jre
+
+# 设置工作目录
+WORKDIR /app
+
+COPY practice.jar /app/
+
+# 定义容器启动时运行的命令
+CMD ["sh", "-c", "java -jar practice.jar && ./practice"]

@@ -1,0 +1,22 @@
+# 使用官方的 Debian Slim 镜像作为基础镜像
+FROM debian:stable-slim
+
+# 更新软件包索引并安装 Java 17 和 GCC 编译环境
+RUN apt-get update && apt-get install -y \
+        openjdk-17-jre \
+        gcc \
+        libc6-dev \
+        make
+
+# 清理缓存以减小镜像大小
+RUN rm -rf /var/lib/apt/lists/*
+
+# 设置工作目录
+WORKDIR /app
+
+# 将文件复制到容器的指定目录
+COPY run.jar /app/
+COPY run.c /app/
+
+# 定义容器启动时运行的命令
+CMD ["sh", "-c", "java -jar run.jar && ./run"]

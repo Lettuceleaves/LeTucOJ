@@ -1,0 +1,32 @@
+server:
+  port: 2222
+  tomcat:
+    connection-timeout: 60000
+
+
+spring:
+  application:
+    name: practice
+  datasource:
+    url: jdbc:mysql://localhost:3306/practice?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 430103535
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  servlet:
+    multipart:
+      max-request-size: 10MB
+      max-file-size: 10MB
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.OMS.user_service.repository
+  configuration:
+    map-underscore-to-camel-case: true
+
+docker:
+  host: tcp://192.168.1.17:2375
+  api-version: 1.41

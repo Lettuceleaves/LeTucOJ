@@ -1,0 +1,15 @@
+# 使用官方的 Alpine Linux 镜像作为基础镜像
+FROM alpine:latest
+
+# 更新软件包索引并安装 Java 17
+RUN apk add --no-cache \
+        openjdk17
+
+# 设置工作目录
+WORKDIR /app
+
+# 将文件复制到容器的指定目录
+COPY gateWay.jar /app/
+
+# 定义容器启动时运行的命令
+CMD ["sh", "-c", "java -jar gateWay.jar && ./gateWay"]

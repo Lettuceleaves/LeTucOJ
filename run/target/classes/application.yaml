@@ -1,0 +1,19 @@
+server:
+  port: 1001
+  tomcat:
+    connection-timeout: 60000
+
+spring:
+  application:
+    name: run
+  servlet:
+    multipart:
+      max-request-size: 10MB
+      max-file-size: 10MB
+logging:
+  level:
+    root: INFO
+    org.springframework: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.mybatis: DEBUG
+    com.OMS.user_service.client: DEBUG

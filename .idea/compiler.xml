@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Annotation profile for OMS2.0" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
+        </processorPath>
+        <module name="practice" />
+        <module name="run" />
+        <module name="contest" />
+        <module name="auth" />
+        <module name="gateWay" />
+        <module name="advice" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="advice" options="-parameters" />
+      <module name="auth" options="-parameters" />
+      <module name="contest" options="-parameters" />
+      <module name="gateWay" options="-parameters" />
+      <module name="practice" options="-parameters" />
+      <module name="run" options="-parameters" />
+    </option>
+  </component>
+</project>

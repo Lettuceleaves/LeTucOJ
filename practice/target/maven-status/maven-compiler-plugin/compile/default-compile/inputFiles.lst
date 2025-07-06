@@ -1,0 +1,14 @@
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\client\adviceClient.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\client\runClient.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\config\dockerConfig.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\config\minioConfig.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\controller\practiceCtrller.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\model\problem.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\model\resultVO.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\PracticeApplication.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\repos\impl\minioReposImpl.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\repos\minioRepos.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\repos\mybatisRepos.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\service\impl\practiceServiceImpl.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\service\practiceService.java
+E:\projects\OMS2.0\practice\src\main\java\com\OMS\practice\tool\docker.java
