@@ -3,22 +3,22 @@ package com.LetucOJ.practice.model;
 import lombok.Data;
 
 @Data
-public class SqlServiceDTO {
+public class FullInfoServiceDTO {
     String type;
     String subType;
     String id;
     Long limit;
-    SqlDataDTO data;
+    FullInfoDTO data;
 
-    public SqlServiceDTO() {
+    public FullInfoServiceDTO() {
         this.type = "";
         this.subType = "";
         this.id = "";
         this.limit = 0L;
-        this.data = new SqlDataDTO();
+        this.data = new FullInfoDTO();
     }
 
-    public SqlServiceDTO(String type, String subType, String id, Long limit, SqlDataDTO data) {
+    public FullInfoServiceDTO(String type, String subType, String id, Long limit, FullInfoDTO data) {
         this.type = type;
         this.subType = subType;
         this.id = id;

@@ -1,10 +1,7 @@
 package com.LetucOJ.practice.controller;
 
 import com.LetucOJ.practice.client.AdviceClient;
-import com.LetucOJ.practice.model.CodeDTO;
-import com.LetucOJ.practice.model.ResultVO;
-import com.LetucOJ.practice.model.SqlServiceDTO;
-import com.LetucOJ.practice.model.SqlVO;
+import com.LetucOJ.practice.model.*;
 import com.LetucOJ.practice.service.DBService;
 import com.LetucOJ.practice.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +25,14 @@ public class PracticeCtrller {
         return practiceService.submitTest(message);
     }
 
-    @PostMapping("/info")
-    public SqlVO getTestCaseAmount(@RequestParam("sql")SqlServiceDTO sql) throws Exception {
-        return dbService.DBServiceSelector(sql);
+    @PostMapping("/basicinfo")
+    public BasicInfoVO getTestCaseAmount(@RequestParam("sql") BasicInfoServiceDTO sql) throws Exception {
+        return dbService.BasicDBServiceSelector(sql);
+    }
+
+    @PostMapping("/fullinfo")
+    public FullInfoVO getTestCaseAmount(@RequestParam("sql") FullInfoServiceDTO sql) throws Exception {
+        return dbService.FullDBServiceSelector(sql);
     }
 
 }
