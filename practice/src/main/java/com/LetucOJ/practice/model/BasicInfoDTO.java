@@ -4,19 +4,19 @@ import lombok.Data;
 
 @Data
 public class BasicInfoDTO {
-    String id;
     String name;
-    long caseAmount;
+    String cnname;
+    Long caseAmount;
 
-    public BasicInfoDTO(String id, String name, long caseAmount) {
-        this.id = id;
+    public BasicInfoDTO(String name, String cnname, long caseAmount) {
         this.name = name;
+        this.cnname = cnname;
         this.caseAmount = caseAmount;
     }
 
     public BasicInfoDTO() {
-        this.id = "";
-        this.name = "";
-        this.caseAmount = 0L;
+        this.name = null;
+        this.cnname = null;
+        this.caseAmount = null;
     }
 }

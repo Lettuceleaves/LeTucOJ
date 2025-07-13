@@ -20,18 +20,19 @@ public class PracticeCtrller {
     @Autowired
     private AdviceClient client;
 
+    @CrossOrigin(origins = "*") // 指定允许的来源
     @PostMapping("/submitTest")
-    public ResultVO submitTest(@RequestParam("code") CodeDTO message) throws Exception {
+    public ResultVO submitTest(@RequestBody CodeDTO message) throws Exception {
         return practiceService.submitTest(message);
     }
-
+    @CrossOrigin(origins = "*") // 指定允许的来源
     @PostMapping("/basicinfo")
-    public BasicInfoVO getTestCaseAmount(@RequestParam("sql") BasicInfoServiceDTO sql) throws Exception {
+    public BasicInfoVO getTestCaseAmount(@RequestBody BasicInfoServiceDTO sql) throws Exception {
         return dbService.BasicDBServiceSelector(sql);
     }
-
+    @CrossOrigin(origins = "*") // 指定允许的来源
     @PostMapping("/fullinfo")
-    public FullInfoVO getTestCaseAmount(@RequestParam("sql") FullInfoServiceDTO sql) throws Exception {
+    public FullInfoVO getTestCaseAmount(@RequestBody FullInfoServiceDTO sql) throws Exception {
         return dbService.FullDBServiceSelector(sql);
     }
 

@@ -6,22 +6,25 @@ import lombok.Data;
 public class FullInfoServiceDTO {
     String type;
     String subType;
-    String id;
+    String name;
+    String cnname;
     Long limit;
     FullInfoDTO data;
 
     public FullInfoServiceDTO() {
-        this.type = "";
-        this.subType = "";
-        this.id = "";
-        this.limit = 0L;
-        this.data = new FullInfoDTO();
+        this.type = null;
+        this.subType = null;
+        this.name = null;
+        this.cnname = null;
+        this.limit = null;
+        this.data = null;
     }
 
-    public FullInfoServiceDTO(String type, String subType, String id, Long limit, FullInfoDTO data) {
+    public FullInfoServiceDTO(String type, String subType, String name, String cnname, Long limit, FullInfoDTO data) {
         this.type = type;
         this.subType = subType;
-        this.id = id;
+        this.name = name;
+        this.cnname = null;
         this.limit = limit;
         this.data = data;
     }

@@ -35,7 +35,7 @@ public class CompileHandler implements Handler {
                 return new ResultVO((byte) 2, null, "Compilation failed" + ": " + errorMessage.trim());
             }
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "Compilation failed: " + e.getMessage());
+            return new ResultVO((byte) 2, null, "Compilation failed: " + e.getMessage());
         }
         return nextHandler.handle(inputFiles, path);
     }

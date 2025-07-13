@@ -1,12 +1,15 @@
 package com.LetucOJ.practice.model;
 
+import lombok.Data;
+
 import java.sql.Date;
 
+@Data
 public class FullInfoDTO {
-        private String id;
         private String name;
-        private int caseAmount;
-        private int difficulty;
+        private String cnname;
+        private Integer caseAmount;
+        private Integer difficulty;
         private String tags;
         private String authors;
         private Date createTime;
@@ -18,26 +21,26 @@ public class FullInfoDTO {
         private Integer showSolution;
 
         public FullInfoDTO() {
-            this.id = "";
-            this.name = "";
-            this.caseAmount = 0;
-            this.difficulty = 0;
-            this.tags = "";
-            this.authors = "";
+            this.name = null;
+            this.cnname = null;
+            this.caseAmount = null;
+            this.difficulty = null;
+            this.tags = null;
+            this.authors = null;
             this.createTime = null;
             this.updateAt = null;
-            this.content = "";
-            this.freq = 0.0f;
-            this.isPublic = 0;
-            this.solution = "";
-            this.showSolution = 0;
+            this.content = null;
+            this.freq = null;
+            this.isPublic = null;
+            this.solution = null;
+            this.showSolution = null;
         }
 
-        public FullInfoDTO(String id, String name, int caseAmount, int difficulty, String tags, String authors,
+        public FullInfoDTO(String name, String cnname, int caseAmount, int difficulty, String tags, String authors,
                            Date createTime, Date updateAt, String content, Float freq, Integer isPublic,
                            String solution, Integer showSolution) {
-            this.id = id;
             this.name = name;
+            this.cnname = cnname;
             this.caseAmount = caseAmount;
             this.difficulty = difficulty;
             this.tags = tags;

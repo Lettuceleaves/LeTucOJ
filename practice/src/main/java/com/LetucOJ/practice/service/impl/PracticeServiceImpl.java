@@ -27,12 +27,12 @@ public class PracticeServiceImpl implements PracticeService {
     @Autowired
     private MybatisRepos mybatisRepos;
 
-    public ResultVO submitTest(CodeDTO messege) throws Exception {
+    public ResultVO submitTest(CodeDTO message) throws Exception {
         List<String> inputs = new ArrayList<>();
-        inputs.add(messege.getCode());
+        inputs.add(message.getCode());
         String[] inputFiles;
         try {
-            FileDTO fileDTO = getFile(messege.getProblemId(), FileDTO.fileType.INPUT);
+            FileDTO fileDTO = getFile(message.getName(), FileDTO.fileType.INPUT);
             if (fileDTO.getStatus() == 1) {
                 return new ResultVO((byte) 5, "TestCase Not Found", null);
             } else if (fileDTO.getStatus() == 2) {
@@ -47,7 +47,7 @@ public class PracticeServiceImpl implements PracticeService {
         List<String> outputs = new ArrayList<>();
         String[] expectedOutputs;
         try {
-            FileDTO outputFileDTO = getFile(messege.getProblemId(), FileDTO.fileType.OUTPUT);
+            FileDTO outputFileDTO = getFile(message.getName(), FileDTO.fileType.OUTPUT);
             if (outputFileDTO.getStatus() == 1) {
                 return new ResultVO((byte) 5, "Output files not found", null);
             } else if (outputFileDTO.getStatus() == 2) {
@@ -58,19 +58,23 @@ public class PracticeServiceImpl implements PracticeService {
         } catch (RuntimeException e) {
             return new ResultVO((byte) 5, "Error retrieving output files: " + e.getMessage(), null);
         }
-        ResultVO runResult = runClient.runTest(inputs);
+        ResultVO runResult = runClient.runTest(inputs); // TODO 写入文档，Windows系统下运行 只能用test
+        System.out.println(runResult.getStatus());
+        if (runResult.getStatus() != 0) {
+            return runResult;
+        }
         CheckDTO checkResult = checkAnswer(expectedOutputs, parseUserAnswer(runResult.getDataAsString()));
         if (checkResult.getStatus() == 0) {
             return new ResultVO((byte) 0, "All test cases passed", null);
         } else if (checkResult.getStatus() == 1) {
             return new ResultVO((byte) 1, checkResult.getMessage(), null);
         } else {
-            return new ResultVO((byte) 3, checkResult.getMessage(), null);
+            return new ResultVO((byte) 5, checkResult.getMessage(), null);
         }
     }
 
     private String[] parseUserAnswer(String userAnswer) {
-        // 用户格式是[a, b, c, ..., d]个字符串，提取出a, b, c, d...放入ans
+        // 用户格式是[a, b, c, ..., d]个字符串，提取出a, b, c, d...放入ans // TODO 检测机制要写入文档
         return userAnswer.replaceAll("[\\[\\]\\s]", "").split(",");
     }
 

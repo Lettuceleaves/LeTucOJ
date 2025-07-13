@@ -40,11 +40,11 @@ public class ExcuteHandler implements Handler {
             for (int i = 1; i < inputFiles.size(); i++) {
                 threads[i].interrupt();
             }
-            return new ResultVO((byte) 0, null, "Execution interrupted");
+            return new ResultVO((byte) 4, null, "Time out and interrupted");
         } else {
             for (int i = 1; i < inputFiles.size(); i++) {
                 if (threads[i].error) {
-                    return new ResultVO((byte) 0, null, "Execution error");
+                    return new ResultVO((byte) 3, null, "Runtime error: " + threads[i].answer);
                 } else {
                     results.add(threads[i].answer);
                 }

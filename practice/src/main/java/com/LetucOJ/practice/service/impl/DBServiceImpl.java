@@ -6,6 +6,8 @@ import com.LetucOJ.practice.service.DBService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class DBServiceImpl implements DBService { // TODO
 
@@ -14,11 +16,11 @@ public class DBServiceImpl implements DBService { // TODO
 
     private BasicInfoVO getBasicInfoSingleCase(BasicInfoServiceDTO dto) {
         try {
-            BasicInfoDTO mybatisResult = mybatisRepos.getBasicInfoSingleCase(dto.getId());
+            BasicInfoDTO mybatisResult = mybatisRepos.getBasicInfoSingleCase(dto.getName());
             if (mybatisResult == null) {
                 return new BasicInfoVO((byte) 0, null, "Problem not found in Mybatis");
             } else {
-                return new BasicInfoVO((byte) 1, mybatisResult, null);
+                return new BasicInfoVO((byte) 1, List.of(new BasicInfoDTO[]{mybatisResult}), null);
             }
         } catch (Exception e) {
             return new BasicInfoVO((byte) 1, null, "Mybatis Error: " + e.getMessage());
@@ -27,7 +29,7 @@ public class DBServiceImpl implements DBService { // TODO
 
     private FullInfoVO getFullInfoSingleCase(FullInfoServiceDTO dto) {
         try {
-            FullInfoDTO mybatisResult = mybatisRepos.getFullInfoSingleCase(dto.getId());
+            FullInfoDTO mybatisResult = mybatisRepos.getFullInfoSingleCase(dto.getName());
             if (mybatisResult == null) {
                 return new FullInfoVO((byte) 0, null, "Problem not found in Mybatis");
             } else {
@@ -72,11 +74,27 @@ public class DBServiceImpl implements DBService { // TODO
 
     private BasicInfoVO deleteProblem(BasicInfoServiceDTO dto) {
         try {
-            Integer mybatisResult = mybatisRepos.deleteProblem(dto.getId());
+            Integer mybatisResult = mybatisRepos.deleteProblem(dto.getName());
             if (mybatisResult == null || mybatisResult < 0) {
                 return new BasicInfoVO((byte) 0, null, "Mybatis return not 1 or is null");
             } else {
                 return new BasicInfoVO((byte) 4, null, null);
+            }
+        } catch (Exception e) {
+            return new BasicInfoVO((byte) 0, null, "Mybatis Error: " + e.getMessage());
+        }
+    }
+
+    private BasicInfoVO getBasicInfoList(BasicInfoServiceDTO dto) {
+        try {
+            if (dto.getStart() == null || dto.getLimit() == null) {
+                return new BasicInfoVO((byte) 0, null, "Start or limit is null");
+            }
+            List<BasicInfoDTO> mybatisResult = mybatisRepos.getBasicInfoList(dto.getStart(), dto.getLimit());
+            if (mybatisResult == null || mybatisResult.isEmpty()) {
+                return new BasicInfoVO((byte) 0, null, "No problems found in Mybatis");
+            } else {
+                return new BasicInfoVO((byte) 1, mybatisResult, null);
             }
         } catch (Exception e) {
             return new BasicInfoVO((byte) 0, null, "Mybatis Error: " + e.getMessage());
@@ -90,6 +108,8 @@ public class DBServiceImpl implements DBService { // TODO
             case "SELECT" -> {
                 if (dto.getSubType().equals("SINGLE_LINE")) {
                     return getBasicInfoSingleCase(dto);
+                } else if (dto.getSubType().equals("LIST")) {
+                    return getBasicInfoList(dto);
                 } else {
                     return new BasicInfoVO((byte) 0, null, "Unsupported command");
                 }

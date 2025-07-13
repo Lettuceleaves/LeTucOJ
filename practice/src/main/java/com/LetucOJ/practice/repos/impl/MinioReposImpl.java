@@ -33,7 +33,7 @@ public class MinioReposImpl implements MinioRepos {
 
         // 检查文件是否存在
         if (checkExistFile(problemId, objectName)) {
-            return null;
+            throw new RuntimeException("File not exist: " + problemId + "/" + objectName);
         }
 
         // 下载文件内容
@@ -44,7 +44,7 @@ public class MinioReposImpl implements MinioRepos {
                         .build())) {
             return new String(inputStream.readAllBytes());
         } catch (Exception e) {
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
@@ -62,11 +62,10 @@ public class MinioReposImpl implements MinioRepos {
             if (e.getMessage().contains("NoSuchKey")) {
                 return true; // 文件不存在
             }
-            e.printStackTrace();
-            return true; // 发生其他错误
+            throw new RuntimeException(e);
         } catch (IOException | NoSuchAlgorithmException | InvalidKeyException e) {
             e.printStackTrace();
-            return true; // 发生其他错误
+            throw new RuntimeException(e);
         }
     }
 

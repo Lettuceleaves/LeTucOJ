@@ -20,6 +20,6 @@ public class RunCtrller {
 
     @PostMapping("/runTestFeign")
     public ResultVO runTest(@RequestBody List<String> files) throws Exception {
-        return runService.runTest(files, true);
+        return runService.run(files, true);
     }
 }

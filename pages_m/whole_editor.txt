@@ -1,0 +1,310 @@
+<template>
+  <div class="online-editor">
+    <!-- 标题栏 -->
+    <div class="title-bar">
+      <div class="title-item" :class="{ active: activeTab === 'description' }" @click="activeTab = 'description'">描述</div>
+      <div class="title-item" :class="{ active: activeTab === 'question' }" @click="activeTab = 'question'">答题</div>
+      <div class="title-item" :class="{ active: activeTab === 'solution' }" @click="activeTab = 'solution'">题解</div>
+      <div class="title-item" :class="{ active: activeTab === 'result' }" @click="activeTab = 'result'">结果</div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="content">
+      <!-- 答题 -->
+      <div v-if="activeTab === 'question'" class="question-panel">
+        <div :style="{ height: 'calc(100vh - 60px)', width: '99%' }">
+          <MonacoEditor
+            v-if="editorReady"
+            ref="editorRef"
+            language="javascript"
+            height="100%"
+            :options="{ automaticLayout: true }"
+          />
+        </div>
+
+        <div class="floating-buttons">
+          <button @click="goToLogin">退出</button>
+          <button @click="submitCode">提交</button>
+          <button @click="checkCode">检测</button>
+        </div>
+      </div>
+
+      <!-- 描述 -->
+      <div v-else-if="activeTab === 'description'" class="desc-panel card">
+        <h3 class="title">{{ problemData.cnname }}（{{ problemData.name }}）</h3>
+        <p><strong>测试点数量：</strong>{{ problemData.caseAmount }}</p>
+        <p><strong>题目描述：</strong></p>
+        <p class="paragraph">{{ problemData.content || '暂无描述' }}</p>
+      </div>
+
+      <!-- 题解 -->
+      <div v-else-if="activeTab === 'solution'" class="card">
+        <h3 class="title">题解</h3>
+        <p class="paragraph">{{ solutionContent }}</p>
+      </div>
+
+      <!-- 运行结果 -->
+      <div v-else-if="activeTab === 'result'" class="card">
+        <h3 class="title">运行结果</h3>
+        <div :class="['result-box', resultStatusClass]">
+          <p><strong>状态码：</strong>{{ resultData.status }}</p>
+          <p><strong>输出信息：</strong>{{ resultData.dataAsString || resultData.data || '无输出' }}</p>
+          <p v-if="resultData.error"><strong>错误信息：</strong>{{ resultData.error }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import MonacoEditor from 'monaco-editor-vue3';
+
+// Props
+const props = defineProps({ name: { type: String, required: true } });
+const name = props.name;
+
+// 路由 & 编辑器
+const router = useRouter();
+const activeTab = ref('description');
+const editorReady = ref(false);
+const editorRef = ref(null);
+const inputValue = ref('');
+
+// 状态数据
+const result = ref(null);
+const resultData = computed(() => result.value || { status: -1 });
+const resultStatusClass = computed(() => {
+  switch (resultData.value.status) {
+    case 0: return 'result-success';
+    case 1: return 'result-fail';
+    case 2: return 'result-warning';
+    default: return 'result-unknown';
+  }
+});
+
+const solutionContent = ref('');
+const problemData = ref({});
+
+// 提交或检测代码
+const sendCode = async (action) => {
+  const code = editorRef.value.editor.getValue();
+  if (!code) return alert('无法获取代码内容');
+  activeTab.value = 'result';
+
+  try {
+    const response = await fetch('http://127.0.0.1:2222/practice/submitTest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ service: 0, code, name }),
+    });
+
+    const resultData = await response.json();
+    result.value = {
+      status: resultData.status,
+      data: resultData.data,
+      dataAsString: resultData.dataAsString,
+      error: resultData.error || null,
+    };
+  } catch (error) {
+    result.value = {
+      status: -1,
+      data: null,
+      dataAsString: null,
+      error: error.message || '未知错误',
+    };
+  }
+};
+
+const submitCode = () => sendCode('提交');
+const checkCode = () => sendCode('检测');
+const goToLogin = () => router.push('/login');
+
+// 获取题目信息
+const fetchDataOnRefresh = async () => {
+  try {
+    const response = await fetch('http://127.0.0.1:2222/practice/fullinfo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'SELECT',
+        subType: 'SINGLE_LINE',
+        name,
+        limit: 1,
+        data: {},
+      }),
+    });
+
+    if (!response.ok) throw new Error(`请求失败，状态码：${response.status}`);
+    const data = await response.json();
+    const problem = data.data || {};
+    problemData.value = problem;
+    solutionContent.value = problem.solution || '暂无题解';
+  } catch (error) {
+    alert(`获取失败：${error.message}`);
+    solutionContent.value = '加载题解失败';
+  }
+};
+
+// 键盘监听保存代码
+function handleKeydown(event) {
+  const key = event.key;
+  const lastChar = inputValue.value.slice(-1);
+  if (key === ' ' || key === 'Enter' || lastChar === 'x') {
+    if (editorRef.value?.editor) {
+      localStorage.setItem('userCode', editorRef.value.editor.getValue());
+    }
+  }
+}
+
+// 生命周期钩子
+onMounted(() => {
+  editorReady.value = true;
+  window.addEventListener('keydown', handleKeydown);
+
+  setTimeout(() => {
+    const saved = localStorage.getItem('userCode') || '';
+    editorRef.value?.editor?.setValue(saved);
+  }, 100);
+
+  fetchDataOnRefresh();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
+
+watch(activeTab, (newVal) => {
+  if (newVal === 'question') {
+    setTimeout(() => {
+      const saved = localStorage.getItem('userCode') || '';
+      editorRef.value?.editor?.setValue(saved);
+    }, 100);
+  }
+});
+</script>
+
+<style>
+.online-editor {
+  height: 100vh;
+  width: 100vw;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  --editor-background-color: #1e1e1e;
+}
+
+.title-bar {
+  display: flex;
+  justify-content: space-around;
+  background-color: #f5f5f5;
+  padding: 10px 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.title-item {
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.title-item.active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.title-item:hover {
+  background-color: #e0e0e0;
+}
+
+.content {
+  padding: 0px;
+  height: auto;
+  overflow-y: auto;
+}
+
+.floating-buttons {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+}
+
+.floating-buttons button {
+  padding: 8px 12px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.floating-buttons button:hover {
+  background-color: #2563eb;
+}
+
+.card {
+  background: #ffffff;
+  margin: 20px auto;
+  padding: 24px;
+  max-width: 900px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #1f2937;
+}
+
+.paragraph {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #374151;
+  white-space: pre-wrap;
+}
+
+.result-box {
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #1f2937;
+  white-space: pre-wrap;
+  margin-top: 10px;
+}
+
+.result-success {
+  background-color: #e6ffed;
+  border: 1px solid #34d399;
+}
+
+.result-fail {
+  background-color: #ffe4e6;
+  border: 1px solid #f87171;
+}
+
+.result-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fbbf24;
+}
+
+.result-unknown {
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+}
+</style>

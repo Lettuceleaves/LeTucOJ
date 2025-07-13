@@ -35,24 +35,4 @@ public class RunServiceImpl implements RunService {
         return ans;
 
     }
-
-    @Override
-    public ResultVO runTest(List<String> inputFiles, boolean test) throws Exception {
-
-
-        Handler fileWriteHandler = new FileWriteHandler();
-        Handler compileHandler = new CompileHandler();
-        Handler excuteHandler = new ExcuteHandler();
-
-        fileWriteHandler.setNextHandler(compileHandler);
-        compileHandler.setNextHandler(excuteHandler);
-
-        path path = new path();
-        path.pathInit(test);
-
-        ResultVO ans = fileWriteHandler.handle(inputFiles, path);
-        String ansTest = ans.getDataAsString();
-        return new ResultVO((byte) 0, ansTest, null);
-
-    }
 }

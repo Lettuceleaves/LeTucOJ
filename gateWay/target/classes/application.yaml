@@ -23,6 +23,7 @@ spring:
 auth:
   service:
     url: http://localhost:5555
+    on: false
 
 
 logging:

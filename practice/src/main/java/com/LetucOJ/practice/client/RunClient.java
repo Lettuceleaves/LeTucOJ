@@ -13,7 +13,7 @@ import java.util.List;
 public interface RunClient {
 
     @PostMapping("/runFeign")
-    ResultVO run(@RequestBody List<byte[]> files) throws Exception;
+    ResultVO run(@RequestBody List<String> files) throws Exception;
 
     @PostMapping("/runTestFeign")
     ResultVO runTest(@RequestBody List<String> files) throws Exception;
