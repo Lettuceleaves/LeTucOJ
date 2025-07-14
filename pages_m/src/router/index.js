@@ -4,7 +4,7 @@ import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import Editor from '../views/Editor.vue';
 import ProblemForm from '../views/ProblemForm.vue';
-import 'codemirror';
+import DocPage from '@/views/DocPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,6 +39,11 @@ const router = createRouter({
       path: '/problem-form',
       name: 'problem-form',
       component: ProblemForm,
+    },
+    { 
+      path: '/docs',
+      name: 'docs',
+      component: DocPage 
     }
   ],
 })

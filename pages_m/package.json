@@ -10,6 +10,7 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },
+
   "dependencies": {
     "axios": "^1.10.0",
     "codemirror": "^5.65.19",
@@ -30,6 +31,8 @@
     "globals": "^16.2.0",
     "prettier": "3.5.3",
     "vite": "^6.3.5",
-    "vite-plugin-vue-devtools": "^7.7.7"
+    "vite-plugin-vue-devtools": "^7.7.7",
+    "vuepress": "^2.0.0-rc.24"
   }
+
 }
