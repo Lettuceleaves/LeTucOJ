@@ -1,7 +1,9 @@
 package com.LetucOJ.practice.service.impl;
 
 import com.LetucOJ.practice.model.*;
+import com.LetucOJ.practice.repos.MinioRepos;
 import com.LetucOJ.practice.repos.MybatisRepos;
+import com.LetucOJ.practice.repos.impl.MinioReposImpl;
 import com.LetucOJ.practice.service.DBService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,8 @@ public class DBServiceImpl implements DBService { // TODO
 
     @Autowired
     private MybatisRepos mybatisRepos;
+    @Autowired
+    private MinioRepos minioRepos;
 
     private BasicInfoVO getBasicInfoSingleCase(BasicInfoServiceDTO dto) {
         try {
@@ -45,6 +49,11 @@ public class DBServiceImpl implements DBService { // TODO
             if (dto.getData() == null) {
                 return new FullInfoVO();
             }
+            String init = minioRepos.initProblem(dto.getData().getName());
+            if (init == null) {
+                return new FullInfoVO((byte) 0, null, "Minio init failed");
+            }
+
             Integer mybatisResult = mybatisRepos.insertProblem(dto.getData());
             if (mybatisResult == null || mybatisResult != 1) {
                 return new FullInfoVO((byte) 0, null, "Mybatis return not 1 or is null");

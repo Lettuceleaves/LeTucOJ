@@ -13,7 +13,10 @@ import java.util.List;
 public interface MybatisRepos {
 
     @Select("SELECT caseAmount FROM problem WHERE name = #{name}")
-    Integer getProblemCaseNum(String name);
+    Integer getCaseAmount(String name);
+
+    @Update("UPDATE problem SET caseAmount = caseAmount + 1 WHERE name = #{name}")
+    Integer incrementCaseAmount(String name);
 
     @Select("Select name, cnname, caseAmount from problem WHERE name = #{name}")
     BasicInfoDTO getBasicInfoSingleCase(String name);

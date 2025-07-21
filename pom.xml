@@ -28,11 +28,11 @@
 
     <modules>
         <module>contest</module>
-        <module>gateWay</module>
+        <module>gateway</module>
         <module>run</module>
         <module>practice</module>
         <module>advice</module>
-        <module>auth</module>
+        <module>user</module>
     </modules>
 
     <properties>
@@ -228,15 +228,33 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
                     <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
                             </path>
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
+
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
             </plugins>
         </pluginManagement>
     </build>

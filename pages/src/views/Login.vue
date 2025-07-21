@@ -16,62 +16,41 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, getCurrentInstance  } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 const username = ref('');
 const password = ref('');
+const router = useRouter();
+
+const instance = getCurrentInstance()
+const ip = instance.appContext.config.globalProperties.$ip
 
 const login = async () => {
-
-  if (username.value === 'letuc') {
-    // 直接模拟登录成功，跳转到 localhost:81
-    localStorage.setItem('jwt', 'mock-token'); // 存储一个模拟的 JWT
-    window.location.href = '/editor';
-    return;
-  }
-
-  // 正则表达式验证用户名和密码
-  const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/; // 用户名：3-20位，允许字母、数字和下划线
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,20}$/; // 密码：6-20位，至少包含一个字母和一个数字
-
-  if (!usernameRegex.test(username.value)) {
-    alert('用户名格式不正确（3-20位，允许字母、数字和下划线）');
-    return;
-  }
-
-  if (!passwordRegex.test(password.value)) {
-    alert('密码格式不正确（6-20位，至少包含一个字母和一个数字）');
-    return;
-  }
-
   try {
-    // 发送请求到后端
-    const response = await axios.post('http://localhost:80/login', {
+    const response = await axios.post(`http://${ip}:7777/user/login`, {
       username: username.value,
       password: password.value,
     });
 
-    // 检查是否返回了 JWT
     if (response.data && response.data.token) {
-      // 保存 JWT 到 localStorage 或 Vuex
+      // 存储 token
       localStorage.setItem('jwt', response.data.token);
-
-      // 跳转到 localhost:81
-      window.location.href = 'http://localhost:81';
+      // 角色等信息如果后端没返回，可以省略
+      router.push('/list');
     } else {
-      // 如果没有返回 JWT，显示错误信息
-      alert('登录失败：' + response.data.message);
+      alert('登录失败：后端未返回 token');
     }
   } catch (error) {
-    // 捕获请求错误
     if (error.response && error.response.data) {
-      alert('登录失败：' + error.response.data.message);
+      alert('登录失败：' + (error.response.data.error || '未知错误'));
     } else {
       alert('登录失败：网络错误或服务器未响应');
     }
   }
 };
+
 </script>
 
 <style scoped>

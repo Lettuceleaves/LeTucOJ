@@ -3,36 +3,26 @@ server:
 
 spring:
   application:
-    name: gateWay
+    name: gateway
   cloud:
     gateway:
       routes:
-        - id: auth
-          uri: http://localhost:5555
+        - id: user
+          uri: http://user:5555
           predicates:
-            - Path=/auth/**
+            - Path=/user/**
         - id: contest
-          uri: http://localhost:1234
+          uri: http://contest:1234
           predicates:
             - Path=/contest/**
         - id: practice
-          uri: http://localhost:2222
+          uri: http://practice:2222
           predicates:
             - Path=/practice/**
 
 auth:
   service:
-    url: http://localhost:5555
+    url: http://user:5555
     on: false
-
-
-logging:
-  level:
-    root: INFO
-    org.springframework: DEBUG
-    org.springframework.security: DEBUG
-    com.zaxxer.hikari: DEBUG
-    org.mybatis: DEBUG
-    com.OMS.user_service.client: DEBUG
 
 

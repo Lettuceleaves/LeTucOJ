@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@FeignClient(name = "run", url = "localhost:1001")
+@FeignClient(name = "run", url = "run:1001")
 @RestController
 public interface RunClient {
 
     @PostMapping("/runFeign")
-    ResultVO run(@RequestBody List<String> files) throws Exception;
+    ResultVO run(@RequestBody List<String> files);
 
     @PostMapping("/runTestFeign")
-    ResultVO runTest(@RequestBody List<String> files) throws Exception;
+    ResultVO runTest(@RequestBody List<String> files);
 
 }

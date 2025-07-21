@@ -3,11 +3,13 @@ package com.LetucOJ.run.service.impl.handler;
 import com.LetucOJ.run.model.vo.ResultVO;
 import com.LetucOJ.run.service.Handler;
 import com.LetucOJ.run.service.impl.ThreadForSingleCase;
-import com.LetucOJ.run.tool.path;
+import com.LetucOJ.run.tool.RunPath;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
+
+import static java.lang.Thread.sleep;
 
 public class ExcuteHandler implements Handler {
     Handler nextHandler;
@@ -18,13 +20,13 @@ public class ExcuteHandler implements Handler {
     }
 
     @Override
-    public ResultVO handle(List<String> inputFiles, path path) {
+    public ResultVO handle(List<String> inputFiles) {
         ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 10, 0L, java.util.concurrent.TimeUnit.MILLISECONDS, new java.util.concurrent.LinkedBlockingQueue<>());
         ThreadForSingleCase[] threads = new ThreadForSingleCase[inputFiles.size()];
         CountDownLatch latch = new CountDownLatch(inputFiles.size() - 1);
 
         for (int i = 1; i < inputFiles.size(); i++) {
-            threads[i] = new ThreadForSingleCase(path, i, latch);
+            threads[i] = new ThreadForSingleCase(i, latch);
             executor.execute(threads[i]);
         }
         // 等待所有线程执行完成

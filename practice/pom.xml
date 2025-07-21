@@ -42,13 +42,6 @@
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
 
-        <!-- redis -->
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-
         <!-- mysql -->
 
         <dependency>
@@ -115,22 +108,16 @@
 
     <build>
         <plugins>
-
-            <!-- Spring Boot Maven Plugin -->
-
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-
-            <!-- Lombok Plugin -->
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
-
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
+
 
 </project>

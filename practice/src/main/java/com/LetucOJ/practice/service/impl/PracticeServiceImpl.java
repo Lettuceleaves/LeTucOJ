@@ -1,14 +1,12 @@
 package com.LetucOJ.practice.service.impl;
 
 import com.LetucOJ.practice.client.RunClient;
-import com.LetucOJ.practice.model.CheckDTO;
-import com.LetucOJ.practice.model.CodeDTO;
-import com.LetucOJ.practice.model.FileDTO;
-import com.LetucOJ.practice.model.ResultVO;
+import com.LetucOJ.practice.model.*;
 import com.LetucOJ.practice.repos.MinioRepos;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -96,7 +94,7 @@ public class PracticeServiceImpl implements PracticeService {
 
         Integer numTestCases;
         try {
-            numTestCases = mybatisRepos.getProblemCaseNum(problemId);
+            numTestCases = mybatisRepos.getCaseAmount(problemId);
             if (numTestCases == null || numTestCases <= 0) {
                 fileDTO.setStatus((byte) 1);
                 return fileDTO;
@@ -135,10 +133,40 @@ public class PracticeServiceImpl implements PracticeService {
     public ResultVO getProblemCaseAmount(String problemId) {
         Integer result;
         try {
-            result = mybatisRepos.getProblemCaseNum(problemId);
+            result = mybatisRepos.getCaseAmount(problemId);
         } catch (Exception e) {
             return new ResultVO((byte) 5, null, "Error retrieving test case amount: " + e.getMessage());
         }
         return new ResultVO((byte) 0, result, null);
+    }
+
+    public ResultVO getCase(CaseInputDTO caseInputDTO) {
+        List<String> inputs = new ArrayList<>();
+        inputs.add(caseInputDTO.getCode());
+        inputs.add(caseInputDTO.getInput());
+        return runClient.runTest(inputs);
+    }
+
+    public ResultVO submitCase(CasePairDTO casePairDTO) {
+        String problemId = casePairDTO.getProblemId();
+        String input = casePairDTO.getInput();
+        String output = casePairDTO.getOutput();
+        try {
+            // 检查输入输出是否存在
+            if (input == null || output == null) {
+                return new ResultVO((byte) 5, "Input or output cannot be null", null);
+            }
+            Integer result = mybatisRepos.incrementCaseAmount(problemId);
+            if (result == null || result <= 0) {
+                return new ResultVO((byte) 5, "Error incrementing case amount", null);
+            }
+            String inputFile = minioRepos.addFilePair(problemId, result, input, output);
+            if (inputFile == null) {
+                return new ResultVO((byte) 5, "Error adding file pair", null);
+            }
+            return new ResultVO((byte) 0, "Test case submitted successfully", null);
+        } catch (Exception e) {
+            return new ResultVO((byte) 5, "Error submitting test case: " + e.getMessage(), null);
+        }
     }
 }

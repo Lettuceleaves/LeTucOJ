@@ -10,9 +10,9 @@ public class MinioConfig {
     @Bean
     public MinioClient minioClient() {
         // 替换为你的MinIO服务器地址、访问密钥和秘密密钥
-        String endpoint = "http://127.0.0.1:9005";
-        String accessKey = "xwfjM0h8kJpcfTTwQUcE";
-        String secretKey = "kDJB1yQSuMYVLbpC9ez1KsFTGr5nJMscUp8diIwy";
+        String endpoint = "http://minio:9000";
+        String accessKey = "ROOTUSER";
+        String secretKey = "LETUC0J123";
 
         return MinioClient.builder()
                 .endpoint(endpoint)

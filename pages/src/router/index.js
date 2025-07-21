@@ -1,12 +1,13 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory  } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import Editor from '../views/Editor.vue';
-import 'codemirror';
+import ProblemForm from '../views/ProblemForm.vue';
+import DocPage from '@/views/DocPage.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory (),
   routes: [
     {
       path: '/',
@@ -24,9 +25,25 @@ const router = createRouter({
       component: Register,
     },
     {
-      path: '/editor',
+      path: '/editor/:name',
       name: 'Editor',
       component: Editor,
+      props: true // ✅ 让 name 参数传给组件
+    },
+    {
+      path: '/list',
+      name: 'List',
+      component: () => import('../views/List.vue'),
+    },
+    {
+      path: '/problem-form',
+      name: 'problem-form',
+      component: ProblemForm,
+    },
+    { 
+      path: '/docs',
+      name: 'docs',
+      component: DocPage 
     }
   ],
 })

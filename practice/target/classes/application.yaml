@@ -8,8 +8,8 @@ spring:
   application:
     name: practice
   datasource:
-    url: jdbc:mysql://localhost:3306/practice?useSSL=false&serverTimezone=UTC
-    username: root
+    url: jdbc:mysql://mysql:3306/letucoj?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: letuc
     password: 430103535
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
@@ -26,7 +26,3 @@ mybatis-plus:
   type-aliases-package: com.OMS.user_service.repository
   configuration:
     map-underscore-to-camel-case: true
-
-docker:
-  host: tcp://192.168.1.17:2375
-  api-version: 1.41

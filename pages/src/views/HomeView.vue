@@ -72,9 +72,7 @@ onMounted(() => {
       <router-link to="/login" class="login-button">登录</router-link>
     </div>
 
-    <div class="doc-link">
-      <a href="https://example.com/docs" target="_blank">文档</a>
-    </div>
+    <router-link to="/docs" class="doc-link">文档</router-link>
     
     <div class="text-terminal">
       <div
@@ -187,9 +185,6 @@ onMounted(() => {
   top: 0.5rem;
   right: 2.0rem;
   z-index: 10;
-}
-
-.doc-link a {
   display: inline-block;
   padding: 0.8rem 1.5rem;
   background-color: rgb(12, 69, 40);
@@ -201,8 +196,9 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-.doc-link a:hover {
+.doc-link:hover {
   background-color: #f0f0f0;
+  color: black;
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(255, 255, 255, 0.4);
 }

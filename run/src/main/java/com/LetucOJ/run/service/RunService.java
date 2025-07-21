@@ -5,5 +5,5 @@ import com.LetucOJ.run.model.vo.ResultVO;
 import java.util.List;
 
 public interface RunService {
-     ResultVO run(List<String> inputFiles, boolean test) throws Exception;
+     ResultVO run(List<String> inputFiles);
 }

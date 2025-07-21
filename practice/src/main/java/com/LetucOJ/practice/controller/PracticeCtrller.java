@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/practice")
+@CrossOrigin(origins = "*")
 public class PracticeCtrller {
 
     @Autowired
@@ -20,20 +21,34 @@ public class PracticeCtrller {
     @Autowired
     private AdviceClient client;
 
-    @CrossOrigin(origins = "*") // 指定允许的来源
+    @PostMapping("/hello")
+    public String hello() {
+        return "Hello, this is the Run Service!";
+    }
+
     @PostMapping("/submitTest")
     public ResultVO submitTest(@RequestBody CodeDTO message) throws Exception {
         return practiceService.submitTest(message);
     }
-    @CrossOrigin(origins = "*") // 指定允许的来源
+
     @PostMapping("/basicinfo")
     public BasicInfoVO getTestCaseAmount(@RequestBody BasicInfoServiceDTO sql) throws Exception {
         return dbService.BasicDBServiceSelector(sql);
     }
-    @CrossOrigin(origins = "*") // 指定允许的来源
+
     @PostMapping("/fullinfo")
     public FullInfoVO getTestCaseAmount(@RequestBody FullInfoServiceDTO sql) throws Exception {
         return dbService.FullDBServiceSelector(sql);
+    }
+
+    @PostMapping("/getCase")
+    public ResultVO getCase(@RequestBody CaseInputDTO caseInputDTO) {
+        return practiceService.getCase(caseInputDTO);
+    }
+
+    @PostMapping("/submitCase")
+    public ResultVO submitCase(@RequestBody CasePairDTO casePairDTO) {
+        return practiceService.submitCase(casePairDTO);
     }
 
 }

@@ -7,7 +7,7 @@ import com.LetucOJ.run.service.impl.handler.ExcuteHandler;
 import com.LetucOJ.run.service.impl.handler.FileWriteHandler;
 import com.LetucOJ.run.service.RunService;
 import org.springframework.stereotype.Service;
-import com.LetucOJ.run.tool.path;
+import com.LetucOJ.run.tool.RunPath;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import static java.lang.Thread.sleep;
 public class RunServiceImpl implements RunService {
 
     @Override
-    public ResultVO run(List<String> inputFiles, boolean test) throws Exception {
+    public ResultVO run(List<String> inputFiles) {
 
 
         Handler fileWriteHandler = new FileWriteHandler();
@@ -27,10 +27,9 @@ public class RunServiceImpl implements RunService {
         fileWriteHandler.setNextHandler(compileHandler);
         compileHandler.setNextHandler(excuteHandler);
 
-        path path = new path();
-        path.pathInit(test);
+        RunPath.pathInit();
 
-        ResultVO ans = fileWriteHandler.handle(inputFiles, path);
+        ResultVO ans = fileWriteHandler.handle(inputFiles);
         System.out.println(ans);
         return ans;
 

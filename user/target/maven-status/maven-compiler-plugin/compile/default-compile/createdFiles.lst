@@ -1,0 +1,10 @@
+com\LetucOJ\auth\AuthApplication.class
+com\LetucOJ\auth\model\ResultVO.class
+com\LetucOJ\auth\service\UserService.class
+com\LetucOJ\auth\config\SecurityConfig.class
+com\LetucOJ\auth\model\UserDTO.class
+com\LetucOJ\auth\model\RegisterRequestDTO.class
+com\LetucOJ\auth\repos\UserMybatisRepos.class
+com\LetucOJ\auth\model\JwtInfoVO.class
+com\LetucOJ\auth\service\impl\UserServiceImpl.class
+com\LetucOJ\auth\controller\UserController.class

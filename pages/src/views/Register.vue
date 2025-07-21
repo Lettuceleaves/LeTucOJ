@@ -1,119 +1,85 @@
 <template>
-  <main class="register-container">
-    <h1>注册</h1>
+  <div class="register-container">
+    <h2>注册</h2>
     <form @submit.prevent="register">
       <div>
-        <label for="username">用户名：</label>
-        <input type="text" id="username" v-model="username" required />
+        <label>用户名：</label>
+        <input v-model="username" type="text" />
       </div>
       <div>
-        <label for="password">密码：</label>
-        <input type="password" id="password" v-model="password" required />
+        <label>密码：</label>
+        <input v-model="password" type="password" />
       </div>
       <div>
-        <label for="confirm-password">确认密码：</label>
-        <input type="password" id="confirm-password" v-model="confirmPassword" required />
+        <label>确认密码：</label>
+        <input v-model="confirmPassword" type="password" />
       </div>
       <button type="submit">注册</button>
     </form>
-  </main>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
+import { ref, getCurrentInstance  } from 'vue'
+import axios from 'axios'
 
-const username = ref('');
-const password = ref('');
-const confirmPassword = ref('');
+const username = ref('')
+const password = ref('')
+const confirmPassword = ref('')
 
+const instance = getCurrentInstance()
+const ip = instance.appContext.config.globalProperties.$ip
+
+// 注册方法
 const register = async () => {
-  // 正则验证用户名
-  const usernameRegex = /^[a-zA-Z0-9_]{5,20}$/;
+  const usernameRegex = /^[a-zA-Z0-9_]{5,20}$/
   if (!usernameRegex.test(username.value)) {
-    alert('用户名格式不正确：5-20 个字符，只能包含字母、数字和下划线');
-    return;
+    alert('用户名格式不正确：5-20 个字符，只能包含字母、数字和下划线')
+    return
   }
 
-  // 正则验证密码
-  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,20}$/
   if (!passwordRegex.test(password.value)) {
-    alert('密码格式不正确：8-20 个字符，至少包含一个字母、一个数字和一个特殊字符');
-    return;
+    alert('密码格式不正确：8-20 个字符，需包含大写字母、小写字母、数字和特殊字符')
+    return
   }
 
-  // 确认密码是否一致
   if (password.value !== confirmPassword.value) {
-    alert('两次输入的密码不一致');
-    return;
+    alert('两次输入的密码不一致')
+    return
   }
 
   try {
-    // 发送注册请求到后端
-    const response = await axios.post('http://localhost:80/register', {
+    const response = await axios.post(`http://${ip}:7777/user/register`, {
       username: username.value,
-      password: password.value,
-    });
+      password: password.value
+    })
 
-    // 根据后端返回的结果处理
-    if (response.data && response.data.success) {
-      alert('注册成功！');
-      // 可以跳转到登录页面或其他页面
-      window.location.href = '/login';
+    const res = response.data
+
+    if (res.status === 0) {
+      alert('注册成功！')
+      window.location.href = '/login'
     } else {
-      alert('注册失败：' + response.data.message);
+      alert('注册失败：' + (res.error || '未知错误'))
     }
   } catch (error) {
-    if (error.response && error.response.data) {
-      alert('注册失败：' + error.response.data.message);
-    } else {
-      alert('注册失败：网络错误或服务器未响应');
-    }
+    alert('请求失败：' + (error.response?.data?.error || error.message || '网络错误'))
   }
-};
+}
 </script>
 
 <style scoped>
 .register-container {
-  max-width: 400px;
-  margin: 50px auto;
+  width: 300px;
+  margin: auto;
   padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
-
-.register-container h1 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.register-container form div {
-  margin-bottom: 10px;
-}
-
-.register-container label {
+label {
   display: block;
-  margin-bottom: 5px;
+  margin-top: 10px;
 }
-
-.register-container input {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-.register-container button {
-  width: 100%;
-  padding: 10px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.register-container button:hover {
-  background-color: #218838;
+button {
+  margin-top: 15px;
 }
 </style>

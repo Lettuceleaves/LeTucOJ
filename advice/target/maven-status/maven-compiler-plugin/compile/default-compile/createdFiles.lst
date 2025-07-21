@@ -1,5 +1,5 @@
-com\OMS\advice\AdviceApplication.class
-com\OMS\advice\service\impl\adviceServiceImpl.class
-com\OMS\advice\config\configApplication.class
-com\OMS\advice\controller\controllerApplication.class
-com\OMS\advice\service\adviceService.class
+com\LetucOJ\advice\service\impl\adviceServiceImpl.class
+com\LetucOJ\advice\AdviceApplication.class
+com\LetucOJ\advice\config\configApplication.class
+com\LetucOJ\advice\controller\controllerApplication.class
+com\LetucOJ\advice\service\adviceService.class

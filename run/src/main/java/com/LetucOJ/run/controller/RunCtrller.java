@@ -14,12 +14,12 @@ public class RunCtrller {
     RunService runService;
 
     @PostMapping("/runFeign")
-    public ResultVO run(@RequestBody List<String> files) throws Exception {
-        return runService.run(files, false);
+    public ResultVO run(@RequestBody List<String> files) {
+        return runService.run(files);
     }
 
     @PostMapping("/runTestFeign")
-    public ResultVO runTest(@RequestBody List<String> files) throws Exception {
-        return runService.run(files, true);
+    public ResultVO runTest(@RequestBody List<String> files) {
+        return runService.run(files);
     }
 }
