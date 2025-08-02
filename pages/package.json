@@ -10,12 +10,14 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },
-
   "dependencies": {
     "axios": "^1.10.0",
     "codemirror": "^5.65.19",
+    "dompurify": "^3.2.6",
     "element-plus": "^2.10.4",
-    "marked": "^16.0.0",
+    "github-markdown-css": "^5.8.1",
+    "highlight.js": "^11.11.1",
+    "marked": "^16.1.1",
     "monaco-editor": "^0.52.2",
     "monaco-editor-vue3": "^0.1.10",
     "pinia": "^3.0.3",
@@ -34,5 +36,4 @@
     "vite-plugin-vue-devtools": "^7.7.7",
     "vuepress": "^2.0.0-rc.24"
   }
-
 }

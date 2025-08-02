@@ -29,6 +29,7 @@ const ip = instance.appContext.config.globalProperties.$ip
 
 const login = async () => {
   try {
+    const token = localStorage.getItem('jwt')
     const response = await axios.post(`http://${ip}:7777/user/login`, {
       username: username.value,
       password: password.value,

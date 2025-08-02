@@ -14,8 +14,4 @@ public interface RunClient {
 
     @PostMapping("/runFeign")
     ResultVO run(@RequestBody List<String> files);
-
-    @PostMapping("/runTestFeign")
-    ResultVO runTest(@RequestBody List<String> files);
-
 }

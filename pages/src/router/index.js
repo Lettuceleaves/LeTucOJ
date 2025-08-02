@@ -36,8 +36,8 @@ const router = createRouter({
       component: () => import('../views/List.vue'),
     },
     {
-      path: '/problem-form',
-      name: 'problem-form',
+      path: '/form',
+      name: 'form',
       component: ProblemForm,
     },
     { 

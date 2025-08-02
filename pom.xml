@@ -3,9 +3,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.oms</groupId>
-    <artifactId>OMS2.0</artifactId>
+    <artifactId>LetucOJ</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>OMS2.0</name>
+    <packaging>pom</packaging>
+
     <dependencies>
         <dependency>
             <groupId>io.kubernetes</groupId>
@@ -33,6 +35,7 @@
         <module>practice</module>
         <module>advice</module>
         <module>user</module>
+        <module>sys</module>
     </modules>
 
     <properties>
@@ -57,9 +60,8 @@
         <hibernate-entity-manager.version>5.4.32.Final</hibernate-entity-manager.version>
         <spring-cloud-openfeign.version>4.1.1</spring-cloud-openfeign.version>
         <docker.version>3.2.13</docker.version>
+        <spring-boot.version>3.3.0</spring-boot.version>
     </properties>
-
-    <packaging>pom</packaging>
 
     <dependencyManagement>
         <dependencies>
@@ -153,6 +155,14 @@
                 <groupId>org.mybatis.spring.boot</groupId>
                 <artifactId>mybatis-spring-boot-starter</artifactId>
                 <version>${mybatis-starter.version}</version>
+            </dependency>
+
+            <!-- redis -->
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-redis</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
 
             <!-- minio -->

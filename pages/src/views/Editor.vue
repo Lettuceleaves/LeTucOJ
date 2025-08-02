@@ -6,6 +6,7 @@
       <div class="title-item" :class="{ active: activeTab === 'question' }" @click="activeTab = 'question'">答题</div>
       <div class="title-item" :class="{ active: activeTab === 'solution' }" @click="activeTab = 'solution'">题解</div>
       <div class="title-item" :class="{ active: activeTab === 'result' }" @click="activeTab = 'result'">结果</div>
+      <div class="title-item" :class="{ active: activeTab === 'ai' }" @click="activeTab = 'ai'">AI</div>
     </div>
 
     <!-- 内容区域 -->
@@ -15,12 +16,13 @@
         v-show="activeTab === 'question'"
         :editorReady="editorReady"
         @exit="goToLogin"
-        @submit="submitCode"
+        @submit="handleSubmit"
         @check="checkCode"
         ref="questionPageRef"
       />
       <SolutionPage v-show="activeTab === 'solution'" :solution="solutionContent" />
       <ResultPage v-show="activeTab === 'result'" :result="resultData" />
+      <AiChat v-show="activeTab === 'ai'" ref="aiChatRef" />
     </div>
   </div>
 </template>
@@ -33,50 +35,101 @@ import DescriptionPage from './EditorPages/DescriptionPage.vue'
 import QuestionPage from './EditorPages/QuestionPage.vue'
 import SolutionPage from './EditorPages/SolutionPage.vue'
 import ResultPage from './EditorPages/ResultPage.vue'
+import AiChat from './EditorPages/AiChat.vue'
 
 const router = useRouter()
 const props = defineProps({ name: { type: String, required: true } })
 const name = props.name
-
-const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip
 
 const activeTab = ref('description')
 const editorReady = ref(false)
 const result = ref(null)
 const solutionContent = ref('')
 const problemData = ref({})
+const aiChatRef = ref(null)
 
 const resultData = computed(() => result.value || { status: -1 })
+const instance = getCurrentInstance()
+const ip = instance.appContext.config.globalProperties.$ip
 
 const questionPageRef = ref(null)
 
-const sendCode = async (action) => {
+// 统一的提交处理函数
+const handleSubmit = () => {
   const code = questionPageRef.value?.getCode()
   if (!code) {
     alert('无法获取代码内容')
     return
   }
+  
+  console.log('开始处理提交')
+  
+  // 1. 执行原来的提交操作
+  submitCode(code)
+  
+  // 2. 同时发送给AI分析
+  sendToAI(code)
+}
+
+// 发送给AI分析
+const sendToAI = (code) => {
+  console.log('准备发送给AI:', code ? '代码存在' : '代码不存在')
+  
+  // 确保AI聊天组件已经渲染
+  nextTick(() => {
+    if (aiChatRef.value) {
+      console.log('AI组件引用存在')
+      
+      // 添加提示词让AI分析代码
+      const prompt = `请分析以下JavaScript代码：\n\`\`\`javascript\n${code}\n\`\`\`\n`
+      console.log('发送给AI的提示:', prompt)
+      
+      try {
+        // 调用AI聊天组件的发送消息方法
+        aiChatRef.value.sendMessage(prompt)
+        console.log('AI消息发送成功')
+        
+        // 切换到AI标签页
+        activeTab.value = 'ai'
+      } catch (e) {
+        console.error('调用AI组件方法失败:', e)
+      }
+    } else {
+      console.error('AI组件引用不存在')
+    }
+  })
+}
+
+const sendCode = async (code) => {
+  console.log('发送代码到后端:', code ? '代码存在' : '代码不存在')
   activeTab.value = 'result'
 
   try {
     const token = localStorage.getItem('jwt')
+    console.log('使用令牌:', token)
+    
     const response = await fetch(`http://${ip}:7777/practice/submitTest`, {
-    method: 'POST',
-    headers: { 
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`  // 加上这行
-  },
-  body: JSON.stringify({ service: 0, code, name }),
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ service: 0, code, name }),
     })
+    
+    console.log('后端响应状态:', response.status)
+    
     const data = await response.json()
+    console.log('后端响应数据:', data)
+    
     result.value = {
       status: data.status,
       data: data.data,
       dataAsString: data.dataAsString,
       error: data.error || null,
-    } 
+    }
   } catch (error) {
+    console.error('发送代码出错:', error)
     result.value = {
       status: -1,
       data: null,
@@ -86,8 +139,18 @@ const sendCode = async (action) => {
   }
 }
 
-const submitCode = () => sendCode('提交')
-const checkCode = () => sendCode('检测')
+// 修改为接收代码参数的函数
+const submitCode = (code) => sendCode(code)
+
+const checkCode = () => {
+  const code = questionPageRef.value?.getCode()
+  if (code) {
+    sendCode(code)
+  } else {
+    alert('无法获取代码内容')
+  }
+}
+
 const goToLogin = () => router.push('/login')
 
 const fetchDataOnRefresh = async () => {
@@ -97,7 +160,7 @@ const fetchDataOnRefresh = async () => {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`  // 加上这行
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ type: 'SELECT', subType: 'SINGLE_LINE', name, limit: 1, data: {} }),
     })

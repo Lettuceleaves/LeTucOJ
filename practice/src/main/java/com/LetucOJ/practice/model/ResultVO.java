@@ -7,11 +7,11 @@ import java.util.List;
 
 @Data
 public class ResultVO implements Serializable {
-    private byte status; // 0: accept 1: wrong 2:compile error 3: runtime error 4: timeout
+    private int status; // 0: accept 1: wrong 2:compile error 3: runtime error 4: timeout 5: server error
     private Object data; // The data returned by the service
     private String error; // Error message if any
 
-    public ResultVO(byte status, Object data, String error) {
+    public ResultVO(int status, Object data, String error) {
         this.status = status;
         this.data = data;
         this.error = error;

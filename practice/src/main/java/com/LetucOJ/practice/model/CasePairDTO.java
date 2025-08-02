@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class CasePairDTO {
-    private String problemId;
+    private String name;
     private String input;
     private String output;
 }

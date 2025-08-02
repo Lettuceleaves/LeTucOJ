@@ -17,9 +17,4 @@ public class RunCtrller {
     public ResultVO run(@RequestBody List<String> files) {
         return runService.run(files);
     }
-
-    @PostMapping("/runTestFeign")
-    public ResultVO runTest(@RequestBody List<String> files) {
-        return runService.run(files);
-    }
 }

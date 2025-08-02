@@ -2,8 +2,14 @@
   <dictionary name="project">
     <words>
       <w>cnname</w>
+      <w>createtime</w>
+      <w>globalcors</w>
+      <w>ispublic</w>
       <w>letuc</w>
       <w>letucoj</w>
+      <w>nacos</w>
+      <w>showsolution</w>
+      <w>updateat</w>
     </words>
   </dictionary>
 </component>

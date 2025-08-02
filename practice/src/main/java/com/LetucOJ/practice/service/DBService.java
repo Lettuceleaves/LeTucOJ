@@ -1,11 +1,19 @@
 package com.LetucOJ.practice.service;
 
-import com.LetucOJ.practice.model.BasicInfoServiceDTO;
-import com.LetucOJ.practice.model.BasicInfoVO;
-import com.LetucOJ.practice.model.FullInfoServiceDTO;
-import com.LetucOJ.practice.model.FullInfoVO;
+import com.LetucOJ.practice.model.*;
 
 public interface DBService {
-    BasicInfoVO BasicDBServiceSelector(BasicInfoServiceDTO dto);
-    FullInfoVO FullDBServiceSelector(FullInfoServiceDTO dto);
+    ResultVO getList(ListServiceDTO dto);
+    ResultVO getListInRoot(ListServiceDTO dto);
+    ResultVO searchList(ListServiceDTO dto);
+    ResultVO searchListInRoot(ListServiceDTO dto);
+    ResultVO getProblem(FullInfoServiceDTO dto);
+    ResultVO getProblemInRoot(FullInfoServiceDTO dto);
+    ResultVO insertProblem(FullInfoServiceDTO dto);
+    ResultVO updateProblem(FullInfoServiceDTO dto);
+    ResultVO deleteProblem(FullInfoServiceDTO dto);
+    ResultVO getCase(CaseInputDTO dto);
+    ResultVO submitCase(CasePairDTO dto);
+    ResultVO recordListByName(String cnname);
+    ResultVO recordListAll();
 }

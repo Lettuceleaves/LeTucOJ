@@ -12,6 +12,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>practice</name>
 
+
     <dependencies>
 
         <!-- spring web starter -->
@@ -61,6 +62,12 @@
             <artifactId>mybatis-plus</artifactId>
         </dependency>
 
+        <!-- redis -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
 
         <!-- lombok -->
 

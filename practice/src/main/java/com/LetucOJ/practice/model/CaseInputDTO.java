@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class CaseInputDTO {
-    private String problemId;
+    private String name;
     private String code;
     private String input;
 }

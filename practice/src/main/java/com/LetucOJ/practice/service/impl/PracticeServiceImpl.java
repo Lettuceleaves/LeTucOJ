@@ -6,7 +6,6 @@ import com.LetucOJ.practice.repos.MinioRepos;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,89 +24,82 @@ public class PracticeServiceImpl implements PracticeService {
     @Autowired
     private MybatisRepos mybatisRepos;
 
-    public ResultVO submitTest(CodeDTO message) throws Exception {
+    public ResultVO submit(CodeDTO message, boolean root) throws Exception {
         List<String> inputs = new ArrayList<>();
         inputs.add(message.getCode());
         String[] inputFiles;
+
+        ProblemStatusDTO problemStatus = mybatisRepos.getStatus(message.getName());
+        if (problemStatus == null) {
+            return new ResultVO((byte) 5, null, "practice/submit: Problem not found or not available");
+        } else if (problemStatus.getCount() <= 0) {
+            return new ResultVO((byte) 5, null, "practice/submit: No test cases available for this problem");
+        } else if (!problemStatus.isIspublic() && !root) {
+            return new ResultVO((byte) 5, null, "practice/submit: Problem is not available for practice");
+        }
+
         try {
-            FileDTO fileDTO = getFile(message.getName(), FileDTO.fileType.INPUT);
+            FileDTO fileDTO = getFile(message.getName(), problemStatus.getCount(), FileDTO.fileType.INPUT);
             if (fileDTO.getStatus() == 1) {
-                return new ResultVO((byte) 5, "TestCase Not Found", null);
+                return new ResultVO((byte) 5, null, "practice/submit: TestCase Not Found");
             } else if (fileDTO.getStatus() == 2) {
-                return new ResultVO((byte) 5, fileDTO.getFile()[0], null);
+                return new ResultVO((byte) 5, null, fileDTO.getFile()[0]);
             } else {
                 inputFiles = fileDTO.getFile();
             }
         } catch (RuntimeException e) {
-            return new ResultVO((byte) 5, "Error retrieving input files: " + e.getMessage(), null);
+            return new ResultVO((byte) 5, null, "practice/submit: Error retrieving input files: " + e.getMessage());
         }
         inputs.addAll(Arrays.asList(inputFiles));
         List<String> outputs = new ArrayList<>();
         String[] expectedOutputs;
         try {
-            FileDTO outputFileDTO = getFile(message.getName(), FileDTO.fileType.OUTPUT);
+            FileDTO outputFileDTO = getFile(message.getName(), problemStatus.getCount(), FileDTO.fileType.OUTPUT);
             if (outputFileDTO.getStatus() == 1) {
-                return new ResultVO((byte) 5, "Output files not found", null);
+                return new ResultVO((byte) 5, null, "practice/submit: Output files not found");
             } else if (outputFileDTO.getStatus() == 2) {
-                return new ResultVO((byte) 5, outputFileDTO.getFile()[0], null);
+                return new ResultVO((byte) 5, null, outputFileDTO.getFile()[0]);
             } else {
                 expectedOutputs = outputFileDTO.getFile();
             }
         } catch (RuntimeException e) {
-            return new ResultVO((byte) 5, "Error retrieving output files: " + e.getMessage(), null);
+            return new ResultVO((byte) 5, null, "practice/submit: Error retrieving output files: " + e.getMessage());
         }
-        ResultVO runResult = runClient.runTest(inputs); // TODO 写入文档，Windows系统下运行 只能用test
+        ResultVO runResult = runClient.run(inputs);
         System.out.println(runResult.getStatus());
         if (runResult.getStatus() != 0) {
             return runResult;
         }
-        CheckDTO checkResult = checkAnswer(expectedOutputs, parseUserAnswer(runResult.getDataAsString()));
+        CheckDTO checkResult = checkAnswer(expectedOutputs, ((List<String>)runResult.getData()).toArray(new String[expectedOutputs.length]));
         if (checkResult.getStatus() == 0) {
-            return new ResultVO((byte) 0, "All test cases passed", null);
+            return new ResultVO((byte) 0, null, null);
         } else if (checkResult.getStatus() == 1) {
-            return new ResultVO((byte) 1, checkResult.getMessage(), null);
+            return new ResultVO((byte) 1, null, checkResult.getMessage());
         } else {
-            return new ResultVO((byte) 5, checkResult.getMessage(), null);
+            return new ResultVO((byte) 5, null, checkResult.getMessage());
         }
-    }
-
-    private String[] parseUserAnswer(String userAnswer) {
-        // 用户格式是[a, b, c, ..., d]个字符串，提取出a, b, c, d...放入ans // TODO 检测机制要写入文档
-        return userAnswer.replaceAll("[\\[\\]\\s]", "").split(",");
     }
 
     private CheckDTO checkAnswer(String[] expected, String[] actual) {
         if (expected.length != actual.length) {
-            return new CheckDTO((byte) 2, "Test case count mismatch: expected " + expected.length + ", got " + actual.length);
+            return new CheckDTO((byte) 2, "practice/checkAnswer: Test case count mismatch: expected " + expected.length + ", got " + actual.length);
         }
         for (int i = 0; i < expected.length; i++) {
             if (!expected[i].equals(actual[i])) {
-                return new CheckDTO((byte) 1, "Test case " + (i + 1) + " failed: expected '" + expected[i] + "', got '" + actual[i] + "'");
+                return new CheckDTO((byte) 1, "practice/checkAnswer: Test case " + (i + 1) + " failed: expected '" + expected[i] + "', got '" + actual[i] + "'");
             }
         }
-        return new CheckDTO((byte) 0, "All test cases passed");
+        return new CheckDTO((byte) 0, null);
     }
 
-    private FileDTO getFile(String problemId, FileDTO.fileType fileType) {
+    private FileDTO getFile(String problemId, int count, FileDTO.fileType fileType) {
 
         FileDTO fileDTO = new FileDTO();
 
-        Integer numTestCases;
-        try {
-            numTestCases = mybatisRepos.getCaseAmount(problemId);
-            if (numTestCases == null || numTestCases <= 0) {
-                fileDTO.setStatus((byte) 1);
-                return fileDTO;
-            }
-        } catch (Exception e) {
-            fileDTO.setStatus((byte) 2);
-            fileDTO.setFile(new String[] {"Error retrieving test case amount: " + e.getMessage()});
-            return fileDTO;
-        }
-        String[] files = new String[numTestCases];
+        String[] files = new String[count];
 
-        for (int i = 1; i <= numTestCases; i++) {
-            String file = null;
+        for (int i = 1; i <= count; i++) {
+            String file;
             try {
                 if (fileType == FileDTO.fileType.OUTPUT) {
                     file = minioRepos.getFile(problemId, i, FileDTO.fileType.OUTPUT);
@@ -116,57 +108,17 @@ public class PracticeServiceImpl implements PracticeService {
                 }
                 if (file == null) {
                     fileDTO.setStatus((byte) 1);
-                    fileDTO.setFile(new String[] {"File " + i + " not found"});
+                    fileDTO.setFile(new String[] {"practice/getFile: File " + i + " not found"});
                     return fileDTO;
                 }
             } catch (Exception e) {
                 fileDTO.setStatus((byte) 2);
-                fileDTO.setFile(new String[] {"Error retrieving file " + i + ": " + e.getMessage()});
+                fileDTO.setFile(new String[] {"practice/getFile: Error retrieving file " + i + ": " + e.getMessage()});
                 return fileDTO;
             }
             files[i - 1] = file;
         }
         fileDTO.setFile(files);
         return fileDTO;
-    }
-
-    public ResultVO getProblemCaseAmount(String problemId) {
-        Integer result;
-        try {
-            result = mybatisRepos.getCaseAmount(problemId);
-        } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "Error retrieving test case amount: " + e.getMessage());
-        }
-        return new ResultVO((byte) 0, result, null);
-    }
-
-    public ResultVO getCase(CaseInputDTO caseInputDTO) {
-        List<String> inputs = new ArrayList<>();
-        inputs.add(caseInputDTO.getCode());
-        inputs.add(caseInputDTO.getInput());
-        return runClient.runTest(inputs);
-    }
-
-    public ResultVO submitCase(CasePairDTO casePairDTO) {
-        String problemId = casePairDTO.getProblemId();
-        String input = casePairDTO.getInput();
-        String output = casePairDTO.getOutput();
-        try {
-            // 检查输入输出是否存在
-            if (input == null || output == null) {
-                return new ResultVO((byte) 5, "Input or output cannot be null", null);
-            }
-            Integer result = mybatisRepos.incrementCaseAmount(problemId);
-            if (result == null || result <= 0) {
-                return new ResultVO((byte) 5, "Error incrementing case amount", null);
-            }
-            String inputFile = minioRepos.addFilePair(problemId, result, input, output);
-            if (inputFile == null) {
-                return new ResultVO((byte) 5, "Error adding file pair", null);
-            }
-            return new ResultVO((byte) 0, "Test case submitted successfully", null);
-        } catch (Exception e) {
-            return new ResultVO((byte) 5, "Error submitting test case: " + e.getMessage(), null);
-        }
     }
 }

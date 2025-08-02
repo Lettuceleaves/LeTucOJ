@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
@@ -20,26 +21,46 @@ public class SecurityConfig {
     private JwtFilter jwtFilter;
 
     @Bean
-    public SecurityWebFilterChain securityWebFieltrChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         System.out.println("Configuring SecurityWebFilterChain...");
 
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
-                .authorizeExchange(exchange -> exchange
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable).authorizeExchange(exchange -> exchange
+                        .pathMatchers(HttpMethod.OPTIONS).permitAll()
+
+
+
+
+                        // 公开接口
                         .pathMatchers(
-                                "/",
-                                "/login",
-                                "/user/login",
-                                "/user/register",
-                                "/index.html",          // index
-                                "/assets/**",           // Vite 构建产物
-                                "/code.txt",
-                                "/doc.md"
+                                "/user/register", "/user/login"
                         ).permitAll()
-                        .pathMatchers("/practice/**").hasAnyRole("USER", "MANAGER", "ROOT")
+
+                        // 用户权限接口
+                        .pathMatchers(
+                                "/practice/list", "/practice/searchList", "/practice/full/get",
+                                "/practice/submit", "/contest/full/getProblem", "/contest/full/getContest",
+                                "/contest/attend", "/contest/list/problem", "/contest/list/contest",
+                                "/contest/list/board", "/contest/submit", "/user/logout", "/user/changePassword", "/advice"
+                        ).hasAnyRole("USER", "MANAGER", "ROOT")
+
+                        // 管理员权限接口
+                        .pathMatchers(
+                                "/practice/fullRoot/insert", "/practice/fullRoot/update", "/practice/fullRoot/delete", "/practice/getCase",
+                                "/practice/submitCase", "/user/activate", "/user/deactivate",
+                                "/user/users", "/user/managers", "/user/promote", "/user/demote",
+                                "/contest/insertContest", "/contest/updateContest", "/contest/insertProblem",
+                                "/contest/deleteProblem", "/sys/doc/get", "/sys/doc/update"
+                        ).hasAnyRole("MANAGER", "ROOT")
+
+
+
+
+
                         .anyExchange().authenticated()
                 )
+
                 .addFilterBefore(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
     }

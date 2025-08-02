@@ -12,7 +12,7 @@ logging:
 spring:
   ai:
     openai:
-      api-key: sk-358de82e653d470f9acc00ae1de4b10c
+      api-key: sk-fb685d433790407d9154ae7101c7ace5
       base-url: https://api.deepseek.com
       chat:
         options:
