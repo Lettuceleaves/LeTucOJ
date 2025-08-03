@@ -183,7 +183,7 @@ onMounted(async () => {
   if (isEdit.value) {
     try {
       const token = localStorage.getItem('jwt')
-      const response = await fetch(`http://${ip}:7777/practice/fullinfo`, {
+      const response = await fetch(`http://${ip}:7777/practice/fullRoot/get`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ const handleSubmit = async () => {
   const payload = { ...form.value }
 
   const requestBody = {
-    type: isEdit.value ? 'UPDATE' : 'INSERT',
+    type: 'UPDATE',
     subType: 'SINGLE_LINE',
     name: isEdit.value ? name : payload.name,
     data: payload,
@@ -218,7 +218,7 @@ const handleSubmit = async () => {
 
   try {
     const token = localStorage.getItem('jwt')
-    const response = await fetch(`http://${ip}:7777/practice/fullinfo`, {
+    const response = await fetch(`http://${ip}:7777/practice/fullRoot/update`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',

@@ -108,7 +108,7 @@ const sendCode = async (code) => {
     const token = localStorage.getItem('jwt')
     console.log('使用令牌:', token)
     
-    const response = await fetch(`http://${ip}:7777/practice/submitTest`, {
+    const response = await fetch(`http://${ip}:7777/practice/submit`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ const goToLogin = () => router.push('/login')
 const fetchDataOnRefresh = async () => {
   try {
     const token = localStorage.getItem('jwt')
-    const response = await fetch(`http://${ip}:7777/practice/fullinfo`, {
+    const response = await fetch(`http://${ip}:7777/practice/full/get`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',

@@ -25,33 +25,30 @@
       </div>
     </div>
 
-    <!-- 根据用户身份显示不同的按钮 -->
+    <!-- 权限控制按钮 -->
     <div class="action-buttons">
-      <!-- 如果用户是 MANAGER 或 ROOT -->
       <div v-if="userInfo && (userInfo === 'MANAGER' || userInfo === 'ROOT')">
         <button @click="navigateToCreateProblem">创建题目</button>
         <button @click="navigateToManageUsers">用户管理</button>
       </div>
 
-      <!-- 所有用户都能访问的按钮 -->
       <div>
         <button @click="navigateToHistory">历史记录</button>
         <button @click="navigateToCompetition">比赛</button>
       </div>
     </div>
 
-    <!-- 题目列表 -->
+    <!-- 列表渲染 -->
     <ul class="problem-list">
       <li v-for="item in displayedProblems" :key="item.name" class="problem-item">
         <div class="problem-item-content">
           <router-link :to="`/editor/${item.name}`">
-          <div><strong>{{ item.cnname || '(无中文名)' }}</strong></div>
-          <div style="font-size: 0.9em; color: gray;">
+            <div><strong>{{ item.cnname || '(无中文名)' }}</strong></div>
+            <div style="font-size: 0.9em; color: gray;">
               [英文名: {{ item.name }}] · {{ item.caseAmount }} 个测试点
-          </div>
+            </div>
           </router-link>
 
-          <!-- 如果是USER或ROOT用户，显示“修改”按钮 -->
           <div v-if="userInfo && (userInfo === 'USER' || userInfo === 'ROOT')" class="modify-link">
             <router-link :to="`/form?name=${item.name}`">修改</router-link>
           </div>
@@ -59,7 +56,7 @@
       </li>
     </ul>
 
-    <!-- 分页 -->
+    <!-- 分页控制 -->
     <div class="pagination">
       <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
       <span>第 {{ currentPage }} 页</span>
@@ -72,52 +69,48 @@
 import { ref, computed, onMounted, getCurrentInstance } from 'vue';
 import { useRouter } from 'vue-router';
 
-const allProblems = ref([]); // 所有题目数据
+const router = useRouter();
+const instance = getCurrentInstance();
+const ip = instance?.appContext.config.globalProperties.$ip || 'localhost:7777';
+
+const allProblems = ref([]);
 const searchKeyword = ref('');
 const sortField = ref('');
 const showSortOptions = ref(false);
-const router = useRouter();
 
 const currentPage = ref(1);
 const pageSize = 10;
-const hasMore = ref(true); // 是否还有更多数据
-const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip
-
-// 用户身份信息
+const hasMore = ref(true);
 const userInfo = ref(null);
 
-// 解析 JWT
+// JWT解析
 const parseJwt = (token) => {
-  const base64Url = token.split('.')[1];  // 获取 JWT 中的 payload 部分
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');  // 修正 base64 编码
-  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
-
-  return JSON.parse(jsonPayload);  // 返回解析后的 payload
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+  ).join(''));
+  return JSON.parse(jsonPayload);
 };
 
-// 获取 JWT 并解析
 const loadUserInfo = () => {
   const token = localStorage.getItem('jwt');
   if (token) {
-    const parsedData = parseJwt(token);
-    userInfo.value = parsedData.role;  // 存储用户信息
+    const parsed = parseJwt(token);
+    userInfo.value = parsed.role;
   } else {
-    alert('JWT错误或未登录');
+    alert('未登录或 JWT 错误');
   }
 };
 
-// 拉取所有题目信息
 const fetchProblems = async () => {
   try {
-    const token = localStorage.getItem('jwt')
-    const response = await fetch(`http://${ip}:7777/practice/basicinfo`, {
+    const token = localStorage.getItem('jwt');
+    const response = await fetch(`http://${ip}/practice/list`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`  // 加上这行
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         type: 'SELECT',
@@ -127,105 +120,70 @@ const fetchProblems = async () => {
         start: (currentPage.value - 1) * pageSize,
         limit: pageSize,
         data: searchKeyword.value ? { name: searchKeyword.value } : {}
-      }),
+      })
     });
 
     const result = await response.json();
-
     if (result.type === 1 && Array.isArray(result.data)) {
       allProblems.value = result.data;
-      hasMore.value = result.data.length === pageSize; // 判断是否满页
+      hasMore.value = result.data.length === pageSize;
     } else {
-      alert('获取题目列表失败：' + result.message);
+      alert('加载失败：' + result.message);
       hasMore.value = false;
     }
-  } catch (error) {
-    alert('网络错误：' + error.message);
+  } catch (err) {
+    alert('网络错误：' + err.message);
     hasMore.value = false;
   }
 };
 
-
-// 筛选并排序
-const filteredProblems = computed(() => {
-  let result = allProblems.value;
-
-  if (searchKeyword.value.trim()) {
-    const keyword = searchKeyword.value.trim().toLowerCase();
-    result = result.filter(p => p.name?.toLowerCase().includes(keyword));
-  }
-
-  if (sortField.value === 'name') {
-    result = [...result].sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortField.value === 'caseAmount') {
-    result = [...result].sort((a, b) => b.caseAmount - a.caseAmount);
-  }
-
-  return result;
-});
-
+// 排序和筛选
 const displayedProblems = computed(() => {
-  let result = allProblems.value;
+  let data = allProblems.value;
 
-  // 本页数据已是分页后数据，无需 slice
   if (searchKeyword.value.trim()) {
     const keyword = searchKeyword.value.trim().toLowerCase();
-    result = result.filter(p => p.name?.toLowerCase().includes(keyword));
+    data = data.filter(p => p.name?.toLowerCase().includes(keyword));
   }
 
   if (sortField.value === 'name') {
-    result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+    data = [...data].sort((a, b) => a.name.localeCompare(b.name));
   } else if (sortField.value === 'caseAmount') {
-    result = [...result].sort((a, b) => b.caseAmount - a.caseAmount);
+    data = [...data].sort((a, b) => b.caseAmount - a.caseAmount);
   }
 
-  return result;
+  return data;
 });
-
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-    fetchProblems(); // 🔁 重新获取上一页数据
-  }
-};
-
-const nextPage = () => {
-  if (hasMore.value) {
-    currentPage.value++;
-    fetchProblems(); // 🔁 重新获取下一页数据
-  }
-};
 
 const handleSearch = () => {
   currentPage.value = 1;
   fetchProblems();
 };
 
-// 跳转到创建题目页面
-const navigateToCreateProblem = () => {
-  router.push('/form');
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    fetchProblems();
+  }
 };
 
-// 跳转到用户管理页面
-const navigateToManageUsers = () => {
-  router.push('/manage-users');
+const nextPage = () => {
+  if (hasMore.value) {
+    currentPage.value++;
+    fetchProblems();
+  }
 };
 
-// 跳转到历史记录页面
-const navigateToHistory = () => {
-  router.push('/history');
-};
-
-// 跳转到比赛页面
-const navigateToCompetition = () => {
-  router.push('/competition');
-};
+// 跳转逻辑
+const navigateToCreateProblem = () => router.push('/form');
+const navigateToManageUsers = () => router.push('/manage-users');
+const navigateToHistory = () => router.push('/history');
+const navigateToCompetition = () => router.push('/competition');
 
 onMounted(() => {
-  loadUserInfo();  // 在页面加载时解析 JWT 并获取用户信息
+  loadUserInfo();
   fetchProblems();
 });
-
 </script>
 
 <style scoped>
@@ -234,7 +192,6 @@ onMounted(() => {
   margin: 0 auto;
   padding: 20px;
 }
-
 .search-input {
   width: 100%;
   padding: 8px;
@@ -242,12 +199,10 @@ onMounted(() => {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
-
 .sort-container {
   margin-bottom: 10px;
   position: relative;
 }
-
 .sort-container button {
   padding: 6px 12px;
   background-color: #3b82f6;
@@ -256,7 +211,6 @@ onMounted(() => {
   border-radius: 4px;
   cursor: pointer;
 }
-
 .sort-options {
   background: #fff;
   border: 1px solid #ddd;
@@ -268,23 +222,19 @@ onMounted(() => {
   border-radius: 6px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
-
 .problem-list {
   list-style: none;
   padding: 0;
 }
-
 .problem-item {
   padding: 10px;
   border-bottom: 1px solid #eee;
 }
-
 .problem-item-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .pagination {
   display: flex;
   justify-content: space-between;

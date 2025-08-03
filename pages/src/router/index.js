@@ -31,11 +31,6 @@ const router = createRouter({
       props: true // ✅ 让 name 参数传给组件
     },
     {
-      path: '/list',
-      name: 'List',
-      component: () => import('../views/List.vue'),
-    },
-    {
       path: '/form',
       name: 'form',
       component: ProblemForm,
@@ -44,6 +39,22 @@ const router = createRouter({
       path: '/docs',
       name: 'docs',
       component: DocPage 
+    },
+    {
+      path: '/history',
+      name: 'history',
+      component: () => import('../views/History.vue'),
+    },
+    {
+      path: '/main',
+      name: 'main',
+      component: () => import('../views/Main.vue'),
+    }
+    ,
+    {
+      path: '/contest',
+      name: 'contest',
+      component: () => import('../views/ContestMain.vue'),
     }
   ],
 })
