@@ -4,13 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "@highlightjs/vue-plugin": "^2.1.0",
+    "@vueuse/core": "^13.6.0",
     "axios": "^1.10.0",
     "codemirror": "^5.65.19",
     "dompurify": "^3.2.6",

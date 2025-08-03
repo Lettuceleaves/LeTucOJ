@@ -1,15 +1,6 @@
-<script setup>
-</script>
-
 <template>
-  <div>
-    <header>
-        <nav>
-        </nav>
-    </header>
-    <RouterView />
-  </div>
+  <RouterView />
 </template>
 
-<style scoped>
-</style>
+<script setup>
+</script>

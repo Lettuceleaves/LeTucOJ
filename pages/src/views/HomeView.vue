@@ -1,231 +1,138 @@
 <script setup>
+import { ArrowRight, Document } from '@element-plus/icons-vue';
 import { ref, onMounted } from 'vue';
 
-const lines = ref([]);
-const visibleLines = ref([]);
-let currentIndex = 0;
-let scrollInterval = null;
+const lines = ref('');
 
-const fetchLines = async () => {
+onMounted(async () => {
   try {
     const response = await fetch('/code.txt')
     if (!response.ok) throw new Error('Failed to fetch data');
-    const text = await response.text();
-    lines.value = text.split('\n');
-    prefillLines(); // 新增：预先填充行
-    startLineDisplay();
+    lines.value = await response.text();
   } catch (error) {
     console.error('Error fetching lines:', error);
-    lines.value = ['Failed to load lines. Please check the URL and try again.'];
-    startLineDisplay();
+    lines.value = "rasie Error('Failed to load lines. Please check the URL and try again.')";
   }
-};
-
-// 新增：预先填充足够多的行以填满屏幕
-const prefillLines = () => {
-  const linesPerScreen = Math.floor(window.innerHeight / 300); // 估算每屏能显示的行数
-  visibleLines.value = Array(linesPerScreen).fill('').map((_, i) => 
-    i < lines.value.length ? lines.value[i] : ''
-  );
-  currentIndex = Math.min(linesPerScreen, lines.value.length);
-};
-
-const startLineDisplay = () => {
-  // 清除已有定时器
-  if (scrollInterval) clearInterval(scrollInterval);
-  
-  // 重置状态
-  visibleLines.value = [];
-  currentIndex = 0;
-  
-  // 每秒添加一行
-  scrollInterval = setInterval(() => {
-    if (currentIndex < lines.value.length) {
-      // 新行添加到顶部，保留最近40行
-      visibleLines.value = [lines.value[currentIndex], ...visibleLines.value.slice(0, 300)];
-      currentIndex++;
-    } else {
-      // 当显示完所有行后，重置索引重新开始
-      currentIndex = 0;
-    }
-  }, 30); // 1000ms = 1秒
-};
-
-// 组件卸载时清除定时器
-onMounted(() => {
-  fetchLines();
-  return () => {
-    if (scrollInterval) clearInterval(scrollInterval);
-  };
 });
 </script>
 
 <template>
-  <main class="oj-container">
-    <div class="title-container">
-      <h1 class="title">LetucOJ</h1>
-      <div class="title-border"></div>
-    </div>
-    
-    <div class="button-container">
-      <router-link to="/register" class="register-button">注册</router-link>
-      <router-link to="/login" class="login-button">登录</router-link>
-    </div>
-
-    <router-link to="/docs" class="doc-link">文档</router-link>
-    
-    <div class="text-terminal">
-      <div
-        v-for="(line, index) in visibleLines"
-        :key="index"
-        class="terminal-line"
-        :style="{ top: `${index * 1.5}em` }"
-      >
-        {{ line }}
+  <div class="home-view-layout">
+    <div class="bg-terminal" style="--t:6s">
+      <div>
+        <highlightjs :code="lines" language="python"></highlightjs>
+      </div>
+      <div>
+        <highlightjs :code="lines" language="python"></highlightjs>
       </div>
     </div>
-  </main>
+
+    <el-container style="height: 100%;">
+      <el-header>
+        <div class="header-bar">
+          <el-text style="font-size: x-large;">LetucOJ</el-text>
+          <div class="buttons">
+            <el-button type="primary" plain @click="$router.push('/register')">注册</el-button>
+            <el-button type="success" plain @click="$router.push('/login')">登录</el-button>
+            <el-button type="warning" circle @click="$router.push('/docs')" :icon="Document"></el-button>
+          </div>
+        </div>
+      </el-header>
+
+      <el-main style="height: 100%;">
+        <div class="title">
+          <el-text style="font-size: 4rem">LetucOJ</el-text>
+          <el-text style="font-size: 2.5rem; margin: 32px 0; color: #ccc;">
+            一个试图让出题变简单的 OJ 系统
+          </el-text>
+
+          <el-button round @click="$router.push('/login')" size="large"
+            style="font-size: 1.5rem; padding: 32px;">
+            启动!<el-icon class="el-icon--right"><ArrowRight /></el-icon>
+          </el-button>
+        </div>
+      </el-main>
+    </el-container>
+  </div>
 </template>
 
 <style scoped>
-.oj-container {
-  position: relative;
-  width: 100vw;
+.home-view-layout {
   height: 100vh;
-  background-color: black;
-  color: darkgreen;
+  background-color: #282c34;
+}
+
+.bg-terminal {
+  position: absolute;
+  top: 0;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+
+  mask-image: linear-gradient(
+    0deg, transparent, #fff 5%, #fff 85%, transparent
+  );
+}
+
+.bg-terminal div {
+  animation: animate1 var(--t) linear infinite;
+}
+
+.bg-terminal div:nth-child(2) {
+  animation: animate2 var(--t) linear infinite;
+  animation-delay: calc(var(--t) / -2);
+}
+
+@keyframes animate1 {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+@keyframes animate2 {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-200%);
+  }
+}
+
+::v-deep(pre) code.hljs {
+  font-size: 2rem;
+}
+
+.home-view-layout .el-container {
+  position: relative;
+  z-index: 10;
+  background-color: #00000066;
+}
+
+header.el-header {
+  box-shadow: var(--el-box-shadow);
+  backdrop-filter: blur(10px);
+  background-color: #fff1;
+}
+
+.header-bar {
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+div.title {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-}
-
-.title-container {
-  position: relative;
-  margin-bottom: 3rem;
-  z-index: 10;
-}
-
-.title {
-  font-size: 4rem;
-  font-weight: bold;
-  color: white;
-  text-shadow: 
-    0 0 10px #00ff00,
-    0 0 20px #00ff00;
-  padding: 1rem 2rem;
-  position: relative;
-  z-index: 2;
-}
-
-.title-border {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
   height: 100%;
-  border: 3px solid darkgreen;
-  border-radius: 10px;
-  box-shadow: 
-    0 0 15px #00ff00,
-    inset 0 0 15px #00ff00;
-  z-index: 1;
-  animation: border-pulse 3s infinite alternate;
-  /* 新增半透明背景 */
-  background-color: rgba(0, 50, 0, 0.3); /* 半透明深绿色背景 */
-  /* 可选：添加背景模糊效果 */
-  backdrop-filter: blur(2px);
+  color: #fff;
 }
 
-@keyframes border-pulse {
-  0% {
-    border-color: darkgreen;
-    box-shadow: 
-      0 0 10px #00ff00,
-      inset 0 0 10px #00ff00;
-  }
-  100% {
-    border-color: limegreen;
-    box-shadow: 
-      0 0 25px #00ff00,
-      inset 0 0 25px #00ff00;
-  }
-}
-
-.button-container {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  z-index: 10;
-}
-
-.register-button, .login-button {
-  padding: 0.8rem 2rem;
-  font-size: 1.2rem;
-  font-weight: bold;
-  background-color: rgba(0, 100, 0, 0.7);
-  color: white;
-  border: 2px solid limegreen;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  z-index: 10;
-  text-decoration: none; /* 添加此行 */
-}
-
-.register-button:hover, .login-button:hover {
-  background-color: rgba(50, 205, 50, 0.8);
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 255, 0, 0.4);
-}
-
-.doc-link {
-  position: absolute;
-  top: 0.5rem;
-  right: 2.0rem;
-  z-index: 10;
-  display: inline-block;
-  padding: 0.8rem 1.5rem;
-  background-color: rgb(12, 69, 40);
-  color: rgb(255, 255, 255);
-  font-weight: bold;
-  text-decoration: none;
-  border-radius: 25px;
-  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3);
-  transition: all 0.3s ease;
-}
-
-.doc-link:hover {
-  background-color: #f0f0f0;
-  color: black;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(255, 255, 255, 0.4);
-}
-
-.text-terminal {
-  position: absolute;
-  top: 0;
-  left: 10px;
-  width: 100%;
-  height: 100%;
-  padding-top: 20px;
-  pointer-events: none;
-  overflow: hidden;
-  font-family: 'Courier New', monospace;
-  z-index: 1;
-}
-
-.terminal-line {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  color: rgba(50, 205, 50, 0.7);
-  font-size: 2rem;
-  white-space: pre;
-  opacity: 0.8;
-  text-align: left;
-  text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-  transition: top 1s step-end;
-}
 </style>
