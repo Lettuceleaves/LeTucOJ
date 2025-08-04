@@ -7,6 +7,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import './assets/base.css'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
+import 'virtual:uno.css'
 
 // 注册 Highlight.js 代码高亮
 import HighlightJs from '@highlightjs/vue-plugin'
@@ -31,4 +32,4 @@ app.use(HighlightJs)
 app.config.globalProperties.$dialog = Dialog
 
 app.mount('#app')
-app.config.globalProperties.$ip = "192.168.176.1"  // 添加全局变量
+app.config.globalProperties.$ip = "letucoj.cn"  // 添加全局变量

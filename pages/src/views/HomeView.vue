@@ -1,5 +1,4 @@
 <script setup>
-import { ArrowRight, Document } from '@element-plus/icons-vue';
 import { ref, onMounted } from 'vue';
 
 const lines = ref('');
@@ -20,17 +19,17 @@ onMounted(async () => {
   <div class="home-view-layout">
     <div class="bg-terminal" style="--t:6s">
       <div>
-        <highlightjs :code="lines" language="python"></highlightjs>
+        <highlightjs class="text-8" :code="lines" language="python"></highlightjs>
       </div>
       <div>
-        <highlightjs :code="lines" language="python"></highlightjs>
+        <highlightjs class="text-8" :code="lines" language="python"></highlightjs>
       </div>
     </div>
 
-    <el-container style="height: 100%;">
+    <el-container class="h-full relative z-10 bg-black bg-op-50">
       <el-header>
-        <div class="header-bar">
-          <el-text style="font-size: x-large;">LetucOJ</el-text>
+        <div class="w-full h-full flex items-center justify-between">
+          <el-text class="text-6 styled-font">LetucOJ</el-text>
           <div class="buttons">
             <el-button type="primary" plain @click="$router.push('/register')">注册</el-button>
             <el-button type="success" plain @click="$router.push('/login')">登录</el-button>
@@ -39,15 +38,14 @@ onMounted(async () => {
         </div>
       </el-header>
 
-      <el-main style="height: 100%;">
-        <div class="title">
-          <el-text style="font-size: 4rem">LetucOJ</el-text>
-          <el-text style="font-size: 2.5rem; margin: 32px 0; color: #ccc;">
+      <el-main>
+        <div class="flex items-center justify-center flex-col h-full">
+          <el-text class="text-16 styled-font">LetucOJ</el-text>
+          <el-text class="text-9 my-4 c-gray">
             一个试图让出题变简单的 OJ 系统
           </el-text>
 
-          <el-button round @click="$router.push('/login')" size="large"
-            style="font-size: 1.5rem; padding: 32px;">
+          <el-button round @click="$router.push('/login')" size="large" class="!p-8 my-4 text-6">
             启动!<el-icon class="el-icon--right"><ArrowRight /></el-icon>
           </el-button>
         </div>
@@ -103,36 +101,10 @@ onMounted(async () => {
   }
 }
 
-::v-deep(pre) code.hljs {
-  font-size: 2rem;
-}
-
-.home-view-layout .el-container {
-  position: relative;
-  z-index: 10;
-  background-color: #00000066;
-}
-
 header.el-header {
   box-shadow: var(--el-box-shadow);
   backdrop-filter: blur(10px);
   background-color: #fff1;
-}
-
-.header-bar {
-  height: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-div.title {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #fff;
 }
 
 </style>
