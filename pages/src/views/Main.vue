@@ -59,7 +59,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import ProblemList from './MainPages/List.vue'
+import ProblemList from './MainPages/ListPage.vue'
 import Contest from './MainPages/Contest.vue'
 
 const activeTab = ref('list')

@@ -1,5 +1,3 @@
-<!-- Dialog.vue -->
-
 <template>
 
   <el-dialog
@@ -21,9 +19,8 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import { inject, reactive, getCurrentInstance, nextTick } from 'vue'
-import { ElDialog, ElButton } from 'element-plus'
 
 const rawConfig = inject('config') || {}
 
