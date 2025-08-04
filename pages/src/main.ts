@@ -29,17 +29,17 @@ const app = createApp(App)
 app.use(router)
 
 // Element Plus
-app.use(ElementPlus)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
+app.use(ElementPlus)
 
 // Highlight.js
-app.use(HighlightJs)
 hljs.registerLanguage('python', python)
+app.use(HighlightJs)
+
+app.mount('#app')
 
 // 添加全局变量
 app.config.globalProperties.$dialog = Dialog
 app.config.globalProperties.$ip = "letucoj.cn"
-
-app.mount('#app')

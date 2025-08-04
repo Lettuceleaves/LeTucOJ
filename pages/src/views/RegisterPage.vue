@@ -36,15 +36,15 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, getCurrentInstance, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { post } from '@/apis/Api'
 import type { FormInstance, FormRules } from 'element-plus'
+import type { RegisterRequest } from '@/apis/User'
 
 const router = useRouter()
 
 const formRef = ref<FormInstance>()
-
 const form = reactive({
   username: '',
   password: '',
@@ -75,27 +75,22 @@ const rules = reactive<FormRules>({
   ]
 })
 
-const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip
-
 // 注册方法
 const register = async () => {
-  if (!await formRef.value.validate()) return
+  if (!await formRef.value!.validate()) return
   try {
-    const response = await axios.post(`http://${ip}:7777/user/register`, {
+    const response = await post<RegisterRequest>(`/user/register`, {
       username: form.username,
       password: form.password
-    })
+    });
 
-    const res = response.data
-
-    if (res.status === 0) {
+    if (response.status === 0) {
       router.push('/login')
     } else {
-      alert('注册失败：' + (res.error || '未知错误'))
+      alert('注册失败：' + (response.error || '未知错误'))
     }
   } catch (error) {
-    alert('请求失败：' + (error.response?.data?.error || error.message || '网络错误'))
+    alert('请求失败：' + ((error as any).response?.data?.error || (error as any).message || '网络错误'))
   }
 }
 </script>

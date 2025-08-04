@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import BaseLayout from '@/components/BaseLayout.vue';
+import { getJwt } from '@/persistence/LocalPersistence';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const lines = ref('');
 
@@ -14,6 +18,14 @@ onMounted(async () => {
     lines.value = "rasie Error('Failed to load lines. Please check the URL and try again.')";
   }
 });
+
+const go = () => {
+  if (getJwt()) {
+    router.push('/main');
+  } else {
+    router.push('/login');
+  }
+}
 </script>
 
 <template>
@@ -34,7 +46,7 @@ onMounted(async () => {
           一个试图让出题变简单的 OJ 系统
         </el-text>
 
-        <el-button round @click="$router.push('/login')" size="large" class="!p-8 my-4 text-6">
+        <el-button round @click="go" size="large" class="!p-8 my-4 text-6">
           启动!<el-icon class="el-icon--right">
             <ArrowRight />
           </el-icon>
@@ -44,7 +56,7 @@ onMounted(async () => {
   </div>
 </template>
 
-<style lang="ts" scoped>
+<style scoped>
 .home-view-layout {
   height: 100vh;
   background-color: #282c34;

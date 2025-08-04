@@ -35,14 +35,16 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, getCurrentInstance, ref } from 'vue';
-import axios from 'axios';
+import { reactive, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import BaseLayout from '@/components/BaseLayout.vue';
 import type { FormInstance, FormRules } from 'element-plus';
+import type { LoginRequest } from '@/apis/User';
+import { post } from '@/apis/Api';
+import { persistJwt } from '@/persistence/LocalPersistence';
 
 const formRef = ref<FormInstance>()
-const form = reactive({
+const form = reactive<LoginRequest>({
   username: '',
   password: ''
 })
@@ -57,27 +59,17 @@ const rules = reactive<FormRules>({
 
 const router = useRouter();
 
-const instance = getCurrentInstance()
-const ip = instance!.appContext.config.globalProperties.$ip
-
 const login = async () => {
   if (! await formRef.value!.validate()) return
 
   try {
-    const token = localStorage.getItem('jwt')
-    const response = await axios.post(`http://${ip}:7777/user/login`, {
-      username: form.username,
-      password: form.password,
-    });
+    const response = await post<LoginRequest>(`/user/login`, form);
 
-    if (response.data && response.data.token) {
-      // 存储 token
-      localStorage.setItem('jwt', response.data.token);
-      // 角色等信息如果后端没返回，可以省略
-      router.push('/list');
-    } else {
-      alert('登录失败：后端未返回 token');
+    if (!response.data || !response.data.token) {
+      alert('登录失败：无效的响应数据');
+      return;
     }
+    persistJwt(response.data.token);
   } catch (error: any) {
     if (error.response && error.response.data && error.response.data.error) {
       alert('登录失败：' + error.response.data.error);
@@ -86,6 +78,13 @@ const login = async () => {
     }
   }
 };
+
+onMounted(() => {
+  const token = localStorage.getItem('jwt');
+  if (token === null) return;
+
+  router.push('/main');
+});
 
 </script>
 

@@ -20,6 +20,7 @@
     "element-plus": "^2.10.4",
     "github-markdown-css": "^5.8.1",
     "highlight.js": "^11.11.1",
+    "jwt-decode": "^4.0.0",
     "marked": "^16.1.1",
     "monaco-editor": "^0.52.2",
     "monaco-editor-vue3": "^0.1.10",
