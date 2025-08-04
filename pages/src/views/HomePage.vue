@@ -33,7 +33,9 @@ onMounted(async () => {
           <div class="buttons">
             <el-button type="primary" plain @click="$router.push('/register')">注册</el-button>
             <el-button type="success" plain @click="$router.push('/login')">登录</el-button>
-            <el-button type="warning" circle @click="$router.push('/docs')" :icon="Document"></el-button>
+            <el-button type="warning" circle @click="$router.push('/docs')">
+              <el-icon class="el-icon"><Document/></el-icon>
+            </el-button>
           </div>
         </div>
       </el-header>

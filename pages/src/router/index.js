@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory  } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import Login from '../views/Login.vue';
-import Register from '../views/Register.vue';
+import HomePage from '../views/HomePage.vue'
+import LoginPage from '../views/LoginPage.vue';
+import RegisterPage from '../views/RegisterPage.vue';
 import Editor from '../views/Editor.vue';
 import ProblemForm from '../views/ProblemForm.vue';
 import DocPage from '@/views/DocPage.vue'
@@ -12,17 +12,17 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: HomePage,
     },
     {
       path: '/login',
       name: 'Login',
-      component: Login,
+      component: LoginPage,
     },
     {
       path: '/register',
       name: 'Register',
-      component: Register,
+      component: RegisterPage,
     },
     {
       path: '/editor/:name',
@@ -35,10 +35,10 @@ const router = createRouter({
       name: 'form',
       component: ProblemForm,
     },
-    { 
+    {
       path: '/docs',
       name: 'docs',
-      component: DocPage 
+      component: DocPage
     },
     {
       path: '/history',
