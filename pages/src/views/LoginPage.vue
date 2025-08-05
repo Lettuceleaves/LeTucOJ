@@ -42,6 +42,7 @@ import type { FormInstance, FormRules } from 'element-plus';
 import type { LoginRequest } from '@/apis/User';
 import { post } from '@/apis/Api';
 import { persistJwt } from '@/persistence/LocalPersistence';
+import type { AxiosError } from 'axios';
 
 const formRef = ref<FormInstance>()
 const form = reactive<LoginRequest>({
@@ -70,9 +71,10 @@ const login = async () => {
       return;
     }
     persistJwt(response.data.token);
-  } catch (error: any) {
-    if (error.response && error.response.data && error.response.data.error) {
-      alert('登录失败：' + error.response.data.error);
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    if (axiosError.response && axiosError.response.data) {
+      alert('登录失败：' + axiosError.response.data); // TODO: 更友好的错误处理
     } else {
       alert('登录失败：网络错误或服务器未响应');
     }

@@ -7,7 +7,7 @@ export interface RegisterRequest extends Request<RegisterResponse> {
   cnname?: string
 }
 
-export interface RegisterResponse extends Response<string> {}
+export type RegisterResponse = Response<string>
 
 // Login
 export interface LoginRequest extends Request<LoginResponse> {
@@ -15,18 +15,17 @@ export interface LoginRequest extends Request<LoginResponse> {
   password: string
 }
 
-export interface LoginResponse
-  extends Response<{
+export type LoginResponse = Response<{
     token: string
-  }> {}
+}>
 
 // Logout
-export interface LogoutRequest extends Request<LogoutResponse> {
+export interface LogoutRequest extends Request<Response<object>> {
   Authorization: string
   ttl: number
 }
 
-export interface LogoutResponse extends Response<{}> {}
+export type LogoutResponse = Response<object>
 
 // Change Password
 export interface ChangePasswordRequest extends Request<ChangePasswordResponse> {
@@ -35,4 +34,4 @@ export interface ChangePasswordRequest extends Request<ChangePasswordResponse> {
   newPassword: string
 }
 
-export interface ChangePasswordResponse extends Response<{}> {}
+export type ChangePasswordResponse = Response<object>

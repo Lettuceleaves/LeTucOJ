@@ -6,8 +6,8 @@ export interface Request<T> {
 
 export interface Response<T> {
   status: number;
-  data?: T;
-  error?: string;
+  data: T | null;
+  error: string | null;
 }
 
 type ExtractResponse<T> = T extends Request<infer R> ? R : never
@@ -15,10 +15,10 @@ type ExtractResponse<T> = T extends Request<infer R> ? R : never
 
 const baseUrl = "http://letucoj.cn:7777";
 
-export async function post<T extends Request<any>>(
+export async function post<T extends Request<unknown>>(
   path: string,
   data: T,
-  config?: AxiosRequestConfig<any>,
+  config?: AxiosRequestConfig<unknown>,
 ): Promise<ExtractResponse<T>> {
   return await axios.post<T, ExtractResponse<T>>(`${baseUrl}/${path}`, data, config)
 }
