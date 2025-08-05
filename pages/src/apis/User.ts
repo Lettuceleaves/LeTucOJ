@@ -1,49 +1,69 @@
-import type { Request, Response } from './Api'
+import { Request, type Response } from './Api'
 
-/*
+/**
 Register user
+
 POST /user/register
 */
-export interface RegisterRequest extends Request<RegisterResponse> {
-  username: string
-  password: string
-  cnname?: string
+export class RegisterRequest extends Request<RegisterResponse> {
+  constructor(
+    public username: string,
+    public password: string,
+    public cnname?: string
+  ) {
+    super('POST', '/user/register');
+  }
 }
 
 export type RegisterResponse = Response<string>
 
-/*
+/**
 Login
+
 POST /user/login
 */
-export interface LoginRequest extends Request<LoginResponse> {
-  username: string
-  password: string
+export class LoginRequest extends Request<LoginResponse> {
+  constructor(
+    public readonly username: string,
+    public readonly password: string
+  ) {
+    super('POST', '/user/login');
+  }
 }
 
 export type LoginResponse = Response<{
     token: string
 }>
 
-/*
+/**
 Logout
+
 POST /user/logout
 */
-export interface LogoutRequest extends Request<Response<object>> {
-  Authorization: string
-  ttl: number
+export class LogoutRequest extends Request<Response<object>> {
+  constructor(
+    public readonly Authorization: string,
+    public readonly ttl: number
+  ) {
+    super('POST', '/user/logout', true);
+  }
 }
 
 export type LogoutResponse = Response<object>
 
-/*
+/**
 Change Password
+
 POST /user/changePassword
 */
-export interface ChangePasswordRequest extends Request<ChangePasswordResponse> {
-  username: string
-  oldPassword: string
-  newPassword: string
+export class ChangePasswordRequest extends Request<ChangePasswordResponse> {
+  constructor(
+    public readonly username: string,
+    public readonly oldPassword: string,
+    public readonly newPassword: string
+  ) {
+    super('POST', '/user/changePassword');
+  }
 }
 
 export type ChangePasswordResponse = Response<object>

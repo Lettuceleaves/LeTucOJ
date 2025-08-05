@@ -39,13 +39,13 @@ import { reactive, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import BaseLayout from '@/components/BaseLayout.vue';
 import type { FormInstance, FormRules } from 'element-plus';
-import type { LoginRequest } from '@/apis/User';
+import { LoginRequest } from '@/apis/User';
 import { post } from '@/apis/Api';
 import { persistJwt } from '@/persistence/LocalPersistence';
 import type { AxiosError } from 'axios';
 
 const formRef = ref<FormInstance>()
-const form = reactive<LoginRequest>({
+const form = reactive({
   username: '',
   password: ''
 })
@@ -64,7 +64,7 @@ const login = async () => {
   if (! await formRef.value!.validate()) return
 
   try {
-    const response = await post<LoginRequest>(`/user/login`, form);
+    const response = await new LoginRequest(form.username, form.password).request();
 
     if (!response.data || !response.data.token) {
       alert('登录失败：无效的响应数据');

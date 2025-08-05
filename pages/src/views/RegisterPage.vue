@@ -38,9 +38,8 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { post } from '@/apis/Api'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { RegisterRequest } from '@/apis/User'
+import { RegisterRequest } from '@/apis/User'
 
 const router = useRouter()
 
@@ -79,10 +78,11 @@ const rules = reactive<FormRules>({
 const register = async () => {
   if (!await formRef.value!.validate()) return
   try {
-    const response = await post<RegisterRequest>(`/user/register`, {
-      username: form.username,
-      password: form.password
-    });
+    const response = await new RegisterRequest(
+      form.username,
+      form.password,
+      form.username // TODO: Use a proper name field if available, here using username as cnname for simplicity
+    ).request();
 
     if (response.status === 0) {
       router.push('/login')

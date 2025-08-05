@@ -2,7 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import HomePage from '@/views/HomePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
-import Editor from '@/views/Editor.vue'
+import EditorPage from '@/views/EditorPage.vue'
 import ProblemForm from '@/views/ProblemForm.vue'
 import DocPage from '@/views/DocPage.vue'
 import MainPage from '@/views/MainPage.vue'
@@ -30,7 +30,7 @@ const router = createRouter({
     {
       path: '/editor/:name',
       name: 'Editor',
-      component: Editor,
+      component: EditorPage,
       props: true, // ✅ 让 name 参数传给组件
     },
     {

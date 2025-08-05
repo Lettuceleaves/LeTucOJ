@@ -47,10 +47,10 @@
 </template>
 
 <script lang="ts" setup>
-import { getJwt, type JwtPayload } from '@/persistence/LocalPersistence';
+import { getDecodedJwt, type JwtPayload } from '@/persistence/LocalPersistence';
 import { ref } from 'vue';
 
-const jwtPayload = ref<JwtPayload | undefined>(getJwt());
+const jwtPayload = ref<JwtPayload | undefined>(getDecodedJwt());
 </script>
 
 <style>

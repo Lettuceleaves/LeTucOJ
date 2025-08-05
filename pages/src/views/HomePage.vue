@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import BaseLayout from '@/components/BaseLayout.vue';
-import { getJwt } from '@/persistence/LocalPersistence';
+import { getDecodedJwt } from '@/persistence/LocalPersistence';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -20,7 +20,7 @@ onMounted(async () => {
 });
 
 const go = () => {
-  if (getJwt()) {
+  if (getDecodedJwt()) {
     router.push('/main');
   } else {
     router.push('/login');
