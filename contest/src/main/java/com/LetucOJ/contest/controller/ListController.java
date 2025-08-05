@@ -16,17 +16,17 @@ public class ListController {
     @Autowired
     private DBService dbService;
 
-    @PostMapping("/list/problem")
+    @GetMapping("/list/problem")
     public ResultVO getProblemList(@RequestHeader("contestName") String contestName) throws Exception {
         return dbService.getProblemList(contestName);
     }
 
-    @PostMapping("/list/contest")
+    @GetMapping("/list/contest")
     public ResultVO getContestList() throws Exception {
         return dbService.getContestList();
     }
 
-    @PostMapping("/list/board")
+    @GetMapping("/list/board")
     public ResultVO getBoardList(@RequestBody String name) throws Exception {
         return dbService.getBoard(name);
     }

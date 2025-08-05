@@ -26,12 +26,12 @@ public class UserController {
         return userService.authenticate(dto);
     }
 
-    @PostMapping("/activate")
+    @PutMapping("/activate")
     public ResultVO activate(@RequestParam String username) {
         return userService.activateAccount(username);
     }
 
-    @PostMapping("/deactivate")
+    @PutMapping("/deactivate")
     public ResultVO deactivate(@RequestParam String username) {
         return userService.deactivateAccount(username);
     }
@@ -43,7 +43,7 @@ public class UserController {
         return userService.logout(token, ttl);
     }
 
-    @PostMapping("/change-password")
+    @PutMapping("/change-password")
     public ResultVO changePassword(@RequestParam String username,
                                    @RequestParam String oldPassword,
                                    @RequestParam String newPassword) {
@@ -60,12 +60,12 @@ public class UserController {
         return userService.getAllManagers();
     }
 
-    @PostMapping("/promote")
+    @PutMapping("/promote")
     public ResultVO promote(@RequestParam String username) {
         return userService.promoteToManager(username);
     }
 
-    @PostMapping("/demote")
+    @PutMapping("/demote")
     public ResultVO demote(@RequestParam String username) {
         return userService.demoteToUser(username);
     }

@@ -19,12 +19,12 @@ public class ContestController {
     @Autowired
     private DBService dbService;
 
-    @PostMapping("/full/getProblem")
+    @GetMapping("/full/getProblem")
     public ResultVO getProblem(@RequestBody FullInfoServiceDTO dto, @RequestHeader("contestName") String contestName) throws Exception {
         return dbService.getProblem(dto, contestName);
     }
 
-    @PostMapping("/full/getContest")
+    @GetMapping("/full/getContest")
     public ResultVO getContest(@RequestBody ContestServiceDTO dto) throws Exception {
         return dbService.getContest(dto);
     }
@@ -34,12 +34,12 @@ public class ContestController {
         return dbService.insertContest(dto);
     }
 
-    @PostMapping("/updateContest")
+    @PutMapping("/updateContest")
     public ResultVO updateContest(@RequestBody ContestServiceDTO dto) throws Exception {
         return dbService.updateContest(dto);
     }
 
-    @PostMapping("/deleteContest")
+    @DeleteMapping("/deleteContest")
     public ResultVO deleteContest(@RequestBody ContestServiceDTO dto) throws Exception {
         return dbService.deleteContest(dto);
     }
@@ -49,7 +49,7 @@ public class ContestController {
         return dbService.insertProblem(dto);
     }
 
-    @PostMapping("/deleteProblem")
+    @DeleteMapping("/deleteProblem")
     public ResultVO deleteProblem(@RequestBody ContestProblemDTO dto) throws Exception {
         return dbService.deleteProblem(dto);
     }

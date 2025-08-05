@@ -12,17 +12,17 @@ public class UserController {
     @Autowired
     private SysService sysService;
 
-    @PostMapping("/log/list")
+    @GetMapping("/log/list")
     public ResultVO logList() {
         return null;
     }
 
-    @PostMapping("/doc/get")
+    @GetMapping("/doc/get")
     public ResultVO updateDoc(@RequestBody byte[] doc) {
         return sysService.updateDoc(doc);
     }
 
-    @PostMapping("/doc/update")
+    @PutMapping("/doc/update")
     public ResultVO getDoc() {
         return sysService.getDoc();
     }

@@ -19,12 +19,12 @@ public class ProblemController {
     @Autowired
     private DBService dbService;
 
-    @PostMapping("/full/get")
+    @GetMapping("/full/get")
     public ResultVO getProblem(@RequestBody FullInfoServiceDTO sql) throws Exception {
         return dbService.getProblem(sql);
     }
 
-    @PostMapping("/fullRoot/get")
+    @GetMapping("/fullRoot/get")
     public ResultVO getProblemInRoot(@RequestBody FullInfoServiceDTO sql) throws Exception {
         return dbService.getProblemInRoot(sql);
     }
@@ -34,17 +34,17 @@ public class ProblemController {
         return dbService.insertProblem(sql);
     }
 
-    @PostMapping("/fullRoot/update")
+    @PutMapping("/fullRoot/update")
     public ResultVO updateProblem(@RequestBody FullInfoServiceDTO sql) throws Exception {
         return dbService.updateProblem(sql);
     }
 
-    @PostMapping("/fullRoot/delete")
+    @DeleteMapping("/fullRoot/delete")
     public ResultVO deleteProblem(@RequestBody FullInfoServiceDTO sql) throws Exception {
         return dbService.deleteProblem(sql);
     }
 
-    @PostMapping("/getCase")
+    @GetMapping("/getCase")
     public ResultVO getCase(@RequestBody CaseInputDTO caseInputDTO) {
         return dbService.getCase(caseInputDTO);
     }

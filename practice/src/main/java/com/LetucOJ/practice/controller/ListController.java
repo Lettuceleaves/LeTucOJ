@@ -17,37 +17,37 @@ public class ListController {
     @Autowired
     private DBService dbService;
 
-    @PostMapping("/list")
+    @GetMapping("/list")
     public ResultVO getList(@RequestBody ListServiceDTO sql) throws Exception {
         return dbService.getList(sql);
     }
 
-    @PostMapping("/listRoot")
+    @GetMapping("/listRoot")
     public ResultVO getListInRoot(@RequestBody ListServiceDTO sql) throws Exception {
         return dbService.getListInRoot(sql);
     }
 
-    @PostMapping("/searchList")
+    @GetMapping("/searchList")
     public ResultVO searchList(@RequestBody ListServiceDTO sql) throws Exception {
         return dbService.searchList(sql);
     }
 
-    @PostMapping("/searchListInRoot")
+    @GetMapping("/searchListInRoot")
     public ResultVO searchListInRoot(@RequestBody ListServiceDTO sql) throws Exception {
         return dbService.searchListInRoot(sql);
     }
 
-    @PostMapping("/recordList/self")
+    @GetMapping("/recordList/self")
     public ResultVO recordListSelf(@RequestParam("cnname") String cnname) throws Exception {
         return dbService.recordListByName(cnname);
     }
 
-    @PostMapping("/recordList/any")
+    @GetMapping("/recordList/any")
     public ResultVO recordListAny(@RequestParam("cnname") String cnname) throws Exception {
         return dbService.recordListByName(cnname);
     }
 
-    @PostMapping("/recordList/all")
+    @GetMapping("/recordList/all")
     public ResultVO recordListAll() throws Exception {
         return dbService.recordListAll();
     }

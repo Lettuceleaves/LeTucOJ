@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: letucoj
 -- ------------------------------------------------------
--- Server version	8.0.40
+-- Server version	9.4.0
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -19,9 +19,85 @@
 -- Current Database: `letucoj`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `letucoj` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `letucoj` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 
 USE `letucoj`;
+
+--
+-- Table structure for table `contest`
+--
+
+DROP TABLE IF EXISTS `contest`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `contest` (
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cnname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `mode` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `start` timestamp NOT NULL,
+  `end` timestamp NOT NULL,
+  `ispublic` tinyint(1) NOT NULL,
+  `note` varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `contest`
+--
+
+LOCK TABLES `contest` WRITE;
+/*!40000 ALTER TABLE `contest` DISABLE KEYS */;
+/*!40000 ALTER TABLE `contest` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `contest_board`
+--
+
+DROP TABLE IF EXISTS `contest_board`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `contest_board` (
+  `contest_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `problem_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `score` int NOT NULL,
+  `times` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `contest_board`
+--
+
+LOCK TABLES `contest_board` WRITE;
+/*!40000 ALTER TABLE `contest_board` DISABLE KEYS */;
+/*!40000 ALTER TABLE `contest_board` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `contest_problems`
+--
+
+DROP TABLE IF EXISTS `contest_problems`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `contest_problems` (
+  `contest_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `problem_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `score` int NOT NULL,
+  PRIMARY KEY (`contest_name`,`problem_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `contest_problems`
+--
+
+LOCK TABLES `contest_problems` WRITE;
+/*!40000 ALTER TABLE `contest_problems` DISABLE KEYS */;
+/*!40000 ALTER TABLE `contest_problems` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `problem`
@@ -59,6 +135,35 @@ INSERT INTO `problem` VALUES ('t1','数组排序和_测试',10,1,'数组,排序'
 UNLOCK TABLES;
 
 --
+-- Table structure for table `record`
+--
+
+DROP TABLE IF EXISTS `record`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `record` (
+  `userName` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cnname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `problemName` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `language` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `result` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `timeUsed` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `memoryUsed` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `submitTime` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `record`
+--
+
+LOCK TABLES `record` WRITE;
+/*!40000 ALTER TABLE `record` DISABLE KEYS */;
+/*!40000 ALTER TABLE `record` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `user`
 --
 
@@ -67,6 +172,7 @@ DROP TABLE IF EXISTS `user`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user` (
   `user_name` varchar(30) NOT NULL,
+  `cnname` varchar(100) NOT NULL,
   `password` varchar(100) NOT NULL,
   `role` varchar(30) NOT NULL,
   `enabled` tinyint(1) NOT NULL,
@@ -80,7 +186,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES ('aaa','$2a$10$Hxpu4NTDJAdyDpADfMlVpOO3DzKWelyNcKQJwN5emjfHirK/mC3Wm','ROOT',1),('aaaaa','AAAaaa1.','USER',0),('aaab','aaa','USER',0);
+INSERT INTO `user` VALUES ('aaa','','$2a$10$D84cgD5p74uC8bzpr50stO3Nyl5CnsFcnb/wXG45XkZ7uPSEubPym','ROOT',1),('aaaaa','','AAAaaa1.','USER',0),('aaab','','aaa','USER',1);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -93,4 +199,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-28 17:14:00
+-- Dump completed on 2025-08-04  2:08:42

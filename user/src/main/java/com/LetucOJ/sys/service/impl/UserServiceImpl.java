@@ -50,7 +50,8 @@ public class UserServiceImpl implements UserService {
         if (userDTO != null && userDTO.isEnabled() && PasswordUtil.matches(rawPwd, userDTO.getPassword())) {
             return new ResultVO(0, new JwtInfoVO(username, userDTO.getRole(), cnname, System.currentTimeMillis()), null);
         }
-        return new ResultVO(1, null, "Invalid credentials or account disabled");
+        return new ResultVO(1, null, "Invalid credentials or account disabled" +
+                (userDTO == null ? " - User not found" : ( userDTO.isEnabled() ? "" : " - Account is disabled")));
     }
 
     @Override

@@ -1,10 +1,14 @@
 package com.LetucOJ.gateway.tool;
 
+import io.jsonwebtoken.lang.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Component;
@@ -12,6 +16,8 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Component
 @Order(0) // 在 JwtFilter（@Order默认最低）之后执行
@@ -22,7 +28,14 @@ public class RoleRedirectFilter implements WebFilter {
     public Mono<Void> filter(@NotNull ServerWebExchange exchange, @NotNull WebFilterChain chain) {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
-                .defaultIfEmpty(null)
+                .switchIfEmpty(Mono.defer(() -> Mono.just(
+                        new UsernamePasswordAuthenticationToken(
+                                "anonymous",
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))
+                        )
+                )))
+
                 .flatMap(auth -> {
                     if (auth != null && auth.isAuthenticated()) {
                         ServerHttpRequest request = exchange.getRequest();
