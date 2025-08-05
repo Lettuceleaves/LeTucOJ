@@ -2,10 +2,12 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import HomePage from '@/views/HomePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
-import ListPage from '@/views/MainPages/ListPage.vue'
 import Editor from '@/views/Editor.vue'
 import ProblemForm from '@/views/ProblemForm.vue'
 import DocPage from '@/views/DocPage.vue'
+import MainPage from '@/views/MainPage.vue'
+import HistoryPage from '@/views/HistoryPage.vue'
+import ContestMain from '@/views/ContestMain.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -26,11 +28,6 @@ const router = createRouter({
       component: RegisterPage,
     },
     {
-      path: '/list',
-      name: 'list',
-      component: ListPage,
-    },
-    {
       path: '/editor/:name',
       name: 'Editor',
       component: Editor,
@@ -49,17 +46,17 @@ const router = createRouter({
     {
       path: '/history',
       name: 'history',
-      component: () => import('../views/History.vue'),
+      component: HistoryPage,
     },
     {
       path: '/main',
       name: 'main',
-      component: () => import('../views/Main.vue'),
+      component: MainPage,
     },
     {
       path: '/contest',
       name: 'contest',
-      component: () => import('../views/ContestMain.vue'),
+      component: ContestMain,
     },
   ],
 })

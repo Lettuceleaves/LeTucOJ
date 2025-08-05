@@ -3,7 +3,7 @@
     <el-header>
       <div class="w-full h-full flex items-center backdrop-blur">
         <div class="flex-1">
-          <el-link href="/" underline="never" class="text-6 styled-font">LetucOJ</el-link>
+          <el-link href="/" underline="never" class="text-6 mx-4 styled-font">LetucOJ</el-link>
           <slot name="top-bar"></slot>
         </div>
 
