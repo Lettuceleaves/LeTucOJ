@@ -2,12 +2,12 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import HomePage from '@/views/HomePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
-import EditorPage from '@/views/EditorPage.vue'
 import ProblemForm from '@/views/ProblemForm.vue'
 import DocPage from '@/views/DocPage.vue'
 import PracticeListPage from '@/views/PracticeListPage.vue'
 import HistoryPage from '@/views/HistoryPage.vue'
 import ContestPage from '@/views/ContestMain.vue'
+import PracticeDetailPage from '@/views/PracticeDetailPage.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -28,9 +28,9 @@ const router = createRouter({
       component: RegisterPage,
     },
     {
-      path: '/editor/:name',
-      name: 'editor',
-      component: EditorPage,
+      path: '/detail/:name',
+      name: 'detail',
+      component: PracticeDetailPage,
       props: true, // ✅ 让 name 参数传给组件
     },
     {

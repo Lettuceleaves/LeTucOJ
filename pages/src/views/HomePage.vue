@@ -21,9 +21,9 @@ onMounted(async () => {
 
 const go = () => {
   if (getDecodedJwt()) {
-    router.push('/practices');
+    router.push({ name: 'practices' });
   } else {
-    router.push('/login');
+    router.push({ name: 'login' });
   }
 }
 </script>

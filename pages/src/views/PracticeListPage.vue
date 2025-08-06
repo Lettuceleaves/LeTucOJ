@@ -78,7 +78,10 @@ const fetchPractices = async (start: number, limit: number = LIMIT) => {
 const handleViewPractice = (index: number) => {
   const practice = displayPractices.value[index];
 
-  router.push(`/editor/${practice.name}`);
+  router.push({
+    name: 'detail',
+    params: { name: practice.name }
+  });
 }
 
 const handlePageChange = (val: number) => {

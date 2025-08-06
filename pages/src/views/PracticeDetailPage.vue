@@ -11,7 +11,7 @@
           <el-descriptions-item label="作者">{{ practiceDetail.authors }}</el-descriptions-item>
           <el-descriptions-item label="频率(总次数)">{{ practiceDetail.freq }}</el-descriptions-item>
           <el-descriptions-item label="标签">
-            <el-tag>{{ practiceDetail.tags }}</el-tag>
+            <el-tag v-for="(tag, index) in practiceDetail.tags.split(',')" v-bind:key="index">{{ tag }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ practiceDetail.createtime }}</el-descriptions-item>
           <el-descriptions-item label="更新时间">{{ practiceDetail.updateat }}</el-descriptions-item>

@@ -36,9 +36,9 @@
 
 
             <div v-if="userInfo === null">
-              <el-button type="primary" plain @click="router.push('/register')">注册</el-button>
-              <el-button type="success" plain @click="router.push('/login')">登录</el-button>
-              <el-button type="warning" circle @click="router.push('/docs')">
+              <el-button type="primary" plain @click="router.push({ name: 'register' })">注册</el-button>
+              <el-button type="success" plain @click="router.push({ name: 'login' })">登录</el-button>
+              <el-button type="warning" circle @click="router.push({ name: 'docs' })">
                 <el-icon>
                   <Document />
                 </el-icon>
@@ -71,7 +71,7 @@ const logout = () => {
   clearJwt();
   userInfo.value = null;
 
-  router.push('/');
+  router.push({ name: 'home' });
 }
 </script>
 
