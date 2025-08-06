@@ -1,13 +1,16 @@
-import { createRouter, createWebHashHistory  } from 'vue-router'
-import HomePage from '../views/HomePage.vue'
-import LoginPage from '../views/LoginPage.vue';
-import RegisterPage from '../views/RegisterPage.vue';
-import Editor from '../views/Editor.vue';
-import ProblemForm from '../views/ProblemForm.vue';
+import { createRouter, createWebHashHistory } from 'vue-router'
+import HomePage from '@/views/HomePage.vue'
+import LoginPage from '@/views/LoginPage.vue'
+import RegisterPage from '@/views/RegisterPage.vue'
+import EditorPage from '@/views/EditorPage.vue'
+import ProblemForm from '@/views/ProblemForm.vue'
 import DocPage from '@/views/DocPage.vue'
+import MainPage from '@/views/MainPage.vue'
+import HistoryPage from '@/views/HistoryPage.vue'
+import ContestMain from '@/views/ContestMain.vue'
 
 const router = createRouter({
-  history: createWebHashHistory (),
+  history: createWebHashHistory(),
   routes: [
     {
       path: '/',
@@ -27,8 +30,8 @@ const router = createRouter({
     {
       path: '/editor/:name',
       name: 'Editor',
-      component: Editor,
-      props: true // ✅ 让 name 参数传给组件
+      component: EditorPage,
+      props: true, // ✅ 让 name 参数传给组件
     },
     {
       path: '/form',
@@ -38,26 +41,24 @@ const router = createRouter({
     {
       path: '/docs',
       name: 'docs',
-      component: DocPage
+      component: DocPage,
     },
     {
       path: '/history',
       name: 'history',
-      component: () => import('../views/History.vue'),
+      component: HistoryPage,
     },
     {
       path: '/main',
       name: 'main',
-      component: () => import('../views/Main.vue'),
-    }
-    ,
+      component: MainPage,
+    },
     {
       path: '/contest',
       name: 'contest',
-      component: () => import('../views/ContestMain.vue'),
-    }
+      component: ContestMain,
+    },
   ],
 })
 
 export default router
-

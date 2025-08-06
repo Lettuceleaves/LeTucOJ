@@ -32,7 +32,7 @@ class DialogService {
    * @param {string} title 标题（可选）
    * @returns Promise<boolean>
    */
-  async confirm(content, title = '提示') {
+  async confirm(content: string, title: string = '提示') {
     try {
       await this.show({ title, content })
       return true

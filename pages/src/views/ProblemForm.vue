@@ -8,10 +8,10 @@
         <!-- name -->
         <div class="form-item">
           <label for="name">{{ labels.name }}</label>
-          <input 
-            id="name" 
-            v-model="form.name" 
-            type="text" 
+          <input
+            id="name"
+            v-model="form.name"
+            type="text"
             :readonly="isEdit"
           />
         </div>
@@ -97,14 +97,14 @@
         <label>输入输出</label>
         <div class="input-output-box" v-for="(item, index) in inputOutputSections" :key="index">
           <div class="input-output-content">
-            <textarea 
-              v-model="item.input" 
-              placeholder="请输入内容" 
+            <textarea
+              v-model="item.input"
+              placeholder="请输入内容"
               @input="adjustHeight($event, index, 'input')"
             />
-            <textarea 
-              v-model="item.output" 
-              placeholder="输出内容" 
+            <textarea
+              v-model="item.output"
+              placeholder="输出内容"
               ref="outputRefs"
               disabled
             />
@@ -185,7 +185,7 @@ onMounted(async () => {
       const token = localStorage.getItem('jwt')
       const response = await fetch(`http://${ip}:7777/practice/fullRoot/get`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`  // 加上这行
         },
@@ -220,7 +220,7 @@ const handleSubmit = async () => {
     const token = localStorage.getItem('jwt')
     const response = await fetch(`http://${ip}:7777/practice/fullRoot/update`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`  // 加上这行
       },
@@ -264,7 +264,7 @@ const submit = async (index) => {
     try {
         const response = await fetch(`http://${ip}:7777/practice/submitCase`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('jwt')}`
         },
@@ -280,7 +280,7 @@ const submit = async (index) => {
         await nextTick(); // Wait for the DOM to update
         adjustHeightForOutput(index);
         form.value.caseAmount += 1;
-        alert('提交成功');      
+        alert('提交成功');
       } else {
         alert('提交失败: ' + data.error);
       }
@@ -297,7 +297,7 @@ const getOutput = async (index) => {
     try {
       const response = await fetch(`http://${ip}:7777/practice/getCase`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('jwt')}`
         },
@@ -341,7 +341,7 @@ const adjustHeight = (event, index, type) => {
 
   // Set height to auto first to allow dynamic resizing
   textarea.style.height = 'auto';
-  
+
   // Adjust height based on the content
   textarea.style.height = `${textarea.scrollHeight}px`;
 

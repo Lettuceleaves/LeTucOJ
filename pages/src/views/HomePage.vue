@@ -1,5 +1,10 @@
-<script setup>
+<script lang="ts" setup>
 import { ref, onMounted } from 'vue';
+import BaseLayout from '@/components/BaseLayout.vue';
+import { getDecodedJwt } from '@/persistence/LocalPersistence';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const lines = ref('');
 
@@ -13,6 +18,14 @@ onMounted(async () => {
     lines.value = "rasie Error('Failed to load lines. Please check the URL and try again.')";
   }
 });
+
+const go = () => {
+  if (getDecodedJwt()) {
+    router.push('/main');
+  } else {
+    router.push('/login');
+  }
+}
 </script>
 
 <template>
@@ -26,33 +39,20 @@ onMounted(async () => {
       </div>
     </div>
 
-    <el-container class="h-full relative z-10 bg-black bg-op-50">
-      <el-header>
-        <div class="w-full h-full flex items-center justify-between">
-          <el-text class="text-6 styled-font">LetucOJ</el-text>
-          <div class="buttons">
-            <el-button type="primary" plain @click="$router.push('/register')">注册</el-button>
-            <el-button type="success" plain @click="$router.push('/login')">登录</el-button>
-            <el-button type="warning" circle @click="$router.push('/docs')">
-              <el-icon class="el-icon"><Document/></el-icon>
-            </el-button>
-          </div>
-        </div>
-      </el-header>
+    <base-layout class="h-full relative z-10 bg-black bg-op-50">
+      <div class="flex items-center justify-center flex-col h-full">
+        <el-text class="text-16 styled-font">LetucOJ</el-text>
+        <el-text class="text-9 my-4 c-gray">
+          一个试图让出题变简单的 OJ 系统
+        </el-text>
 
-      <el-main>
-        <div class="flex items-center justify-center flex-col h-full">
-          <el-text class="text-16 styled-font">LetucOJ</el-text>
-          <el-text class="text-9 my-4 c-gray">
-            一个试图让出题变简单的 OJ 系统
-          </el-text>
-
-          <el-button round @click="$router.push('/login')" size="large" class="!p-8 my-4 text-6">
-            启动!<el-icon class="el-icon--right"><ArrowRight /></el-icon>
-          </el-button>
-        </div>
-      </el-main>
-    </el-container>
+        <el-button round @click="go" size="large" class="!p-8 my-4 text-6">
+          启动!<el-icon class="el-icon--right">
+            <ArrowRight />
+          </el-icon>
+        </el-button>
+      </div>
+    </base-layout>
   </div>
 </template>
 
@@ -72,9 +72,7 @@ onMounted(async () => {
   overflow: hidden;
   z-index: 0;
 
-  mask-image: linear-gradient(
-    0deg, transparent, #fff 5%, #fff 85%, transparent
-  );
+  mask-image: linear-gradient(0deg, transparent, #fff 5%, #fff 85%, transparent);
 }
 
 .bg-terminal div {
@@ -90,23 +88,19 @@ onMounted(async () => {
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(-100%);
   }
 }
+
 @keyframes animate2 {
   from {
     transform: translateY(0);
   }
+
   to {
     transform: translateY(-200%);
   }
 }
-
-header.el-header {
-  box-shadow: var(--el-box-shadow);
-  backdrop-filter: blur(10px);
-  background-color: #fff1;
-}
-
 </style>
