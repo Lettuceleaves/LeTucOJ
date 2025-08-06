@@ -40,7 +40,6 @@ import { useRouter } from 'vue-router';
 import BaseLayout from '@/components/BaseLayout.vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { LoginRequest } from '@/apis/User';
-import { post } from '@/apis/Api';
 import { persistJwt } from '@/persistence/LocalPersistence';
 import type { AxiosError } from 'axios';
 
@@ -71,6 +70,7 @@ const login = async () => {
       return;
     }
     persistJwt(response.data.token);
+    router.push('/main')
   } catch (error: unknown) {
     const axiosError = error as AxiosError;
     if (axiosError.response && axiosError.response.data) {

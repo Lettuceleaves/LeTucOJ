@@ -5,7 +5,7 @@
     </el-card>
 
     <el-card class="my-2">
-      <el-skeleton animated>
+      <el-skeleton animated v-if="isFetching">
         <template #template>
           <el-table :data="Array.from({ length: 3 })">
             <el-table-column label="名称">
@@ -43,7 +43,7 @@
 </template>
 
 <script lang="ts" setup>
-import { GetPracticeListRequest } from '@/apis/Practice';
+import { GetPracticeListRequest, GetPracticesCountRequest } from '@/apis/Practice';
 import type { SimplePracticeInfo } from '@/models/Practice';
 import { onMounted, ref } from 'vue';
 
@@ -57,9 +57,7 @@ const fetchPractices = async (start: number, limit: number = 10) => {
   isFetching.value = true;
   let response = await new GetPracticeListRequest(
     start,
-    limit,
-    "",
-    ""
+    limit
   ).request();
 
   if (response.status === 0) {
@@ -71,12 +69,9 @@ const fetchPractices = async (start: number, limit: number = 10) => {
 }
 
 onMounted(async () => {
-  // TODO:
-  // let response = await get<GetPracticesCountRequest>('/practice/count');
-  // if (response.status !== 0) return;
-  // total.value = response.data!;
-
-  total.value = 50;
+  let response = await new GetPracticesCountRequest().request();
+  if (response.status !== 0) return;
+  total.value = response.data!;
 
   await fetchPractices(start.value);
 
