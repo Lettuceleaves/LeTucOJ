@@ -3,6 +3,7 @@ package com.LetucOJ.practice.service;
 import com.LetucOJ.practice.model.*;
 
 public interface DBService {
+    ResultVO getAmount();
     ResultVO getList(ListServiceDTO dto);
     ResultVO getListInRoot(ListServiceDTO dto);
     ResultVO searchList(ListServiceDTO dto);

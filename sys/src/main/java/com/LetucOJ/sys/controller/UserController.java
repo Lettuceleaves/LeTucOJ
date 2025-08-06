@@ -17,12 +17,12 @@ public class UserController {
         return null;
     }
 
-    @GetMapping("/doc/get")
+    @PutMapping("/doc/update")
     public ResultVO updateDoc(@RequestBody byte[] doc) {
         return sysService.updateDoc(doc);
     }
 
-    @PutMapping("/doc/update")
+    @GetMapping("/doc/get")
     public ResultVO getDoc() {
         return sysService.getDoc();
     }

@@ -44,11 +44,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResultVO authenticate(RegisterRequestDTO dto) {
         String username = dto.getUsername();
-        String cnname = dto.getCnname();
         String rawPwd = dto.getPassword();
         UserDTO userDTO = userMybatisRepos.getPasswordByUserName(username);
         if (userDTO != null && userDTO.isEnabled() && PasswordUtil.matches(rawPwd, userDTO.getPassword())) {
-            return new ResultVO(0, new JwtInfoVO(username, userDTO.getRole(), cnname, System.currentTimeMillis()), null);
+            String cnname = userDTO.getCnname();
+            System.out.println(cnname);
+            return new ResultVO(0, new JwtInfoVO(username, cnname, userDTO.getRole(), System.currentTimeMillis()), null);
         }
         return new ResultVO(1, null, "Invalid credentials or account disabled" +
                 (userDTO == null ? " - User not found" : ( userDTO.isEnabled() ? "" : " - Account is disabled")));

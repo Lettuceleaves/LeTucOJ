@@ -23,14 +23,12 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         System.out.println("Configuring SecurityWebFilterChain...");
+        System.out.println(http);
 
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable).authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS).permitAll()
-
-
-
 
                         // 公开接口
                         .pathMatchers(
@@ -42,14 +40,14 @@ public class SecurityConfig {
                                 "/practice/list", "/practice/searchList", "/practice/full/get",
                                 "/practice/submit", "/contest/full/getProblem", "/contest/full/getContest",
                                 "/contest/attend", "/contest/list/problem", "/contest/list/contest",
-                                "/contest/list/board", "/contest/submit", "/user/logout", "/user/changePassword", "/advice"
+                                "/contest/list/board", "/contest/submit", "/user/logout", "/user/changePassword", "/advice", "/practice/count"
                         ).hasAnyRole("USER", "MANAGER", "ROOT")
 
                         // 管理员权限接口
                         .pathMatchers(
                                 "/practice/fullRoot/insert", "/practice/fullRoot/update", "/practice/fullRoot/delete", "/practice/getCase",
-                                "/practice/submitCase", "/user/activate", "/user/deactivate",
-                                "/user/users", "/user/managers", "/user/promote", "/user/demote",
+                                "/practice/submitCase", "/user/activate", "/user/deactivate", "/practice/listRoot", "/practice/fullRoot/get",
+                                "/user/users", "/user/managers", "/user/promote", "/user/demote", "/practice/submitInRoot", "/practice/searchListInRoot",
                                 "/contest/insertContest", "/contest/updateContest", "/contest/insertProblem",
                                 "/contest/deleteProblem", "/sys/doc/get", "/sys/doc/update"
                         ).hasAnyRole("MANAGER", "ROOT")

@@ -228,6 +228,7 @@
                 <version>${docker.version}</version>
             </dependency>
 
+
         </dependencies>
     </dependencyManagement>
 

@@ -24,6 +24,16 @@ public class DBServiceImpl implements DBService {
     @Autowired
     private RunClient runClient;
 
+    public ResultVO getAmount() {
+        Integer amount = mybatisRepos.getAmount();
+
+        if (amount == null || amount < 0) {
+            return new ResultVO((byte)5, null, "practice/getAmount: Amount is null or negative");
+        }
+
+        return new ResultVO((byte)0, amount, null);
+    }
+
     public ResultVO getList(ListServiceDTO dto) {
 
         if (dto.getStart() == null || dto.getLimit() == null) {
@@ -40,6 +50,8 @@ public class DBServiceImpl implements DBService {
     }
 
     public ResultVO getListInRoot(ListServiceDTO dto) {
+
+        System.out.println("DTO: " + dto);
 
         if (dto.getStart() == null || dto.getLimit() == null) {
             return new ResultVO((byte)5, null, "practice/getListInRoot: Start or limit is null");

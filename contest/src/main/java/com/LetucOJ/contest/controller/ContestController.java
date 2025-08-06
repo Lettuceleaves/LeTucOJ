@@ -6,6 +6,7 @@ import com.LetucOJ.contest.model.net.FullInfoServiceDTO;
 import com.LetucOJ.contest.model.net.ResultVO;
 import com.LetucOJ.contest.service.DBService;
 import com.LetucOJ.contest.service.PracticeService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,12 +21,12 @@ public class ContestController {
     private DBService dbService;
 
     @GetMapping("/full/getProblem")
-    public ResultVO getProblem(@RequestBody FullInfoServiceDTO dto, @RequestHeader("contestName") String contestName) throws Exception {
+    public ResultVO getProblem(@ModelAttribute FullInfoServiceDTO dto, @RequestHeader("contestName") String contestName) throws Exception {
         return dbService.getProblem(dto, contestName);
     }
 
     @GetMapping("/full/getContest")
-    public ResultVO getContest(@RequestBody ContestServiceDTO dto) throws Exception {
+    public ResultVO getContest(@ModelAttribute ContestServiceDTO dto) throws Exception {
         return dbService.getContest(dto);
     }
 

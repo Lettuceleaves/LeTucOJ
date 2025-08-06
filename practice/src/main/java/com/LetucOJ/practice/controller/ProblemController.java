@@ -20,12 +20,12 @@ public class ProblemController {
     private DBService dbService;
 
     @GetMapping("/full/get")
-    public ResultVO getProblem(@RequestBody FullInfoServiceDTO sql) throws Exception {
+    public ResultVO getProblem(@ModelAttribute FullInfoServiceDTO sql) throws Exception {
         return dbService.getProblem(sql);
     }
 
     @GetMapping("/fullRoot/get")
-    public ResultVO getProblemInRoot(@RequestBody FullInfoServiceDTO sql) throws Exception {
+    public ResultVO getProblemInRoot(@ModelAttribute FullInfoServiceDTO sql) throws Exception {
         return dbService.getProblemInRoot(sql);
     }
 
@@ -44,7 +44,7 @@ public class ProblemController {
         return dbService.deleteProblem(sql);
     }
 
-    @GetMapping("/getCase")
+    @PostMapping("/getCase")
     public ResultVO getCase(@RequestBody CaseInputDTO caseInputDTO) {
         return dbService.getCase(caseInputDTO);
     }
