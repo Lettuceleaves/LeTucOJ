@@ -1,25 +1,24 @@
 package com.LetucOJ.advice.controller;
 
 import com.LetucOJ.advice.service.adviceService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 
 @RestController
 @CrossOrigin(origins = "*")
-public class controllerApplication {
+@Api(tags = {"advice"})
+public class AdviceController {
 
     @Autowired
     private adviceService adviceService;
 
-    @GetMapping("/advice")
-    public Flux<ServerSentEvent<String>> advice(@RequestParam(value = "userFile") String userFile) throws IOException {
+    @PostMapping("/advice")
+    public Flux<ServerSentEvent<String>> advice(@RequestBody String userFile) throws IOException {
         return adviceService.advice(userFile);
     }
 }

@@ -60,6 +60,8 @@ public class JwtFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
+        System.out.println("------" + "Method:" + exchange.getRequest().getMethod() + " " + exchange);
+
         // 跳过 OPTIONS 和白名单路径
         if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod())
                 || WHITELIST.contains(path)) {
@@ -98,7 +100,7 @@ public class JwtFilter implements WebFilter {
                         );
                     }
 
-                    // 注入参数（ttl 和 role）
+                    // 注入参数（ttl, sub, cnname）
                     ServerWebExchange mutated = exchange;
                     URI originalUri = exchange.getRequest().getURI();
                     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(originalUri);
@@ -113,12 +115,12 @@ public class JwtFilter implements WebFilter {
                         );
                     }
                     if (TTL_REQUIRED.contains(path)) {
-                        uriBuilder.replaceQueryParam("ttl", ttlSeconds);
+                        uriBuilder.replaceQueryParam("exp", ttlSeconds);
                     }
 
-                    String role = claims.get("role", String.class);
+                    String sub = claims.get("sub", String.class);
                     if (AUTHORIZED_ROLES_REQUIRED.contains(path)) {
-                        uriBuilder.replaceQueryParam("role", role);
+                        uriBuilder.replaceQueryParam("sub", sub);
                     }
 
                     String cnname = claims.get("cnname", String.class);
@@ -134,6 +136,7 @@ public class JwtFilter implements WebFilter {
                     }
 
                     // 设置认证上下文
+                    String role = claims.get("role", String.class);
                     Authentication auth = new UsernamePasswordAuthenticationToken(
                             claims.getSubject(), null,
                             Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))

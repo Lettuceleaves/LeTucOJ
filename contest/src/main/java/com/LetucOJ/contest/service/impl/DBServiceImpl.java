@@ -44,7 +44,7 @@ public class DBServiceImpl implements DBService {
         ContestInfoDTO dbDtoContest = mybatisRepos.getContest(contestName);
 
         if (!dbDtoContest.isIspublic()) {
-            return new ResultVO((byte)5, null, "practice/getProblem: Not Public");
+            return new ResultVO((byte)5, null, "practice/getProblemList: Not Public");
         }
 
         // check time

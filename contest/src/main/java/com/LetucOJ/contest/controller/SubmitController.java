@@ -5,11 +5,13 @@ import com.LetucOJ.contest.model.net.CodeDTO;
 import com.LetucOJ.contest.model.net.ResultVO;
 import com.LetucOJ.contest.repos.MybatisRepos;
 import com.LetucOJ.contest.service.PracticeService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/practice")
+@Api(tags = {"contest", "submit"})
 public class SubmitController {
 
     @Autowired

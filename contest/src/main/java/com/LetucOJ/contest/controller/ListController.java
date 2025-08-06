@@ -3,11 +3,13 @@ package com.LetucOJ.contest.controller;
 import com.LetucOJ.contest.model.net.ResultVO;
 import com.LetucOJ.contest.service.DBService;
 import com.LetucOJ.contest.service.PracticeService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/contest")
+@Api(tags = {"contest", "list"})
 public class ListController {
 
     @Autowired
@@ -27,8 +29,8 @@ public class ListController {
     }
 
     @GetMapping("/list/board")
-    public ResultVO getBoardList(@RequestBody String name) throws Exception {
-        return dbService.getBoard(name);
+    public ResultVO getBoardList(@RequestHeader("contestName") String contestName) throws Exception {
+        return dbService.getBoard(contestName);
     }
 
 }

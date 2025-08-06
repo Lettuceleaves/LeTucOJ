@@ -12,9 +12,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-//
-//    @Autowired
-//    private ReactiveStringRedisTemplate redisTemplate;
 
     @PostMapping("/register")
     public ResultVO register(@RequestBody RegisterRequestDTO dto) {

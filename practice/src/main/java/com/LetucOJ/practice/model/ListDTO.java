@@ -1,13 +1,11 @@
 package com.LetucOJ.practice.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)  // 序列化时忽略 null 字段
 public class ListDTO {
     private String name;
     private String cnname;

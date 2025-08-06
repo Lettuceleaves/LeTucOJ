@@ -12,13 +12,13 @@ public class JwtUtil {
     private static final String SECRET = "yoursecretkeyyoursecretkeyyoursecretkeyyoursecretkey";
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    public static String generateToken(String username, String role, long expirationMillis) {
+    public static String generateToken(String username, String cnname, String role, long millis) {
         return Jwts.builder()
+                .issuer("LetucOJ")
                 .subject(username)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationMillis))
+                .expiration(new Date(System.currentTimeMillis() + millis))
+                .claim("cnname", cnname)
                 .claim("role", role)
-                .claim("username", username)
                 .signWith(KEY)
                 .compact();
     }

@@ -10,6 +10,9 @@ import java.util.List;
 @Mapper
 public interface MybatisRepos {
 
+    @Select("SELECT COUNT(*) FROM problem")
+    Integer getAmount();
+
     @Select("SELECT ispublic, showsolution, caseAmount FROM problem WHERE name = #{name}")
     ProblemStatusDTO getStatus(String name);
 

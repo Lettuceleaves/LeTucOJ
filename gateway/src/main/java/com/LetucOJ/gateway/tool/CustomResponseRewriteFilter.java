@@ -76,25 +76,33 @@ public class CustomResponseRewriteFilter implements WebFilter {
                                             }
 
                                             JsonNode usernameNode = data.get("username");
+                                            JsonNode cnnameNode = data.get("cnname");
                                             JsonNode roleNode = data.get("role");
                                             JsonNode millisNode = data.get("millis");
 
-                                            if (usernameNode == null || roleNode == null || millisNode == null) {
+                                            System.out.println(data.asText());
+                                            if (cnnameNode != null && !cnnameNode.isNull()) {
+                                                System.out.println(cnnameNode.asText());
+                                            }
+
+                                            if (usernameNode == null || cnnameNode == null || roleNode == null || millisNode == null) {
                                                 // 缺字段，原样返回
                                                 return Flux.just(bufferFactory.wrap(originalContent.getBytes(StandardCharsets.UTF_8)));
                                             }
 
                                             String username = usernameNode.asText();
+                                            String cnname = cnnameNode.asText();
                                             String role = roleNode.asText();
                                             long millis = millisNode.asLong();
 
                                             // 生成 token
-                                            String token = JwtUtil.generateToken(username, role, millis);
+                                            String token = JwtUtil.generateToken(username, cnname, role, millis);
                                             System.out.println("生成 JWT: " + token);
 
-                                            // 构造新的 body 只返回 token
-                                            String newBody = objectMapper.writeValueAsString(
-                                                    objectMapper.createObjectNode().put("token", token)
+                                            // 构造新的 body,将data替换为token
+                                            String newBody = String.format(
+                                                    "{\"status\":0,\"data\":{\"token\":\"%s\"},\"message\":null}",
+                                                    token
                                             );
                                             return Flux.just(bufferFactory.wrap(newBody.getBytes(StandardCharsets.UTF_8)));
                                         } catch (Exception e) {

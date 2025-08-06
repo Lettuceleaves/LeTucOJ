@@ -13,7 +13,7 @@ export class GetPracticeListRequest extends Request<GetPracticeListResponse> {
     public readonly order: string,
     public readonly like: string
   ) {
-    super('POST', '/practice/list', true);
+    super('GET', '/practice/list', true);
   }
 }
 
