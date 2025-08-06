@@ -70,7 +70,7 @@ const login = async () => {
       return;
     }
     persistJwt(response.data.token);
-    router.push('/main')
+    router.push('/practices')
   } catch (error: unknown) {
     const axiosError = error as AxiosError;
     if (axiosError.response && axiosError.response.data) {
@@ -85,7 +85,7 @@ onMounted(() => {
   const token = localStorage.getItem('jwt');
   if (token === null) return;
 
-  router.push('/main');
+  router.push('/practices');
 });
 
 </script>

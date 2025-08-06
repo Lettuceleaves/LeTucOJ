@@ -29,7 +29,6 @@ export function getDecodedJwt(): UserInfo | null {
 
   try {
     let payload = jwtDecode<JwtPayload>(token)
-    console.log(payload)
 
     const expires = new Date(payload.exp * 1000)
     if (expires < new Date()) {

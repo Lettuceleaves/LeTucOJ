@@ -53,6 +53,9 @@ export class Request<T> {
       }
     })
 
+    // DEBUG
+    console.log(resp.data)
+
     return resp.data;
   }
 }
