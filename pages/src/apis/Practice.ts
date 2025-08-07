@@ -1,5 +1,6 @@
 import type { PraciceInfo, SimplePracticeInfo } from '@/models/Practice'
 import { Request, type Response } from './Api'
+import { getDecodedJwt } from '@/persistence/LocalPersistence';
 
 /**
 Get practice list
@@ -62,3 +63,31 @@ export class GetPracticeDetailRequest extends Request<GetPracticeDetailResponse>
 }
 
 export type GetPracticeDetailResponse = Response<PraciceInfo>
+
+/**
+Submit code
+@augments type 0: run, 1: contest, 2: test 3: debug
+
+POST /practice/submit
+*/
+export class SubmitPracticeRequest extends Request<SubmitPracticeResponse> {
+  constructor(
+    public readonly code: string,
+    public readonly type: number
+  ) {
+    super('POST', '/practice/submit', true);
+  }
+
+  // TODO: to be fixed
+  protected getParams(): object | undefined {
+    const userInfo = getDecodedJwt();
+    if (userInfo === null) throw new Error('No')
+    return {
+      name: userInfo.name,
+      cnname: userInfo.cnname
+    }
+  }
+}
+
+// 0: accepted, 1: wrong answer, 2: compile error, 3: runtime error, 4: time limit exceeded, 5: server error
+export type SubmitPracticeResponse = Response<undefined>

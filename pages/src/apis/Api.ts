@@ -18,11 +18,6 @@ export class Request<T> {
     return `Bearer ${getJwt()}`
   }
 
-  private getUrl(): string {
-    const path = this.path.startsWith('/') ? this.path.slice(1) : this.path
-    return `${baseUrl}/${path}`
-  }
-
   protected getData() {
     return {
       ...this,
@@ -32,29 +27,27 @@ export class Request<T> {
     }
   }
 
-  protected getBody() {
+  protected getBody(): object | undefined {
     if (this.method === 'GET' || this.method === 'DELETE') return
     return this.getData()
   }
 
-  protected getParams() {
+  protected getParams(): object | undefined {
     if (this.method === 'PUT' || this.method === 'POST') return
     return this.getData()
   }
 
   async request(): Promise<T> {
-    const resp = await axios.request<this, AxiosResponse<T>, this>({
+    const resp = await axios.request<this, AxiosResponse<T>, object>({
       method: this.method,
-      url: this.getUrl(),
+      baseURL: baseUrl,
+      url: this.path,
       data: this.getBody(),
       params: this.getParams(),
       headers: {
         Authorization: this.getAuthorization()
       }
     })
-
-    // DEBUG
-    console.log(resp.data)
 
     return resp.data;
   }

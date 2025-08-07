@@ -10,8 +10,7 @@
         <el-button @click="onTabClicked('practices')" :text="selectedTab !== 'practices'"
           :type="selectedTab === 'practices' ? 'primary' : ''" :bg="selectedTab === 'practices'">题单</el-button>
 
-        <el-button @click="onTabClicked('detail')" :text="selectedTab !== 'detail'"
-          :type="selectedTab === 'detail' ? 'primary' : ''" :bg="selectedTab === 'detail'">详情</el-button>
+        <el-button @click="onTabClicked('detail')" type="primary" bg v-if="selectedTab === 'detail'">详情</el-button>
 
         <el-button @click="onTabClicked('management')" :text="selectedTab !== 'management'"
           :type="selectedTab === 'management' ? 'primary' : ''" :bg="selectedTab === 'management'">管理</el-button>
