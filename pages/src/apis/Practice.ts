@@ -9,9 +9,7 @@ POST /practice/list
 export class GetPracticeListRequest extends Request<GetPracticeListResponse> {
   constructor(
     public readonly start: number,
-    public readonly limit: number,
-    public readonly order: string,
-    public readonly like: string
+    public readonly limit: number
   ) {
     super('GET', '/practice/list', true);
   }
@@ -44,7 +42,7 @@ export class SearchPracticeRequest extends Request<SearchPracticeRequest> {
     public readonly order: string,
     public readonly like: string
   ) {
-    super('POST', '/practice/searchList', true);
+    super('GET', '/practice/searchList', true);
   }
 }
 
@@ -59,7 +57,7 @@ export class GetPracticeDetailRequest extends Request<GetPracticeDetailResponse>
   constructor(
     public readonly name: string
   ) {
-    super('POST', '/practice/full/get', true);
+    super('GET', '/practice/full/get', true);
   }
 }
 

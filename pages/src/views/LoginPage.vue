@@ -6,7 +6,7 @@
           <el-space class="nav-section" direction="vertical" :size="8">
             <el-text class="styled-font text-10">欢迎</el-text>
             <el-text class="text-5">没有账户?</el-text>
-            <el-button class="mt-2" type="primary" @click="router.push('/register')">
+            <el-button class="mt-2" type="primary" @click="router.push({ name: 'register' })">
               注册<el-icon class="el-icon--right">
                 <ArrowRight />
               </el-icon>
@@ -40,7 +40,6 @@ import { useRouter } from 'vue-router';
 import BaseLayout from '@/components/BaseLayout.vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { LoginRequest } from '@/apis/User';
-import { post } from '@/apis/Api';
 import { persistJwt } from '@/persistence/LocalPersistence';
 import type { AxiosError } from 'axios';
 
@@ -71,6 +70,7 @@ const login = async () => {
       return;
     }
     persistJwt(response.data.token);
+    router.push({ name: 'practices' });
   } catch (error: unknown) {
     const axiosError = error as AxiosError;
     if (axiosError.response && axiosError.response.data) {
@@ -85,7 +85,7 @@ onMounted(() => {
   const token = localStorage.getItem('jwt');
   if (token === null) return;
 
-  router.push('/main');
+  router.push({ name: 'practices' });
 });
 
 </script>

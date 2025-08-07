@@ -2,12 +2,12 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import HomePage from '@/views/HomePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
-import EditorPage from '@/views/EditorPage.vue'
 import ProblemForm from '@/views/ProblemForm.vue'
 import DocPage from '@/views/DocPage.vue'
-import MainPage from '@/views/MainPage.vue'
+import PracticeListPage from '@/views/PracticeListPage.vue'
 import HistoryPage from '@/views/HistoryPage.vue'
-import ContestMain from '@/views/ContestMain.vue'
+import ContestPage from '@/views/ContestMain.vue'
+import PracticeDetailPage from '@/views/PracticeDetailPage.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -19,18 +19,18 @@ const router = createRouter({
     },
     {
       path: '/login',
-      name: 'Login',
+      name: 'login',
       component: LoginPage,
     },
     {
       path: '/register',
-      name: 'Register',
+      name: 'register',
       component: RegisterPage,
     },
     {
-      path: '/editor/:name',
-      name: 'Editor',
-      component: EditorPage,
+      path: '/detail/:name',
+      name: 'detail',
+      component: PracticeDetailPage,
       props: true, // ✅ 让 name 参数传给组件
     },
     {
@@ -49,14 +49,14 @@ const router = createRouter({
       component: HistoryPage,
     },
     {
-      path: '/main',
-      name: 'main',
-      component: MainPage,
+      path: '/practices',
+      name: 'practices',
+      component: PracticeListPage,
     },
     {
-      path: '/contest',
+      path: '/contests',
       name: 'contest',
-      component: ContestMain,
+      component: ContestPage,
     },
   ],
 })

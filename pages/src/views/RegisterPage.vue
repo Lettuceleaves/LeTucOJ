@@ -85,7 +85,7 @@ const register = async () => {
     ).request();
 
     if (response.status === 0) {
-      router.push('/login')
+      router.push({ name: 'login' });
     } else {
       alert('注册失败：' + (response.error || '未知错误'))
     }
