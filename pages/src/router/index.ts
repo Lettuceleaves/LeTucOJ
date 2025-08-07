@@ -2,12 +2,11 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import HomePage from '@/views/HomePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
-import ProblemForm from '@/views/ProblemForm.vue'
 import DocPage from '@/views/DocPage.vue'
 import PracticeListPage from '@/views/PracticeListPage.vue'
-import HistoryPage from '@/views/HistoryPage.vue'
 import ContestPage from '@/views/ContestMain.vue'
 import PracticeDetailPage from '@/views/PracticeDetailPage.vue'
+import PracticeSubmitPage from '@/views/PracticeSubmitPage.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -28,30 +27,24 @@ const router = createRouter({
       component: RegisterPage,
     },
     {
-      path: '/detail/:name',
-      name: 'detail',
-      component: PracticeDetailPage,
-      props: true, // ✅ 让 name 参数传给组件
-    },
-    {
-      path: '/form',
-      name: 'form',
-      component: ProblemForm,
-    },
-    {
       path: '/docs',
       name: 'docs',
       component: DocPage,
     },
     {
-      path: '/history',
-      name: 'history',
-      component: HistoryPage,
-    },
-    {
       path: '/practices',
       name: 'practices',
       component: PracticeListPage,
+    },
+    {
+      path: '/practices/:name',
+      name: 'detail',
+      component: PracticeDetailPage,
+    },
+    {
+      path: '/practices/:name/submit',
+      name: 'submit',
+      component: PracticeSubmitPage,
     },
     {
       path: '/contests',

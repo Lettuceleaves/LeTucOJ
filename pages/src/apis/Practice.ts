@@ -66,14 +66,12 @@ export type GetPracticeDetailResponse = Response<PraciceInfo>
 
 /**
 Submit code
-@augments type 0: run, 1: contest, 2: test 3: debug
 
 POST /practice/submit
 */
 export class SubmitPracticeRequest extends Request<SubmitPracticeResponse> {
   constructor(
-    public readonly code: string,
-    public readonly type: number
+    public readonly code: string
   ) {
     super('POST', '/practice/submit', true);
   }

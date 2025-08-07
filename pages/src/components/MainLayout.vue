@@ -12,6 +12,8 @@
 
         <el-button @click="onTabClicked('detail')" type="primary" bg v-if="selectedTab === 'detail'">详情</el-button>
 
+        <el-button @click="onTabClicked('submit')" type="primary" bg v-if="selectedTab === 'submit'">提交</el-button>
+
         <el-button @click="onTabClicked('management')" :text="selectedTab !== 'management'"
           :type="selectedTab === 'management' ? 'primary' : ''" :bg="selectedTab === 'management'">管理</el-button>
       </template>
@@ -37,7 +39,7 @@ const router = useRouter();
 const isImgBgEnabled = ref(false);
 
 const { selectedTab } = defineProps<{
-  selectedTab: 'contest' | 'practices' | 'detail' | 'management'
+  selectedTab: 'contest' | 'practices' | 'detail' | 'submit' | 'management'
 }>();
 
 const onTabClicked = (tab: typeof selectedTab) => {
