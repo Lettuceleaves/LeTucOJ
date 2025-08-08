@@ -3,16 +3,17 @@ package com.LetucOJ.contest.model.db;
 import lombok.Data;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Data
 public class ContestInfoDTO {
     String name;
     String cnname;
     String mode;
-    Timestamp start;
-    Timestamp end;
-    String note;
+    LocalDateTime start;
+    LocalDateTime  end;
     boolean ispublic;
+    String note;
 
     public ContestInfoDTO() {
         this.name = null;
@@ -24,7 +25,7 @@ public class ContestInfoDTO {
         this.ispublic = false;
     }
 
-    public ContestInfoDTO(String name, String cnname, String mode, Timestamp start, Timestamp end, String note, boolean ispublic) {
+    public ContestInfoDTO(String name, String cnname, String mode, LocalDateTime start, LocalDateTime end, String note, boolean ispublic) {
         this.name = name;
         this.cnname = cnname;
         this.mode = mode;

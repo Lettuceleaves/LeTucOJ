@@ -5,7 +5,7 @@ spring:
   application:
     name: contest
   datasource:
-    url: jdbc:mysql://localhost:3306/contest?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://mysql:3306/letucoj?useSSL=false&serverTimezone=UTC
     username: root
     password: 430103535
     driver-class-name: com.mysql.cj.jdbc.Driver

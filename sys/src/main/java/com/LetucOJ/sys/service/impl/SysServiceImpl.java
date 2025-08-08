@@ -28,11 +28,15 @@ public class SysServiceImpl implements SysService {
 
     @Override
     public ResultVO updateDoc(byte[] doc) {
-        String result = minioRepos.update(doc);
-        if (result == null || result.isEmpty()) {
-            return new ResultVO(0, null, null);
-        } else {
-            return new ResultVO(5, null, result);
+        try {
+            String result = minioRepos.update(doc);
+            if (result == null || result.isEmpty()) {
+                return new ResultVO(0, null, null);
+            } else {
+                return new ResultVO(5, null, result);
+            }
+        } catch (Exception e) {
+            return new ResultVO(5, null, "sys/updateDoc: " + e.getMessage());
         }
     }
 }

@@ -25,129 +25,152 @@ public class DBServiceImpl implements DBService {
     private RunClient runClient;
 
     public ResultVO getAmount() {
-        Integer amount = mybatisRepos.getAmount();
+        try {
+            Integer amount = mybatisRepos.getAmount();
 
-        if (amount == null || amount < 0) {
-            return new ResultVO((byte)5, null, "practice/getAmount: Amount is null or negative");
+            if (amount == null || amount < 0) {
+                return new ResultVO((byte) 5, null, "practice/getAmount: Amount is null or negative");
+            }
+
+            return new ResultVO((byte) 0, amount, null);
+        } catch (Exception e) {
+            return new ResultVO((byte) 5, null, "practice/getAmount: " + e.getMessage());
         }
-
-        return new ResultVO((byte)0, amount, null);
     }
 
     public ResultVO getList(ListServiceDTO dto) {
 
-        if (dto.getStart() == null || dto.getLimit() == null) {
-            return new ResultVO(5, null, "practice/getList: Start or limit is null");
+        try {
+
+            if (dto.getStart() == null || dto.getLimit() == null) {
+                return new ResultVO(5, null, "practice/getList: Start or limit is null");
+            }
+
+            List<ListDTO> list = mybatisRepos.getList(dto);
+
+            if (list == null || list.isEmpty()) {
+                return new ResultVO((byte) 5, null, "practice/getList: No problems found in Mybatis");
+            }
+
+            return new ResultVO((byte) 0, list, null);
+        } catch (Exception e) {
+            return new ResultVO((byte) 5, null, "practice/getList: " + e.getMessage());
         }
-
-        List<ListDTO> list = mybatisRepos.getList(dto);
-
-        if (list == null || list.isEmpty()) {
-            return new ResultVO((byte)5, null, "practice/getList: No problems found in Mybatis");
-        }
-
-        return new ResultVO((byte)0, list, null);
     }
 
     public ResultVO getListInRoot(ListServiceDTO dto) {
 
-        System.out.println("DTO: " + dto);
+        try {
 
-        if (dto.getStart() == null || dto.getLimit() == null) {
-            return new ResultVO((byte)5, null, "practice/getListInRoot: Start or limit is null");
+            System.out.println("DTO: " + dto);
+
+            if (dto.getStart() == null || dto.getLimit() == null) {
+                return new ResultVO((byte) 5, null, "practice/getListInRoot: Start or limit is null");
+            }
+
+            List<ListDTO> list = mybatisRepos.getListInRoot(dto);
+
+            if (list == null || list.isEmpty()) {
+                return new ResultVO((byte) 5, null, "practice/getListInRoot: No problems found in Mybatis");
+            }
+
+            return new ResultVO((byte) 0, list, null);
+        } catch (Exception e) {
+            return new ResultVO((byte) 5, null, "practice/getListInRoot: " + e.getMessage());
         }
-
-        List<ListDTO> list = mybatisRepos.getListInRoot(dto);
-
-        if (list == null || list.isEmpty()) {
-            return new ResultVO((byte)5, null, "practice/getListInRoot: No problems found in Mybatis");
-        }
-
-        return new ResultVO((byte)0, list, null);
     }
 
     @Override
     public ResultVO searchList(ListServiceDTO dto) {
-        if (dto.getStart() == null || dto.getLimit() == null) {
-            return new ResultVO((byte)5, null, "practice/searchList: Start or limit is null");
+        try {
+            if (dto.getStart() == null || dto.getLimit() == null) {
+                return new ResultVO((byte) 5, null, "practice/searchList: Start or limit is null");
+            }
+
+            List<ListDTO> list = mybatisRepos.searchList(dto);
+
+            if (list == null || list.isEmpty()) {
+                return new ResultVO((byte) 5, null, "practice/searchList: No problems found in Mybatis");
+            }
+
+            return new ResultVO((byte) 0, list, null);
+        } catch (Exception e) {
+            return new ResultVO((byte) 5, null, "practice/searchList: " + e.getMessage());
         }
-
-        List<ListDTO> list = mybatisRepos.searchList(dto);
-
-        if (list == null || list.isEmpty()) {
-            return new ResultVO((byte)5, null, "practice/searchList: No problems found in Mybatis");
-        }
-
-        return new ResultVO((byte)0, list, null);
     }
 
     @Override
     public ResultVO searchListInRoot(ListServiceDTO dto) {
-        if (dto.getStart() == null || dto.getLimit() == null) {
-            return new ResultVO((byte)5, null, "practice/searchListInRoot: Start or limit is null");
-        }
+        try {
+            if (dto.getStart() == null || dto.getLimit() == null) {
+                return new ResultVO((byte) 5, null, "practice/searchListInRoot: Start or limit is null");
+            }
 
-        List<ListDTO> list = mybatisRepos.searchListInRoot(dto);
+            List<ListDTO> list = mybatisRepos.searchListInRoot(dto);
 
-        if (list == null || list.isEmpty()) {
-            return new ResultVO((byte)5, null, "practice/searchListInRoot: No problems found in Mybatis");
-        }
+            if (list == null || list.isEmpty()) {
+                return new ResultVO((byte) 5, null, "practice/searchListInRoot: No problems found in Mybatis");
+            }
 
-        return new ResultVO((byte)0, list, null);
-    }
-
-    public ResultVO getProblem(FullInfoServiceDTO dto) {
-
-        FullInfoDTO dbDto = mybatisRepos.getProblem(dto.getName());
-
-        if (dbDto == null) {
-            return new ResultVO((byte)5, null, "practice/getProblem: Problem not found in Mybatis");
-        } else if (dbDto.getShowsolution() == true){
-            return new ResultVO((byte)0, dbDto, null);
-        } else {
-            dbDto.setSolution("题解已隐藏");
-            return new ResultVO((byte)0, dbDto, null);
+            return new ResultVO((byte) 0, list, null);
+        } catch (Exception e) {
+            return new ResultVO((byte) 5, null, "practice/searchListInRoot: " + e.getMessage());
         }
     }
 
-    public ResultVO getProblemInRoot(FullInfoServiceDTO dto) {
-
-        FullInfoDTO dbDto = mybatisRepos.getProblemInRoot(dto.getName());
-
-        if (dbDto == null) {
-            return new ResultVO((byte)5, null, "practice/getProblemInRoot: Problem not found in Mybatis");
-        } else {
-            return new ResultVO((byte)0, dbDto, null);
-        }
-    }
-    public ResultVO insertProblem(FullInfoServiceDTO dto) {
-        if (dto.getData() == null) {
-            return new ResultVO();
-        }
-        dto.getData().setCreatetime(new Date(System.currentTimeMillis()));
-
-        ResultVO response;
+    public ResultVO getProblem(String name) {
 
         try {
-            Integer rows = mybatisRepos.insertProblem(dto.getData());
-            if (rows != null && rows > 0) {
-                response = new ResultVO(0, null, null);
+
+            FullInfoDTO dbDto = mybatisRepos.getProblem(name);
+
+            if (dbDto == null) {
+                return new ResultVO((byte) 5, null, "practice/getProblem: Problem not found in Mybatis");
+            } else if (dbDto.getShowsolution() == true) {
+                return new ResultVO((byte) 0, dbDto, null);
             } else {
-                response = new ResultVO(5, null, "practice/insertProblem: Mybatis return not >=0 or is null");
+                dbDto.setSolution("题解已隐藏");
+                return new ResultVO((byte) 0, dbDto, null);
+            }
+        } catch (Exception e) {
+            return new ResultVO((byte) 5, null, "practice/getProblem: " + e.getMessage());
+        }
+    }
+
+    public ResultVO getProblemInRoot(String name) {
+
+        try {
+
+            FullInfoDTO dbDto = mybatisRepos.getProblemInRoot(name);
+
+            if (dbDto == null) {
+                return new ResultVO((byte) 5, null, "practice/getProblemInRoot: Problem not found in Mybatis");
+            } else {
+                return new ResultVO((byte) 0, dbDto, null);
+            }
+        } catch (Exception e) {
+            return new ResultVO((byte) 5, null, "practice/getProblemInRoot: " + e.getMessage());
+        }
+    }
+    public ResultVO insertProblem(FullInfoDTO dto) {
+        dto.setCreatetime(new Date(System.currentTimeMillis()));
+
+        try {
+            Integer rows = mybatisRepos.insertProblem(dto);
+            if (rows != null && rows > 0) {
+                return new ResultVO(0, null, null);
+            } else {
+                return new ResultVO(5, null, "practice/insertProblem: Mybatis return not >=0 or is null");
             }
         } catch (Exception e) {
             return new ResultVO(5, null, "practice/insertProblem: " + e.getMessage());
         }
-        return response;
     }
 
-    public ResultVO updateProblem(FullInfoServiceDTO dto) {
-        if (dto.getData() == null) {
-            return new ResultVO();
-        }
+    public ResultVO updateProblem(FullInfoDTO dto) {
         ResultVO response;
         try {
-            Integer rows = mybatisRepos.updateProblem(dto.getData());
+            Integer rows = mybatisRepos.updateProblem(dto);
 
             if (rows != null && rows > 0) {
                 response = new ResultVO((byte)0, null, null);
@@ -160,21 +183,7 @@ public class DBServiceImpl implements DBService {
         return response;
     }
 
-    public ResultVO deleteProblem(FullInfoServiceDTO dto) {
-//        ResultVO response;
-//        try {
-//            Integer rows = mybatisRepos.deleteProblem(dto.getName());
-//
-//            if (rows != null && rows > 0) {
-//                minioRepos.deleteFile(dto.getName());
-//                response = new ResultVO((byte)0, null, null);
-//            } else {
-//                response = new ResultVO((byte)5, null, "practice/deleteProblem: Mybatis return not >=0 or is null");
-//            }
-//        } catch (Exception e) {
-//            return new ResultVO((byte)0, null, e.getMessage());
-//        }
-//        return response;
+    public ResultVO deleteProblem(String name) {
         return new ResultVO((byte)5, null, "practice/deleteProblem: Delete operation is not supported yet");
     }
 
@@ -209,11 +218,11 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
-    public ResultVO recordListByName(String cnname) {
+    public ResultVO recordListByName(String pname) {
         try {
-            List<RecordDTO> records = mybatisRepos.getRecordsByName(cnname);
+            List<RecordDTO> records = mybatisRepos.getRecordsByName(pname);
             if (records == null || records.isEmpty()) {
-                return new ResultVO((byte)5, null, "practice/recordListByName: No records found for user " + cnname);
+                return new ResultVO((byte)5, null, "practice/recordListByName: No records found for user " + pname);
             }
             return new ResultVO((byte)0, records, null);
         } catch (Exception e) {

@@ -49,9 +49,9 @@ public interface MybatisRepos {
     @Select("SELECT * FROM record")
     List<RecordDTO> getAllRecords();
 
-    @Select("SELECT * FROM record WHERE name = #{name}")
-    List<RecordDTO> getRecordsByName(String name);
+    @Select("SELECT * FROM record WHERE userName = #{userName}")
+    List<RecordDTO> getRecordsByName(String userName);
 
-    @Insert("INSERT INTO record (name, userName, result, time, memory, language, code, createtime) VALUES (#{name}, #{userName}, #{result}, #{time}, #{memory}, #{language}, #{code}, #{createtime})")
+    @Insert("INSERT INTO record (userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime) VALUES (#{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})")
     Integer insertRecord(RecordDTO recordDTO);
 }

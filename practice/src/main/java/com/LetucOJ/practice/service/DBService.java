@@ -8,13 +8,13 @@ public interface DBService {
     ResultVO getListInRoot(ListServiceDTO dto);
     ResultVO searchList(ListServiceDTO dto);
     ResultVO searchListInRoot(ListServiceDTO dto);
-    ResultVO getProblem(FullInfoServiceDTO dto);
-    ResultVO getProblemInRoot(FullInfoServiceDTO dto);
-    ResultVO insertProblem(FullInfoServiceDTO dto);
-    ResultVO updateProblem(FullInfoServiceDTO dto);
-    ResultVO deleteProblem(FullInfoServiceDTO dto);
+    ResultVO getProblem(String name);
+    ResultVO getProblemInRoot(String name);
+    ResultVO insertProblem(FullInfoDTO dto);
+    ResultVO updateProblem(FullInfoDTO dto);
+    ResultVO deleteProblem(String name);
     ResultVO getCase(CaseInputDTO dto);
     ResultVO submitCase(CasePairDTO dto);
-    ResultVO recordListByName(String cnname);
+    ResultVO recordListByName(String pname);
     ResultVO recordListAll();
 }

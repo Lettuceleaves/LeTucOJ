@@ -2,7 +2,6 @@ com\LetucOJ\practice\repos\MybatisRepos.class
 com\LetucOJ\practice\model\FullInfoDTO.class
 com\LetucOJ\practice\repos\impl\MinioReposImpl.class
 com\LetucOJ\practice\model\ProblemStatusDTO.class
-com\LetucOJ\practice\model\FullInfoServiceDTO.class
 com\LetucOJ\practice\model\ListDTO.class
 com\LetucOJ\practice\service\impl\PracticeServiceImpl.class
 com\LetucOJ\practice\model\CaseInputDTO.class
@@ -14,7 +13,6 @@ com\LetucOJ\practice\controller\ProblemController.class
 com\LetucOJ\practice\repos\MinioRepos.class
 com\LetucOJ\practice\controller\SubmitController.class
 com\LetucOJ\practice\model\CasePairDTO.class
-com\LetucOJ\practice\model\CodeDTO.class
 com\LetucOJ\practice\client\RunClient.class
 com\LetucOJ\practice\model\FileDTO$fileType.class
 com\LetucOJ\practice\controller\ListController.class

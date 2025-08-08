@@ -11,7 +11,6 @@ import java.io.IOException;
 
 @RestController
 @CrossOrigin(origins = "*")
-@Api(tags = {"advice"})
 public class AdviceController {
 
     @Autowired

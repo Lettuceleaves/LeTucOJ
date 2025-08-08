@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class ProblemStatusDTO {
-    boolean ispublic;
-    boolean showSolution;
-    int count;
+    private boolean ispublic;
+    private boolean showSolution;
+    private int caseAmount;
 }

@@ -2,6 +2,8 @@ package com.LetucOJ.contest.model.db;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class RecordDTO {
     private String userName;
@@ -12,7 +14,7 @@ public class RecordDTO {
     private String result;
     private long timeUsed;
     private long memoryUsed;
-    private long submitTime;
+    private LocalDateTime submitTime;
 
     public RecordDTO() {}
 
@@ -24,7 +26,7 @@ public class RecordDTO {
         this.code = code;
     }
 
-    public RecordDTO(String name, String cnname, String name1, String c, String code, String s, long l, long l1, long l2) {
+    public RecordDTO(String name, String cnname, String name1, String c, String code, String s, long l, long l1, LocalDateTime l2) {
         this.userName = name;
         this.cnname = cnname;
         this.problemName = name1;

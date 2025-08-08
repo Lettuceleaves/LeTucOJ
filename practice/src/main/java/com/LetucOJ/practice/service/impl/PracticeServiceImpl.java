@@ -24,59 +24,63 @@ public class PracticeServiceImpl implements PracticeService {
     @Autowired
     private MybatisRepos mybatisRepos;
 
-    public ResultVO submit(CodeDTO message, boolean root) throws Exception {
-        List<String> inputs = new ArrayList<>();
-        inputs.add(message.getCode());
-        String[] inputFiles;
-
-        ProblemStatusDTO problemStatus = mybatisRepos.getStatus(message.getName());
-        if (problemStatus == null) {
-            return new ResultVO((byte) 5, null, "practice/submit: Problem not found or not available");
-        } else if (problemStatus.getCount() <= 0) {
-            return new ResultVO((byte) 5, null, "practice/submit: No test cases available for this problem");
-        } else if (!problemStatus.isIspublic() && !root) {
-            return new ResultVO((byte) 5, null, "practice/submit: Problem is not available for practice");
-        }
-
+    public ResultVO submit(String qname, String code, boolean root) throws Exception {
         try {
-            FileDTO fileDTO = getFile(message.getName(), problemStatus.getCount(), FileDTO.fileType.INPUT);
-            if (fileDTO.getStatus() == 1) {
-                return new ResultVO((byte) 5, null, "practice/submit: TestCase Not Found");
-            } else if (fileDTO.getStatus() == 2) {
-                return new ResultVO((byte) 5, null, fileDTO.getFile()[0]);
-            } else {
-                inputFiles = fileDTO.getFile();
+            List<String> inputs = new ArrayList<>();
+            inputs.add(code);
+            String[] inputFiles;
+
+            ProblemStatusDTO problemStatus = mybatisRepos.getStatus(qname);
+            if (problemStatus == null) {
+                return new ResultVO((byte) 5, null, "practice/submit: Problem not found or not available");
+            } else if (problemStatus.getCaseAmount() <= 0) {
+                return new ResultVO((byte) 5, null, "practice/submit: No test cases available for this problem: " + qname + " " + problemStatus.getCaseAmount());
+            } else if (!problemStatus.isIspublic() && !root) {
+                return new ResultVO((byte) 5, null, "practice/submit: Problem is not available for practice");
             }
-        } catch (RuntimeException e) {
-            return new ResultVO((byte) 5, null, "practice/submit: Error retrieving input files: " + e.getMessage());
-        }
-        inputs.addAll(Arrays.asList(inputFiles));
-        List<String> outputs = new ArrayList<>();
-        String[] expectedOutputs;
-        try {
-            FileDTO outputFileDTO = getFile(message.getName(), problemStatus.getCount(), FileDTO.fileType.OUTPUT);
-            if (outputFileDTO.getStatus() == 1) {
-                return new ResultVO((byte) 5, null, "practice/submit: Output files not found");
-            } else if (outputFileDTO.getStatus() == 2) {
-                return new ResultVO((byte) 5, null, outputFileDTO.getFile()[0]);
-            } else {
-                expectedOutputs = outputFileDTO.getFile();
+
+            try {
+                FileDTO fileDTO = getFile(qname, problemStatus.getCaseAmount(), FileDTO.fileType.INPUT);
+                if (fileDTO.getStatus() == 1) {
+                    return new ResultVO((byte) 5, null, "practice/submit: TestCase Not Found");
+                } else if (fileDTO.getStatus() == 2) {
+                    return new ResultVO((byte) 5, null, fileDTO.getFile()[0]);
+                } else {
+                    inputFiles = fileDTO.getFile();
+                }
+            } catch (RuntimeException e) {
+                return new ResultVO((byte) 5, null, "practice/submit: Error retrieving input files: " + e.getMessage());
             }
-        } catch (RuntimeException e) {
-            return new ResultVO((byte) 5, null, "practice/submit: Error retrieving output files: " + e.getMessage());
-        }
-        ResultVO runResult = runClient.run(inputs);
-        System.out.println(runResult.getStatus());
-        if (runResult.getStatus() != 0) {
-            return runResult;
-        }
-        CheckDTO checkResult = checkAnswer(expectedOutputs, ((List<String>)runResult.getData()).toArray(new String[expectedOutputs.length]));
-        if (checkResult.getStatus() == 0) {
-            return new ResultVO((byte) 0, null, null);
-        } else if (checkResult.getStatus() == 1) {
-            return new ResultVO((byte) 1, null, checkResult.getMessage());
-        } else {
-            return new ResultVO((byte) 5, null, checkResult.getMessage());
+            inputs.addAll(Arrays.asList(inputFiles));
+            List<String> outputs = new ArrayList<>();
+            String[] expectedOutputs;
+            try {
+                FileDTO outputFileDTO = getFile(qname, problemStatus.getCaseAmount(), FileDTO.fileType.OUTPUT);
+                if (outputFileDTO.getStatus() == 1) {
+                    return new ResultVO((byte) 5, null, "practice/submit: Output files not found");
+                } else if (outputFileDTO.getStatus() == 2) {
+                    return new ResultVO((byte) 5, null, outputFileDTO.getFile()[0]);
+                } else {
+                    expectedOutputs = outputFileDTO.getFile();
+                }
+            } catch (RuntimeException e) {
+                return new ResultVO((byte) 5, null, "practice/submit: Error retrieving output files: " + e.getMessage());
+            }
+            ResultVO runResult = runClient.run(inputs);
+            System.out.println(runResult.getStatus());
+            if (runResult.getStatus() != 0) {
+                return runResult;
+            }
+            CheckDTO checkResult = checkAnswer(expectedOutputs, ((List<String>)runResult.getData()).toArray(new String[expectedOutputs.length]));
+            if (checkResult.getStatus() == 0) {
+                return new ResultVO((byte) 0, null, null);
+            } else if (checkResult.getStatus() == 1) {
+                return new ResultVO((byte) 1, null, checkResult.getMessage());
+            } else {
+                return new ResultVO((byte) 5, null, checkResult.getMessage());
+            }
+        } catch (Exception e) {
+            return new ResultVO((byte) 5, null, "practice/submit: " + e.getMessage());
         }
     }
 

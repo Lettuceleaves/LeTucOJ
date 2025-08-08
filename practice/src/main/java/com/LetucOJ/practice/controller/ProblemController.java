@@ -2,7 +2,7 @@ package com.LetucOJ.practice.controller;
 
 import com.LetucOJ.practice.model.CaseInputDTO;
 import com.LetucOJ.practice.model.CasePairDTO;
-import com.LetucOJ.practice.model.FullInfoServiceDTO;
+import com.LetucOJ.practice.model.FullInfoDTO;
 import com.LetucOJ.practice.model.ResultVO;
 import com.LetucOJ.practice.service.DBService;
 import com.LetucOJ.practice.service.PracticeService;
@@ -20,28 +20,28 @@ public class ProblemController {
     private DBService dbService;
 
     @GetMapping("/full/get")
-    public ResultVO getProblem(@ModelAttribute FullInfoServiceDTO sql) throws Exception {
-        return dbService.getProblem(sql);
+    public ResultVO getProblem(@RequestParam("qname") String qname) throws Exception {
+        return dbService.getProblem(qname);
     }
 
     @GetMapping("/fullRoot/get")
-    public ResultVO getProblemInRoot(@ModelAttribute FullInfoServiceDTO sql) throws Exception {
-        return dbService.getProblemInRoot(sql);
+    public ResultVO getProblemInRoot(@RequestParam("qname") String qname) throws Exception {
+        return dbService.getProblemInRoot(qname);
     }
 
     @PostMapping("/fullRoot/insert")
-    public ResultVO insertProblem(@RequestBody FullInfoServiceDTO sql) throws Exception {
-        return dbService.insertProblem(sql);
+    public ResultVO insertProblem(@RequestBody FullInfoDTO dto) throws Exception {
+        return dbService.insertProblem(dto);
     }
 
     @PutMapping("/fullRoot/update")
-    public ResultVO updateProblem(@RequestBody FullInfoServiceDTO sql) throws Exception {
-        return dbService.updateProblem(sql);
+    public ResultVO updateProblem(@RequestBody FullInfoDTO dto) throws Exception {
+        return dbService.updateProblem(dto);
     }
 
     @DeleteMapping("/fullRoot/delete")
-    public ResultVO deleteProblem(@RequestBody FullInfoServiceDTO sql) throws Exception {
-        return dbService.deleteProblem(sql);
+    public ResultVO deleteProblem(@RequestParam("qname") String qname) throws Exception {
+        return dbService.deleteProblem(qname);
     }
 
     @PostMapping("/getCase")

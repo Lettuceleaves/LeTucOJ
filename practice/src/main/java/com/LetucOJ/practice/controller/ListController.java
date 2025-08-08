@@ -44,13 +44,13 @@ public class ListController {
     }
 
     @GetMapping("/recordList/self")
-    public ResultVO recordListSelf(@RequestParam("cnname") String cnname) throws Exception {
-        return dbService.recordListByName(cnname);
+    public ResultVO recordListSelf(@RequestParam("pname") String pname) throws Exception {
+        return dbService.recordListByName(pname);
     }
 
     @GetMapping("/recordList/any")
-    public ResultVO recordListAny(@RequestParam("cnname") String cnname) throws Exception {
-        return dbService.recordListByName(cnname);
+    public ResultVO recordListAny(@RequestParam("pname") String pname) throws Exception {
+        return dbService.recordListByName(pname);
     }
 
     @GetMapping("/recordList/all")

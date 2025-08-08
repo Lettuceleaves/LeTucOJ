@@ -24,13 +24,13 @@ public class UserController {
     }
 
     @PutMapping("/activate")
-    public ResultVO activate(@RequestParam String username) {
-        return userService.activateAccount(username);
+    public ResultVO activate(@RequestParam("pname") String pname) {
+        return userService.activateAccount(pname);
     }
 
     @PutMapping("/deactivate")
-    public ResultVO deactivate(@RequestParam String username) {
-        return userService.deactivateAccount(username);
+    public ResultVO deactivate(@RequestParam("pname") String pname) {
+        return userService.deactivateAccount(pname);
     }
 
     @PostMapping("/logout")
@@ -41,10 +41,10 @@ public class UserController {
     }
 
     @PutMapping("/change-password")
-    public ResultVO changePassword(@RequestParam String username,
+    public ResultVO changePassword(@RequestParam("pname") String pname,
                                    @RequestParam String oldPassword,
                                    @RequestParam String newPassword) {
-        return userService.changePassword(username, oldPassword, newPassword);
+        return userService.changePassword(pname, oldPassword, newPassword);
     }
 
     @GetMapping("/users")
@@ -58,26 +58,12 @@ public class UserController {
     }
 
     @PutMapping("/promote")
-    public ResultVO promote(@RequestParam String username) {
-        return userService.promoteToManager(username);
+    public ResultVO promote(@RequestParam("pname") String pname) {
+        return userService.promoteToManager(pname);
     }
 
     @PutMapping("/demote")
-    public ResultVO demote(@RequestParam String username) {
-        return userService.demoteToUser(username);
+    public ResultVO demote(@RequestParam("pname") String pname) {
+        return userService.demoteToUser(pname);
     }
-
-//    /** 测试接口：写入一条写死的 Redis 数据 */
-//    @PostMapping("/test/redis/write")
-//    public ResultVO testRedisWrite() {
-//        redisTemplate.opsForValue().set("testKey", "testValue", Duration.ofMinutes(5)).subscribe();
-//        return new ResultVO(0, null, null);
-//    }
-//
-//    /** 测试接口：删除上述 Redis 数据 */
-//    @PostMapping("/test/redis/delete")
-//    public ResultVO testRedisDelete() {
-//        redisTemplate.delete("testKey").subscribe();
-//        return new ResultVO(0, null, null);
-//    }
 }

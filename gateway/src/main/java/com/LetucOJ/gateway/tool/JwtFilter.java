@@ -37,16 +37,17 @@ public class JwtFilter implements WebFilter {
 
     /** 需要注入 ttl 参数的接口 */
     private static final List<String> TTL_REQUIRED = List.of(
-            "user/logout"
+            "/user/logout"
     );
 
-    /** 需要注入 role 参数的接口 */
-    private static final List<String> AUTHORIZED_ROLES_REQUIRED = List.of(
+    /** 需要注入 pname 参数的接口 */
+    private static final List<String> NAME_REQUIRED = List.of(
+            "/content/attend", "/contest/submit", "/practice/recordList/self", "/practice/submit", "/practice/submitInRoot", "/user/change-password"
     );
 
     /** 需要注入 cnname 参数的接口 */
     private static final List<String> CNNAME_REQUIRED = List.of(
-            "/problem/db"
+            "/contest/attend", "/contest/submit", "/practice/submit", "/practice/submitInRoot"
     );
 
     private final ReactiveStringRedisTemplate redisTemplate;
@@ -101,6 +102,7 @@ public class JwtFilter implements WebFilter {
                     }
 
                     // 注入参数（ttl, sub, cnname）
+
                     ServerWebExchange mutated = exchange;
                     URI originalUri = exchange.getRequest().getURI();
                     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(originalUri);
@@ -115,12 +117,12 @@ public class JwtFilter implements WebFilter {
                         );
                     }
                     if (TTL_REQUIRED.contains(path)) {
-                        uriBuilder.replaceQueryParam("exp", ttlSeconds);
+                        uriBuilder.replaceQueryParam("ttl", ttlSeconds);
                     }
 
-                    String sub = claims.get("sub", String.class);
-                    if (AUTHORIZED_ROLES_REQUIRED.contains(path)) {
-                        uriBuilder.replaceQueryParam("sub", sub);
+                    String pname = claims.get("sub", String.class);
+                    if (NAME_REQUIRED.contains(path)) {
+                        uriBuilder.replaceQueryParam("pname", pname);
                     }
 
                     String cnname = claims.get("cnname", String.class);
@@ -128,8 +130,9 @@ public class JwtFilter implements WebFilter {
                         uriBuilder.replaceQueryParam("cnname", cnname);
                     }
 
-                    if (TTL_REQUIRED.contains(path) || AUTHORIZED_ROLES_REQUIRED.contains(path) || CNNAME_REQUIRED.contains(path)) {
-                        URI updatedUri = uriBuilder.build(true).toUri();
+                    if (TTL_REQUIRED.contains(path) || NAME_REQUIRED.contains(path) || CNNAME_REQUIRED.contains(path)) {
+                        URI updatedUri = uriBuilder.build().encode().toUri();
+
                         var mutatedRequest = exchange.getRequest().mutate()
                                 .uri(updatedUri).build();
                         mutated = exchange.mutate().request(mutatedRequest).build();

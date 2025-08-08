@@ -1,42 +1,23 @@
 FROM debian:bookworm-slim
 
-# 添加 Debian Unstable 软件源
 RUN echo "deb http://ftp.de.debian.org/debian sid main" > /etc/apt/sources.list.d/unstable.list
 
-# 更新软件包索引并安装 Java 17 和 GCC 13 编译环境
 RUN apt-get update && apt-get install -y \
         openjdk-17-jre \
         gcc-13 \
         libc6-dev \
         make
 
-# 创建 gcc 到 gcc-13 的符号链接
 RUN ln -s /usr/bin/gcc-13 /usr/bin/gcc
-
-# 检查 GCC 版本
 RUN gcc --version
-
-# 检查符号链接
 RUN ls -l /usr/bin/gcc
-
-# 清理缓存以减小镜像大小
 RUN rm -rf /var/lib/apt/lists/*
 
-# 设置工作目录
 WORKDIR /app
-
-# 创建 localRun 文件夹
 RUN mkdir -p /app/localRun
-
-# 将文件复制到容器的指定目录
 COPY run.jar /app/
-
 RUN chmod +x /app/run.jar
 
-# 默认 JVM 参数：最小 256m，最大 512m，并启用容器内存支持
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
-
 EXPOSE 1001
-
-# 修改为 shell 形式，让 JVM 读取并使用 $JAVA_OPTS
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/run.jar"]
