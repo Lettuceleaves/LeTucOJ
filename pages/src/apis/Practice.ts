@@ -36,12 +36,11 @@ Search practice
 
 POST /practice/searchList
 */
-export class SearchPracticeRequest extends Request<SearchPracticeRequest> {
+export class SearchPracticeRequest extends Request<SearchPracticeResponse> {
   constructor(
+    public readonly like: string,
     public readonly start: number,
     public readonly limit: number,
-    public readonly order: string,
-    public readonly like: string
   ) {
     super('GET', '/practice/searchList', true);
   }
