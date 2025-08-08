@@ -1,6 +1,6 @@
 <template>
   <main-layout selected-tab="detail">
-    <el-container v-if="!practiceDetail" class="w-screen-lg ma flex flex-col !items-stretch gap-4">
+    <el-container v-if="!practiceDetail" class="w-screen-lg ma flex flex-col !items-stretch gap-6 mt-8">
       <el-card>
         <el-skeleton :rows="6" animated />
       </el-card>
@@ -10,42 +10,34 @@
       </el-card>
     </el-container>
 
-    <el-container v-if="practiceDetail" class="w-screen-lg ma flex flex-col !items-stretch gap-4">
+    <el-container v-if="practiceDetail" class="w-screen-lg ma flex flex-col !items-stretch gap-6 mt-8">
       <el-card>
-        <el-descriptions :title="practiceDetail.cnname" :column="2" label-width="100">
-          <template #extra>
-            <el-button type="primary">操作</el-button>
+        <el-page-header @back="router.back()">
+          <template #content>
+            <div class="flex items-baseline">
+              <span class="text-6 font-bold">{{ practiceDetail.cnname }}</span>
+              <span class="text-4 ml-2 text-gray-500">#{{ practiceDetail.name }}</span>
+            </div>
           </template>
+          <template #extra>
+            <el-button type="primary" @click="handleSubmitClick">
+              <el-icon class="el-icon--left"><Plus /></el-icon>提交
+            </el-button>
 
-          <el-descriptions-item label="题目 ID">{{ practiceDetail.name }}</el-descriptions-item>
-          <el-descriptions-item label="作者">{{ practiceDetail.authors }}</el-descriptions-item>
-          <el-descriptions-item label="频率(总次数)">{{ practiceDetail.freq }}</el-descriptions-item>
-          <el-descriptions-item label="标签">
-            <span class="inline-flex gap-2">
-              <el-tag v-for="(tag, index) in practiceDetail.tags.split(',')" v-bind:key="index">{{ tag }}</el-tag>
-            </span>
-          </el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ practiceDetail.createtime }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ practiceDetail.updateat }}</el-descriptions-item>
-
-          <el-descriptions-item label="状态" v-if="userInfo?.role !== 'USER'">
-            <span>
-              <el-tag type="success" v-if="practiceDetail.ispublic">公开</el-tag>
-              <el-tag type="warning" v-if="!practiceDetail.ispublic">隐藏</el-tag>
-            </span>
-          </el-descriptions-item>
-          <el-descriptions-item label="难度">
-            <span class="relative top-1">
-              <el-rate v-model="practiceDetail.difficulty" :colors="difficultyColors" size="large" allow-half
-                disabled />
-            </span>
-          </el-descriptions-item>
-          <el-descriptions-item label="测试点数量">{{ practiceDetail.caseAmount }}</el-descriptions-item>
-        </el-descriptions>
+            <el-button type="warning" v-if="user?.role !== 'USER'">管理</el-button>
+          </template>
+          <template #default>
+            <practice-description class="mt-4" :practice-detail="practiceDetail" />
+          </template>
+        </el-page-header>
       </el-card>
 
       <el-card>
-        <div v-html="contentMarkdown"></div>
+        <markdown-section :md-text="practiceDetail.content" />
+      </el-card>
+
+      <el-card>
+        TODO: 历史提交
       </el-card>
     </el-container>
   </main-layout>
@@ -54,28 +46,30 @@
 <script lang="ts" setup>
 import { GetPracticeDetailRequest } from '@/apis/Practice';
 import MainLayout from '@/components/MainLayout.vue';
+import PracticeDescription from '@/components/PracticeDescription.vue';
+import MarkdownSection from '@/components/MarkdownSection.vue';
 import type { PraciceInfo } from '@/models/Practice';
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { getDecodedJwt } from '@/persistence/LocalPersistence';
-import { marked } from 'marked';
-import { computed, onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
 
 const route = useRoute();
+const router = useRouter();
+
+const user = ref(getDecodedJwt());
 
 const practiceName = route.params.name as string;
-
 const practiceDetail = ref<PraciceInfo>();
-const userInfo = ref(getDecodedJwt());
-const difficultyColors = ref(['#99A9BF', '#F7BA2A', '#FF9900']);
 
-const contentMarkdown = computed(() => {
-  if (!practiceDetail.value) return;
-  return marked(practiceDetail.value.content);
-});
+const handleSubmitClick = () => {
+  router.push({
+    name: 'submit',
+    params: { name: practiceName }
+  });
+}
 
 onMounted(async () => {
   let resp = await new GetPracticeDetailRequest(practiceName).request();
-
   if (resp.status !== 0) {
     console.log(resp.error);
     return

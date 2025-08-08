@@ -1,5 +1,6 @@
 import type { PraciceInfo, SimplePracticeInfo } from '@/models/Practice'
 import { Request, type Response } from './Api'
+import type { AxiosRequestConfig } from 'axios';
 
 /**
 Get practice list
@@ -35,12 +36,11 @@ Search practice
 
 POST /practice/searchList
 */
-export class SearchPracticeRequest extends Request<SearchPracticeRequest> {
+export class SearchPracticeRequest extends Request<SearchPracticeResponse> {
   constructor(
+    public readonly like: string,
     public readonly start: number,
     public readonly limit: number,
-    public readonly order: string,
-    public readonly like: string
   ) {
     super('GET', '/practice/searchList', true);
   }
@@ -55,10 +55,46 @@ POST /practice/full/get
 */
 export class GetPracticeDetailRequest extends Request<GetPracticeDetailResponse> {
   constructor(
-    public readonly name: string
+    public readonly qname: string
   ) {
     super('GET', '/practice/full/get', true);
   }
 }
 
 export type GetPracticeDetailResponse = Response<PraciceInfo>
+
+/**
+Submit code
+
+POST /practice/submit
+*/
+export class SubmitPracticeRequest extends Request<SubmitPracticeResponse> {
+  constructor(
+    public readonly qname: string,
+    public readonly lang: string,
+    public readonly code: string
+  ) {
+    super('POST', '/practice/submit', true);
+  }
+
+  protected getHeaders(): AxiosRequestConfig<object | string>['headers'] {
+    return {
+      ...super.getHeaders(),
+      'Content-Type': 'application/plain'
+    }
+  }
+
+  protected getBody(): string | object | undefined {
+    return this.code;
+  }
+
+  protected getParams(): object | undefined {
+    return {
+      qname: this.qname,
+      lang: this.lang
+    }
+  }
+}
+
+// 0: accepted, 1: wrong answer, 2: compile error, 3: runtime error, 4: time limit exceeded, 5: server error
+export type SubmitPracticeResponse = Response<undefined>

@@ -14,6 +14,9 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import 'virtual:uno.css'
 import './assets/base.css'
 
+// Monaco Editor
+import { loader } from '@guolao/vue-monaco-editor'
+
 // Highlight.js 代码高亮
 import HighlightJs from '@highlightjs/vue-plugin'
 import hljs from 'highlight.js';
@@ -33,6 +36,13 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 app.use(ElementPlus)
+
+// Monaco Editor (CDN)
+loader.config({
+  paths: {
+    vs: 'https://unpkg.com/monaco-editor@0.52.2/min/vs'
+  }
+})
 
 // Highlight.js
 hljs.registerLanguage('python', python)

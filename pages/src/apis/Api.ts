@@ -1,5 +1,5 @@
 import { getJwt } from '@/persistence/LocalPersistence'
-import axios, { type AxiosResponse } from 'axios'
+import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios'
 
 const baseUrl = 'http://letucoj.cn:7777'
 
@@ -18,9 +18,10 @@ export class Request<T> {
     return `Bearer ${getJwt()}`
   }
 
-  private getUrl(): string {
-    const path = this.path.startsWith('/') ? this.path.slice(1) : this.path
-    return `${baseUrl}/${path}`
+  protected getHeaders(): AxiosRequestConfig<object | string>['headers'] {
+    return {
+      Authorization: this.getAuthorization(),
+    }
   }
 
   protected getData() {
@@ -32,29 +33,25 @@ export class Request<T> {
     }
   }
 
-  protected getBody() {
+  protected getBody(): string | object | undefined {
     if (this.method === 'GET' || this.method === 'DELETE') return
     return this.getData()
   }
 
-  protected getParams() {
+  protected getParams(): object | undefined {
     if (this.method === 'PUT' || this.method === 'POST') return
     return this.getData()
   }
 
   async request(): Promise<T> {
-    const resp = await axios.request<this, AxiosResponse<T>, this>({
+    const resp = await axios.request<this, AxiosResponse<T>, string | object>({
       method: this.method,
-      url: this.getUrl(),
+      baseURL: baseUrl,
+      url: this.path,
       data: this.getBody(),
       params: this.getParams(),
-      headers: {
-        Authorization: this.getAuthorization()
-      }
+      headers: this.getHeaders(),
     })
-
-    // DEBUG
-    console.log(resp.data)
 
     return resp.data;
   }
