@@ -1,5 +1,5 @@
 import { getJwt } from '@/persistence/LocalPersistence'
-import axios, { type AxiosResponse } from 'axios'
+import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios'
 
 const baseUrl = 'http://letucoj.cn:7777'
 
@@ -18,6 +18,12 @@ export class Request<T> {
     return `Bearer ${getJwt()}`
   }
 
+  protected getHeaders(): AxiosRequestConfig<object | string>['headers'] {
+    return {
+      Authorization: this.getAuthorization(),
+    }
+  }
+
   protected getData() {
     return {
       ...this,
@@ -27,7 +33,7 @@ export class Request<T> {
     }
   }
 
-  protected getBody(): object | undefined {
+  protected getBody(): string | object | undefined {
     if (this.method === 'GET' || this.method === 'DELETE') return
     return this.getData()
   }
@@ -38,15 +44,13 @@ export class Request<T> {
   }
 
   async request(): Promise<T> {
-    const resp = await axios.request<this, AxiosResponse<T>, object>({
+    const resp = await axios.request<this, AxiosResponse<T>, string | object>({
       method: this.method,
       baseURL: baseUrl,
       url: this.path,
       data: this.getBody(),
       params: this.getParams(),
-      headers: {
-        Authorization: this.getAuthorization()
-      }
+      headers: this.getHeaders(),
     })
 
     return resp.data;

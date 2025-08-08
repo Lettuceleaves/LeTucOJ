@@ -1,7 +1,23 @@
 <template>
   <main-layout selected-tab="submit">
+    <el-splitter v-if="!practiceDetail" class="h-full">
+      <el-splitter-panel :size="550" :min="400" v-if="isShowDetail" class="pt-8 pr-6 flex flex-col gap-4">
+        <el-skeleton animated />
+        <el-card class="flex-1">
+          <el-skeleton animated />
+        </el-card>
+      </el-splitter-panel>
+      <el-splitter-panel :min="550" class="pt-2 pl-6 flex flex-col gap-4">
+        <el-card>
+          <el-skeleton animated :rows="0" />
+        </el-card>
+
+        <el-card class="flex-1"></el-card>
+      </el-splitter-panel>
+    </el-splitter>
+
     <el-splitter v-if="practiceDetail" class="h-full">
-      <el-splitter-panel size="550px" class="pt-8 pr-6 flex flex-col gap-4">
+      <el-splitter-panel :size="550" :min="400" v-if="isShowDetail" class="pt-8 pr-6 flex flex-col gap-4">
         <el-page-header @back="router.back()">
           <template #content>
             <div class="flex items-baseline">
@@ -22,28 +38,42 @@
         </el-card>
       </el-splitter-panel>
 
-      <el-splitter-panel class="pt-2 pl-6 flex flex-col gap-4">
+      <el-splitter-panel :min="550" class="pt-2 pl-6 flex flex-col gap-4">
         <el-card body-class="flex flex-row gap-2">
-          <el-button-group>
-            <el-button @click="handleTabClick('editor')" :type="selectedTab === 'editor' ? 'primary' : ''">编辑器</el-button>
-            <el-button @click="handleTabClick('answer')" :type="selectedTab === 'answer' ? 'primary' : ''">题解</el-button>
-          </el-button-group>
+          <el-button @click="handleToggleShowDetail">
+            <el-icon v-if="isShowDetail">
+              <ArrowLeftBold />
+            </el-icon>
+            <el-icon v-if="!isShowDetail">
+              <ArrowRightBold />
+            </el-icon>
+          </el-button>
+
+          <el-segmented v-model="selectedTab" :options="tabs" />
 
           <div class="flex-1"></div>
 
-          <el-select class="w-32 mx-4" v-model="language" placeholder="选择语言">
-            <el-option label="C" value="c"  />
+          <el-select class="w-32" v-model="language" placeholder="选择语言">
+            <el-option label="C" value="c" />
+            <!-- <el-option label="Typescript" value="typescript" /> -->
+            <el-option label="C#" value="csharp" disabled />
             <el-option label="C++" value="cpp" disabled />
             <el-option label="Java" value="java" disabled />
             <el-option label="Python" value="python" disabled />
           </el-select>
 
-          <el-button type="success">测试</el-button>
-          <el-button type="primary">提交</el-button>
+          <!-- <el-button type="success">测试</el-button> -->
+          <el-button type="primary" :disabled="isSubmitting" @click="handleSubmitClick">提交</el-button>
         </el-card>
 
-        <el-card class="editor-card flex-1" body-class="h-full p-0">
-          <monaco-editor class="h-full" theme="vs-dark" v-model:value="code" :language="language" :options="editorOptions" />
+        <editor-card v-if="selectedTab === 'editor'" v-model:code="code" :language="language" />
+
+        <el-card v-if="selectedTab === 'answer'" class="flex-1">
+          <markdown-section :md-text="practiceDetail.solution" />
+        </el-card>
+
+        <el-card v-if="selectedTab === 'history'" class="flex-1">
+
         </el-card>
       </el-splitter-panel>
     </el-splitter>
@@ -51,14 +81,16 @@
 </template>
 
 <script setup lang="ts">
-import { GetPracticeDetailRequest } from '@/apis/Practice';
+import { GetPracticeDetailRequest, SubmitPracticeRequest } from '@/apis/Practice';
 import MainLayout from '@/components/MainLayout.vue';
 import PracticeDescription from '@/components/PracticeDescription.vue';
 import MarkdownSection from '@/components/MarkdownSection.vue';
+import EditorCard from '@/components/EditorCard.vue';
 import type { PraciceInfo } from '@/models/Practice';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import MonacoEditor from 'monaco-editor-vue3';
+
+type Tab = 'editor' | 'answer' | 'history';
 
 const route = useRoute();
 const router = useRouter();
@@ -66,19 +98,44 @@ const router = useRouter();
 const practiceName = route.params.name as string;
 const practiceDetail = ref<PraciceInfo>();
 
-const selectedTab = ref<'editor' | 'answer'>('editor');
+const isShowDetail = ref(true);
+const selectedTab = ref<Tab>('editor');
 
 const code = ref('');
 const language = ref('c');
-const editorOptions = {
-  automaticLayout: true,
-  fontSize: 18,
-  fontFamily: 'var(--el-font-family-monospace)',
-  fontLigatures: true,
-};
+const isSubmitting = ref(false);
 
-const handleTabClick = (tab: 'editor' | 'answer') => {
-  selectedTab.value = tab;
+const tabs = computed(() => {
+  const allTabs = [
+    { label: '编辑器', value: 'editor' },
+    { label: '题解', value: 'answer' },
+    { label: '历史提交', value: 'history' }
+  ];
+
+  if (!practiceDetail.value?.showsolution) {
+    return allTabs.filter(tab => tab.value !== 'answer');
+  }
+  return allTabs;
+});
+
+const handleToggleShowDetail = () => {
+  isShowDetail.value = !isShowDetail.value;
+}
+
+const handleSubmitClick = async () => {
+  try{
+    isSubmitting.value = true;
+    const resp = await new SubmitPracticeRequest(practiceName, language.value, code.value).request();
+
+    if (resp.status !== 0) {
+      console.error('提交失败:', resp.error);
+      return;
+    }
+    console.log('提交成功:', resp.data);
+  }
+  finally {
+    isSubmitting.value = false;
+  }
 }
 
 onMounted(async () => {

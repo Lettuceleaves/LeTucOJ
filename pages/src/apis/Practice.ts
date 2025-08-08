@@ -1,6 +1,6 @@
 import type { PraciceInfo, SimplePracticeInfo } from '@/models/Practice'
 import { Request, type Response } from './Api'
-import { getDecodedJwt } from '@/persistence/LocalPersistence';
+import type { AxiosRequestConfig } from 'axios';
 
 /**
 Get practice list
@@ -56,7 +56,7 @@ POST /practice/full/get
 */
 export class GetPracticeDetailRequest extends Request<GetPracticeDetailResponse> {
   constructor(
-    public readonly name: string
+    public readonly qname: string
   ) {
     super('GET', '/practice/full/get', true);
   }
@@ -71,18 +71,28 @@ POST /practice/submit
 */
 export class SubmitPracticeRequest extends Request<SubmitPracticeResponse> {
   constructor(
+    public readonly qname: string,
+    public readonly lang: string,
     public readonly code: string
   ) {
     super('POST', '/practice/submit', true);
   }
 
-  // TODO: to be fixed
-  protected getParams(): object | undefined {
-    const userInfo = getDecodedJwt();
-    if (userInfo === null) throw new Error('No')
+  protected getHeaders(): AxiosRequestConfig<object | string>['headers'] {
     return {
-      name: userInfo.name,
-      cnname: userInfo.cnname
+      ...super.getHeaders(),
+      'Content-Type': 'application/plain'
+    }
+  }
+
+  protected getBody(): string | object | undefined {
+    return this.code;
+  }
+
+  protected getParams(): object | undefined {
+    return {
+      qname: this.qname,
+      lang: this.lang
     }
   }
 }
