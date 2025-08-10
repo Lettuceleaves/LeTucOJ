@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: letucoj
 -- ------------------------------------------------------
--- Server version	8.0.40
+-- Server version	9.4.0
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -19,7 +19,7 @@
 -- Current Database: `letucoj`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `letucoj` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `letucoj` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 
 USE `letucoj`;
 
@@ -31,13 +31,13 @@ DROP TABLE IF EXISTS `contest`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `contest` (
-  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `cnname` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `mode` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `start` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `end` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cnname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mode` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `start` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `end` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ispublic` tinyint(1) DEFAULT NULL,
-  `note` text COLLATE utf8mb4_unicode_ci,
+  `note` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -59,9 +59,9 @@ DROP TABLE IF EXISTS `contest_board`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `contest_board` (
-  `contest_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `user_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `problem_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `contest_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `problem_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `score` int NOT NULL DEFAULT '0',
   `attempts` int NOT NULL DEFAULT '0',
   `last_submit` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -104,8 +104,8 @@ DROP TABLE IF EXISTS `contest_problem`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `contest_problem` (
-  `contest_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `problem_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `contest_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `problem_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `score` int NOT NULL,
   PRIMARY KEY (`problem_name`,`contest_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -128,9 +128,9 @@ DROP TABLE IF EXISTS `contest_user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `contest_user` (
-  `contest_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `user_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `cnname` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contest_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cnname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`user_name`,`contest_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -209,6 +209,34 @@ LOCK TABLES `record` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `sysconfig`
+--
+
+DROP TABLE IF EXISTS `sysconfig`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sysconfig` (
+  `label` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `C` int NOT NULL DEFAULT '0',
+  `CPP` int NOT NULL DEFAULT '0',
+  `Python` int NOT NULL DEFAULT '0',
+  `JS` int NOT NULL DEFAULT '0',
+  `JAVA` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`label`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sysconfig`
+--
+
+LOCK TABLES `sysconfig` WRITE;
+/*!40000 ALTER TABLE `sysconfig` DISABLE KEYS */;
+INSERT INTO `sysconfig` VALUES ('sys',3,0,0,0,0);
+/*!40000 ALTER TABLE `sysconfig` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `user`
 --
 
@@ -268,4 +296,4 @@ USE `letucoj`;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-07 19:40:44
+-- Dump completed on 2025-08-09 19:36:49

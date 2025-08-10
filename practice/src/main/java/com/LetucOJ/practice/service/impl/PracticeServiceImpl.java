@@ -66,7 +66,7 @@ public class PracticeServiceImpl implements PracticeService {
             } catch (RuntimeException e) {
                 return new ResultVO((byte) 5, null, "practice/submit: Error retrieving output files: " + e.getMessage());
             }
-            ResultVO runResult = runClient.run(inputs);
+            ResultVO runResult = runClient.run(inputs, "C");
             System.out.println(runResult.getStatus());
             if (runResult.getStatus() != 0) {
                 return runResult;

@@ -66,8 +66,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     user: "0:0"
-    privileged: true
-
 
   user:
     image: user:latest
@@ -79,16 +77,16 @@ services:
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
 
-  run:
-    image: run:latest
-    container_name: run
-    ports:
-      - "1001:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
+  # run:
+  #   image: run:latest
+  #   container_name: run
+  #   ports:
+  #     - "1001:1001"
+  #   restart: on-failure
+  #   mem_limit: 512m
+  #   mem_reservation: 256m
+  #   environment:
+  #     - JAVA_OPTS=-Xms256m -Xmx512m
 
   advice:
     image: advice:latest
@@ -113,113 +111,3 @@ services:
       MYSQL_DATABASE: letucoj
     mem_limit: 2g
     mem_reservation: 1g
-
-  run0:
-    image: run:latest
-    container_name: run0
-    ports:
-      - "1010:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-
-  run1:
-    image: run:latest
-    container_name: run1
-    ports:
-      - "1011:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-
-  run2:
-    image: run:latest
-    container_name: run2
-    ports:
-      - "1012:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-
-  run3:
-    image: run:latest
-    container_name: run3
-    ports:
-      - "1013:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-
-  run4:
-    image: run:latest
-    container_name: run4
-    ports:
-      - "1014:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-
-  run5:
-    image: run:latest
-    container_name: run5
-    ports:
-      - "1015:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-
-  run6:
-    image: run:latest
-    container_name: run6
-    ports:
-      - "1016:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-
-  run7:
-    image: run:latest
-    container_name: run7
-    ports:
-      - "1017:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-
-  run8:
-    image: run:latest
-    container_name: run8
-    ports:
-      - "1018:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-
-  run9:
-    image: run:latest
-    container_name: run9
-    ports:
-      - "1019:1001"
-    restart: on-failure
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m

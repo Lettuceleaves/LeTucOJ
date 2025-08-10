@@ -191,7 +191,7 @@ public class DBServiceImpl implements DBService {
         List<String> inputs = new ArrayList<>();
         inputs.add(caseInputDTO.getCode());
         inputs.add(caseInputDTO.getInput());
-        return runClient.run(inputs);
+        return runClient.run(inputs, "C");
     }
 
     public ResultVO submitCase(CasePairDTO casePairDTO) {
