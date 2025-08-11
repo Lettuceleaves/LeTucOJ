@@ -7,6 +7,7 @@ import com.LetucOJ.practice.repos.MinioRepos;
 import com.LetucOJ.practice.service.DBService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -194,6 +195,7 @@ public class DBServiceImpl implements DBService {
         return runClient.run(inputs, "C");
     }
 
+    @Transactional
     public ResultVO submitCase(CasePairDTO casePairDTO) {
         String name = casePairDTO.getName();
         String input = casePairDTO.getInput();
@@ -207,7 +209,11 @@ public class DBServiceImpl implements DBService {
             if (result == null || result <= 0) {
                 return new ResultVO((byte) 5, null, "practice/submitCase: Error incrementing case amount");
             }
-            String inputFile = minioRepos.addFilePair(name, result, input, output);
+            ProblemStatusDTO problemStatus = mybatisRepos.getStatus(name);
+            if (problemStatus == null) {
+                return new ResultVO((byte) 5, null, "practice/submitCase: Problem status not found for " + name);
+            }
+            String inputFile = minioRepos.addFilePair(name, problemStatus.getCaseAmount(), input, output);
             if (inputFile != null) {
                 return new ResultVO((byte) 5, null, "practice/submitCase: Error adding file pair" + inputFile);
             }

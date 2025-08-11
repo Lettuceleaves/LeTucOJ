@@ -54,4 +54,5 @@ public interface MybatisRepos {
 
     @Insert("INSERT INTO record (userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime) VALUES (#{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})")
     Integer insertRecord(RecordDTO recordDTO);
+
 }
