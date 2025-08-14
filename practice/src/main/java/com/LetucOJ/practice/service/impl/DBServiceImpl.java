@@ -50,7 +50,7 @@ public class DBServiceImpl implements DBService {
             List<ListDTO> list = mybatisRepos.getList(dto);
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte) 5, null, "practice/getList: No problems found in Mybatis");
+                return new ResultVO((byte) 1, null, "practice/getList: No problems found in Mybatis");
             }
 
             return new ResultVO((byte) 0, list, null);
@@ -72,7 +72,7 @@ public class DBServiceImpl implements DBService {
             List<ListDTO> list = mybatisRepos.getListInRoot(dto);
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte) 5, null, "practice/getListInRoot: No problems found in Mybatis");
+                return new ResultVO((byte) 1, null, "practice/getListInRoot: No problems found in Mybatis");
             }
 
             return new ResultVO((byte) 0, list, null);
@@ -91,7 +91,7 @@ public class DBServiceImpl implements DBService {
             List<ListDTO> list = mybatisRepos.searchList(dto);
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte) 5, null, "practice/searchList: No problems found in Mybatis");
+                return new ResultVO((byte) 1, null, "practice/searchList: No problems found in Mybatis");
             }
 
             return new ResultVO((byte) 0, list, null);
@@ -110,7 +110,7 @@ public class DBServiceImpl implements DBService {
             List<ListDTO> list = mybatisRepos.searchListInRoot(dto);
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte) 5, null, "practice/searchListInRoot: No problems found in Mybatis");
+                return new ResultVO((byte) 1, null, "practice/searchListInRoot: No problems found in Mybatis");
             }
 
             return new ResultVO((byte) 0, list, null);
@@ -228,7 +228,7 @@ public class DBServiceImpl implements DBService {
         try {
             List<RecordDTO> records = mybatisRepos.getRecordsByName(pname);
             if (records == null || records.isEmpty()) {
-                return new ResultVO((byte)5, null, "practice/recordListByName: No records found for user " + pname);
+                return new ResultVO((byte)1, null, "practice/recordListByName: No records found for user " + pname);
             }
             return new ResultVO((byte)0, records, null);
         } catch (Exception e) {
@@ -241,7 +241,7 @@ public class DBServiceImpl implements DBService {
         try {
             List<RecordDTO> records = mybatisRepos.getAllRecords();
             if (records == null || records.isEmpty()) {
-                return new ResultVO((byte)5, null, "practice/recordListAll: No records found");
+                return new ResultVO((byte)1, null, "practice/recordListAll: No records found");
             }
             return new ResultVO((byte)0, records, null);
         } catch (Exception e) {

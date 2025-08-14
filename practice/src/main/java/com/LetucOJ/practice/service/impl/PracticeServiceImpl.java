@@ -31,11 +31,12 @@ public class PracticeServiceImpl implements PracticeService {
             String[] inputFiles;
 
             ProblemStatusDTO problemStatus = mybatisRepos.getStatus(qname);
+            System.out.println(problemStatus);
             if (problemStatus == null) {
                 return new ResultVO((byte) 5, null, "practice/submit: Problem not found or not available");
             } else if (problemStatus.getCaseAmount() <= 0) {
                 return new ResultVO((byte) 5, null, "practice/submit: No test cases available for this problem: " + qname + " " + problemStatus.getCaseAmount());
-            } else if (!problemStatus.isIspublic() && !root) {
+            } else if (!problemStatus.isPublicProblem() && !root) {
                 return new ResultVO((byte) 5, null, "practice/submit: Problem is not available for practice");
             }
 

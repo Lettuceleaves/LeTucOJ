@@ -23,9 +23,19 @@ public class ContestController {
         return dbService.getProblem(qname, contestName);
     }
 
+    @GetMapping("/full/getProblemInRoot")
+    public ResultVO getProblemInRoot(@RequestParam("qname") String qname, @RequestParam("ctname") String contestName) throws Exception {
+        return dbService.getProblemInRoot(qname, contestName);
+    }
+
     @GetMapping("/full/getContest")
     public ResultVO getContest(@RequestParam("ctname") String ctname) throws Exception {
         return dbService.getContest(ctname);
+    }
+
+    @GetMapping("/full/getContestInRoot")
+    public ResultVO getContestInRoot(@RequestParam("ctname") String ctname) throws Exception {
+        return dbService.getContestInRoot(ctname);
     }
 
     @PostMapping("/insertContest")
@@ -56,5 +66,10 @@ public class ContestController {
     @PostMapping("/attend")
     public ResultVO attendContest(@RequestParam("pname") String pname, @RequestParam("cnname") String cnname, @RequestParam("ctname") String contestName) throws Exception {
         return dbService.attend(pname, cnname, contestName);
+    }
+
+    @GetMapping("/inContest")
+    public ResultVO inContest(@RequestParam("pname") String pname, @RequestParam("ctname") String contestName) throws Exception {
+        return dbService.getUserStatus(pname, contestName);
     }
 }

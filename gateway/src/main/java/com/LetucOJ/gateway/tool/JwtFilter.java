@@ -42,12 +42,12 @@ public class JwtFilter implements WebFilter {
 
     /** 需要注入 pname 参数的接口 */
     private static final List<String> NAME_REQUIRED = List.of(
-            "/content/attend", "/contest/submit", "/practice/recordList/self", "/practice/submit", "/practice/submitInRoot", "/user/change-password"
+            "/contest/attend", "/contest/submit", "/contest/submitInRoot", "/practice/recordList/self", "/practice/submit", "/practice/submitInRoot", "/user/change-password", "/contest/inContest"
     );
 
     /** 需要注入 cnname 参数的接口 */
     private static final List<String> CNNAME_REQUIRED = List.of(
-            "/contest/attend", "/contest/submit", "/practice/submit", "/practice/submitInRoot"
+            "/contest/attend", "/contest/submit", "/contest/submitInRoot", "/practice/submit", "/practice/submitInRoot"
     );
 
     private final ReactiveStringRedisTemplate redisTemplate;

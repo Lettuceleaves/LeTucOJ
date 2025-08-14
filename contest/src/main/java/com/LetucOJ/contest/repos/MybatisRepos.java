@@ -12,23 +12,25 @@ import java.util.List;
 public interface MybatisRepos {
 
     // --- Problem 相关 ---
-    @Select("SELECT ispublic, showsolution, caseAmount FROM problem WHERE name = #{name}")
+    @Select("SELECT public > 0 as ispublic, showsolution, caseAmount FROM problem WHERE name = #{name}")
     ProblemStatusDTO getStatus(String name);
 
-    @Select("SELECT * FROM problem WHERE name = #{name}")
+    @Select("SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public > 0 AS publicProblem, solution, showsolution " +
+            "FROM problem " +
+            "WHERE name = #{name}")
     FullInfoDTO getProblem(String name);
 
     // --- Contest 相关 ---
     @Select("SELECT * FROM contest")
     List<ContestInfoDTO> getContestList();
 
-    @Select("SELECT * FROM contest WHERE name = #{name}")
+    @Select("SELECT name, cnname, mode, start, end, public > 0 AS publicContest, note FROM contest WHERE name = #{name}")
     ContestInfoDTO getContest(String name);
 
     @Insert("INSERT INTO contest " +
-            "(name, cnname, mode, start, end, ispublic, note) " +
+            "(name, cnname, mode, start, end, public, note) " +
             "VALUES " +
-            "(#{name}, #{cnname}, #{mode}, #{start}, #{end}, #{ispublic}, #{note})")
+            "(#{name}, #{cnname}, #{mode}, #{start}, #{end}, #{publicContest}, #{note})")
     Integer insertContest(ContestInfoDTO contestInfoDTO);
 
     @Update("UPDATE contest SET " +
@@ -36,7 +38,7 @@ public interface MybatisRepos {
             "mode     = #{mode}, " +
             "start    = #{start}, " +
             "end      = #{end}, " +
-            "ispublic = #{ispublic}, " +
+            "public   = #{publicContest}, " +
             "note     = #{note} " +
             "WHERE name = #{name}")
     Integer updateContest(ContestInfoDTO contestInfoDTO);
@@ -70,6 +72,10 @@ public interface MybatisRepos {
                               @Param("userName")    String userName,
                               @Param("cnname")    String cnname);
 
+    @Select("SELECT COUNT(*) FROM contest_user WHERE contest_name = #{contestName} AND user_name = #{userName}")
+    Integer getUserStatus(@Param("contestName") String contestName,
+                                  @Param("userName")    String userName);
+
 
     // --- 排行榜（使用视图，动态组合所有用户×题目） ---
     @Select("SELECT * FROM contest_board_view " +
@@ -85,9 +91,9 @@ public interface MybatisRepos {
     List<BoardDTO> getBoard(@Param("contestName") String contestName);
 
     @Insert("INSERT INTO contest_board " +
-            "(contest_name, user_name, problem_name, score, attempts) " +
+            "(contest_name, user_name, problem_name, score, attempts, last_submit) " +
             "VALUES " +
-            "(#{contestName}, #{userName}, #{problemName}, #{score}, #{times})")
+            "(#{contestName}, #{userName}, #{problemName}, #{score}, #{times}, #{lastSubmit})")
     Integer insertContestBoard(BoardDTO boardDTO);
 
     @Update("UPDATE contest_board SET " +
@@ -105,4 +111,7 @@ public interface MybatisRepos {
             "VALUES " +
             "(#{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})")
     Integer insertRecord(RecordDTO recordDTO);
+
+    @Select("SELECT COUNT(*) FROM problem WHERE name = #{name}")
+    Integer problemExist(@Param("name") String name);
 }

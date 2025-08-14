@@ -31,9 +31,9 @@ public class UserServiceImpl implements UserService {
         String cnname = dto.getCnname();
         String rawPwd = dto.getPassword();
         String encodedPwd = PasswordUtil.encrypt(rawPwd);
-        UserDTO userDTO = new UserDTO(username, cnname, encodedPwd);
+        UserDTO userDTO = new UserDTO(username, encodedPwd, cnname);
         userDTO.setRole("USER");
-        userDTO.setEnabled(true);
+        userDTO.setEnabled(false);
         try {
             Integer result = userMybatisRepos.saveUserInfo(userDTO);
             if (!result.equals(1)) {
@@ -120,6 +120,9 @@ public class UserServiceImpl implements UserService {
     public ResultVO getAllUsers() {
         try {
             List<UserDTO> list = userMybatisRepos.getUsersByRole("USER");
+            if (list == null || list.isEmpty()) {
+                return new ResultVO(1, null, "No users found");
+            }
             for (UserDTO user : list) {
                 user.setPassword(null); // Clear password for security
             }
@@ -133,6 +136,9 @@ public class UserServiceImpl implements UserService {
     public ResultVO getAllManagers() {
         try {
             List<UserDTO> list = userMybatisRepos.getUsersByRole("MANAGER");
+            if (list == null || list.isEmpty()) {
+                return new ResultVO(1, null, "No managers found");
+            }
             for (UserDTO user : list) {
                 user.setPassword(null); // Clear password for security
             }

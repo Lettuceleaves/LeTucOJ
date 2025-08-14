@@ -1,11 +1,15 @@
 package com.LetucOJ.contest.model.db;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Locale;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class BoardDTO {
     private String contestName;
     private String userName;

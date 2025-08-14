@@ -39,7 +39,7 @@ public class SecurityConfig {
                         .pathMatchers(
                                 "/practice/list", "/practice/searchList", "/practice/full/get",
                                 "/practice/submit", "/contest/full/getProblem", "/contest/full/getContest",
-                                "/contest/attend", "/contest/list/problem", "/contest/list/contest",
+                                "/contest/attend", "/contest/list/problem", "/contest/list/contest", "/contest/inContest",
                                 "/contest/list/board", "/contest/submit", "/user/logout", "/user/changePassword", "/advice", "/practice/count"
                         ).hasAnyRole("USER", "MANAGER", "ROOT")
 

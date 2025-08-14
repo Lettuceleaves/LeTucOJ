@@ -21,6 +21,11 @@ public class ListController {
         return dbService.getProblemList(ctname);
     }
 
+    @GetMapping("/list/problemInRoot")
+    public ResultVO getProblemListInRoot(@RequestParam("ctname") String ctname) throws Exception {
+        return dbService.getProblemListInRoot(ctname);
+    }
+
     @GetMapping("/list/contest")
     public ResultVO getContestList() throws Exception {
         return dbService.getContestList();
@@ -29,6 +34,11 @@ public class ListController {
     @GetMapping("/list/board")
     public ResultVO getBoardList(@RequestParam("ctname") String ctname) throws Exception {
         return dbService.getBoard(ctname);
+    }
+
+    @GetMapping("/list/boardInRoot")
+    public ResultVO getBoardListInRoot(@RequestParam("ctname") String ctname) throws Exception {
+        return dbService.getBoardInRoot(ctname);
     }
 
 }

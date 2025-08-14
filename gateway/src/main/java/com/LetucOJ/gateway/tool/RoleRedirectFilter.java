@@ -57,6 +57,31 @@ public class RoleRedirectFilter implements WebFilter {
                                 || hasRole(auth, ROLE_PREFIX + "MANAGER"))) {
                             return internalForward(exchange, "/practice/searchListInRoot", chain);
                         }
+                        if ("/contest/list/problem".equals(path)
+                                && (hasRole(auth, ROLE_PREFIX + "ROOT")
+                                || hasRole(auth, ROLE_PREFIX + "MANAGER"))) {
+                            return internalForward(exchange, "/contest/list/problemInRoot", chain);
+                        }
+                        if ("/contest/submit".equals(path)
+                                && (hasRole(auth, ROLE_PREFIX + "ROOT")
+                                || hasRole(auth, ROLE_PREFIX + "MANAGER"))) {
+                            return internalForward(exchange, "/contest/submitInRoot", chain);
+                        }
+                        if ("/contest/list/board".equals(path)
+                                && (hasRole(auth, ROLE_PREFIX + "ROOT")
+                                || hasRole(auth, ROLE_PREFIX + "MANAGER"))) {
+                            return internalForward(exchange, "/contest/list/boardInRoot", chain);
+                        }
+                        if ("/contest/full/getProblem".equals(path)
+                                && (hasRole(auth, ROLE_PREFIX + "ROOT")
+                                || hasRole(auth, ROLE_PREFIX + "MANAGER"))) {
+                            return internalForward(exchange, "/contest/full/getProblemInRoot", chain);
+                        }
+                        if ("/contest/full/getContest".equals(path)
+                                && (hasRole(auth, ROLE_PREFIX + "ROOT")
+                                || hasRole(auth, ROLE_PREFIX + "MANAGER"))) {
+                            return internalForward(exchange, "/contest/full/getContestInRoot", chain);
+                        }
                     }
                     // 不是需要转发的情况，继续原链路
                     return chain.filter(exchange);

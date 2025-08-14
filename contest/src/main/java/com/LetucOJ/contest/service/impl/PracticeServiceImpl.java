@@ -31,7 +31,7 @@ public class PracticeServiceImpl implements PracticeService {
     @Autowired
     private MybatisRepos mybatisRepos;
 
-    public ResultVO submit(String userName, String cnname, String questionName, String contestName, String code) throws Exception {
+    public ResultVO submit(String userName, String cnname, String questionName, String contestName, String code, String lang, boolean root) throws Exception {
         try {
             List<String> inputs = new ArrayList<>();
             inputs.add(code);
@@ -40,114 +40,128 @@ public class PracticeServiceImpl implements PracticeService {
             ContestInfoDTO contestInfo = mybatisRepos.getContest(contestName);
 
             if (contestInfo == null) {
-                return new ResultVO((byte) 5, null, "practice/submit: Contest not found or not available");
-            } else if (!contestInfo.isIspublic()) {
-                return new ResultVO((byte) 5, null, "practice/submit: Contest is not available");
+                return new ResultVO((byte) 5, null, "contest/submit: Contest not found or not available");
+            } else if (!contestInfo.isPublicContest() && !root) {
+                return new ResultVO((byte) 5, null, "contest/submit: Contest is not available");
             }
 
             Integer score = mybatisRepos.getScoreByContestAndProblem(contestName, questionName);
             if (score == null || score == 0) {
-                return new ResultVO((byte) 5, null, "practice/submit: Problem not found in contest");
+                return new ResultVO((byte) 5, null, "contest/submit: Problem not found in contest");
             }
 
             // check time
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime start = contestInfo.getStart();
-            LocalDateTime end   = contestInfo.getEnd();
-            if (start != null && end != null) {
-                if (now.isBefore(start)) {
-                    long secondsToStart = Duration.between(now, start).getSeconds();
-                    return new ResultVO((byte)5, null,
-                            "practice/submit: Contest has not started yet, start in "
-                                    + secondsToStart + " seconds");
-                } else if (now.isAfter(end)) {
-                    return new ResultVO((byte)5, null, "practice/submit: Contest has already ended");
+            if (!root) {
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime start = contestInfo.getStart();
+                LocalDateTime end = contestInfo.getEnd();
+                if (start != null && end != null) {
+                    if (now.isBefore(start)) {
+                        long secondsToStart = Duration.between(now, start).getSeconds();
+                        return new ResultVO((byte) 5, null,
+                                "contest/submit: Contest has not started yet, start in "
+                                        + secondsToStart + " seconds");
+                    } else if (now.isAfter(end)) {
+                        return new ResultVO((byte) 5, null, "contest/submit: Contest has already ended");
+                    }
+                } else {
+                    return new ResultVO((byte) 5, null, "contest/submit: Contest start or end time is not set");
                 }
-            } else {
-                return new ResultVO((byte)5, null, "practice/submit: Contest start or end time is not set");
             }
 
             ProblemStatusDTO problemStatus = mybatisRepos.getStatus(questionName);
             if (problemStatus == null) {
-                return new ResultVO((byte) 5, null, "practice/submit: Problem not found or not available");
+                return new ResultVO((byte) 5, null, "contest/submit: Problem not found or not available");
             } else if (problemStatus.getCaseAmount() <= 0) {
-                return new ResultVO((byte) 5, null, "practice/submit: No test cases available for this problem");
+                return new ResultVO((byte) 5, null, "contest/submit: No test cases available for this problem");
             }
 
             try {
                 FileDTO fileDTO = getFile(questionName, problemStatus.getCaseAmount(), FileDTO.fileType.INPUT);
                 if (fileDTO.getStatus() == 1) {
-                    return new ResultVO((byte) 5, null, "practice/submit: TestCase Not Found");
+                    return new ResultVO((byte) 5, null, "contest/submit: TestCase Not Found");
                 } else if (fileDTO.getStatus() == 2) {
                     return new ResultVO((byte) 5, null, fileDTO.getFile()[0]);
                 } else {
                     inputFiles = fileDTO.getFile();
                 }
             } catch (RuntimeException e) {
-                return new ResultVO((byte) 5, null, "practice/submit: Error retrieving input files: " + e.getMessage());
+                return new ResultVO((byte) 5, null, "contest/submit: Error retrieving input files: " + e.getMessage());
             }
             inputs.addAll(Arrays.asList(inputFiles));
-            List<String> outputs = new ArrayList<>();
             String[] expectedOutputs;
             try {
                 FileDTO outputFileDTO = getFile(questionName, problemStatus.getCaseAmount(), FileDTO.fileType.OUTPUT);
                 if (outputFileDTO.getStatus() == 1) {
-                    return new ResultVO((byte) 5, null, "practice/submit: Output files not found");
+                    return new ResultVO((byte) 5, null, "contest/submit: Output files not found");
                 } else if (outputFileDTO.getStatus() == 2) {
                     return new ResultVO((byte) 5, null, outputFileDTO.getFile()[0]);
                 } else {
                     expectedOutputs = outputFileDTO.getFile();
                 }
             } catch (RuntimeException e) {
-                return new ResultVO((byte) 5, null, "practice/submit: Error retrieving output files: " + e.getMessage());
+                return new ResultVO((byte) 5, null, "contest/submit: Error retrieving output files: " + e.getMessage());
             }
-            ResultVO runResult = runClient.run(inputs);
+            ResultVO runResult = runClient.run(inputs, lang);
             System.out.println(runResult.getStatus());
             if (runResult.getStatus() != 0) {
                 return runResult;
             }
             CheckDTO checkResult = checkAnswer(expectedOutputs, ((List<String>) runResult.getData()).toArray(new String[expectedOutputs.length]));
 
-            BoardDTO boardDTO = mybatisRepos.getContestBoardByUserAndProblem(questionName, contestName, cnname);
-            if (boardDTO == null) {
-                return new ResultVO((byte) 5, null, "practice/submit: Board not found for user and problem");
+            if (checkResult.getStatus() == 2) {
+                return new ResultVO((byte) 5, null, checkResult.getMessage());
+            }
+
+            int getScore;
+            if (contestInfo.getMode().equals("add")) {
+                getScore = (int) ( ( (float) checkResult.getCaseIndex() / (float) expectedOutputs.length) * (float) score);
+            } else if (contestInfo.getMode().equals("all")) {
+                getScore = checkResult.getStatus() == 0 ? score : 0;
             } else {
-                if (contestInfo.getMode().equals("add")) {
-                    boardDTO.setScore(Math.max(boardDTO.getScore(), (int) ((float) (checkResult.getCaseIndex() / expectedOutputs.length) * (float) score)));
-                } else if (contestInfo.getMode().equals("all")) {
-                    boardDTO.setScore(Math.max(boardDTO.getScore(), checkResult.getStatus() == 0 ? score : 0));
-                } else {
-                    return new ResultVO((byte) 5, null, "practice/submit: Invalid contest mode");
+                return new ResultVO((byte) 5, null, "contest/submit: Invalid contest mode");
+            }
+
+            System.out.println("getScore: " + getScore);
+            System.out.println("score: " + score);
+            System.out.println("index: " + checkResult.getCaseIndex());
+            System.out.println("expectedOutputs: " + expectedOutputs.length);
+
+            BoardDTO boardDTO = mybatisRepos.getContestBoardByUserAndProblem(contestName, userName, questionName);
+            if (boardDTO == null) {
+                boardDTO = new BoardDTO(contestName, userName, cnname, questionName, getScore, 1, LocalDateTime.now());
+                Integer res = mybatisRepos.insertContestBoard(boardDTO);
+                if (res == null || res == 0) {
+                    return new ResultVO((byte) 5, null, "contest/submit: Board Insert failed");
                 }
-                boardDTO.setTimes(boardDTO.getTimes() + 1);
+            } else {
+                boardDTO.setScore(Math.max(boardDTO.getScore(), getScore));
                 Integer res = mybatisRepos.updateContestBoard(boardDTO);
                 if (res == null || res <= 0) {
-                    return new ResultVO((byte) 5, null, "practice/submit: Error updating contest board");
+                    return new ResultVO((byte) 5, null, "contest/submit: Error updating contest board");
                 }
             }
 
-            if (checkResult.getStatus() == 0) {
-                return new ResultVO((byte) 0, null, null);
-            } else if (checkResult.getStatus() == 1) {
-                return new ResultVO((byte) 1, null, checkResult.getMessage());
+            if (checkResult.getStatus() == 1) {
+                return new ResultVO((byte) 1, null, "failed in " + checkResult.getCaseIndex() + "th case");
             } else {
-                return new ResultVO((byte) 5, null, checkResult.getMessage());
+                return new ResultVO((byte) 0, null, null);
             }
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/submit: Error during submission: " + e.getMessage());
+            return new ResultVO((byte) 5, null, "contest/submit: Error during submission: " + e.getMessage());
         }
     }
 
     private CheckDTO checkAnswer(String[] expected, String[] actual) {
         if (expected.length != actual.length) {
-            return new CheckDTO((byte) 2, "practice/checkAnswer: Test case count mismatch: expected " + expected.length + ", got " + actual.length, -1);
+            return new CheckDTO(2, 0, "contest/checkAnswer: Wrong number of answers");
         }
         for (int i = 0; i < expected.length; i++) {
             if (!expected[i].equals(actual[i])) {
-                return new CheckDTO((byte) 1, "practice/checkAnswer: Test case " + (i + 1) + " failed", i);
+                return new CheckDTO(1, i, "contest/checkAnswer: Wrong answer");
             }
         }
-        return new CheckDTO((byte) 0, null, expected.length);
+        return new CheckDTO(0, expected.length, "contest/checkAnswer: Correct answer");
     }
 
     private FileDTO getFile(String problemId, int count, FileDTO.fileType fileType) {
@@ -166,12 +180,12 @@ public class PracticeServiceImpl implements PracticeService {
                 }
                 if (file == null) {
                     fileDTO.setStatus((byte) 1);
-                    fileDTO.setFile(new String[] {"practice/getFile: File " + i + " not found"});
+                    fileDTO.setFile(new String[] {"contest/getFile: File " + i + " not found"});
                     return fileDTO;
                 }
             } catch (Exception e) {
                 fileDTO.setStatus((byte) 2);
-                fileDTO.setFile(new String[] {"practice/getFile: Error retrieving file " + i + ": " + e.getMessage()});
+                fileDTO.setFile(new String[] {"contest/getFile: Error retrieving file " + i + ": " + e.getMessage()});
                 return fileDTO;
             }
             files[i - 1] = file;
