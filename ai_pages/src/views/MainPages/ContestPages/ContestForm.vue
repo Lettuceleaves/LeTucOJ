@@ -4,22 +4,16 @@
 
     <form @submit.prevent="handleSubmit">
       <div class="grid-container">
-
         <!-- name -->
         <div class="form-item">
           <label for="data-name">{{ labels.name }}</label>
-          <input
-            id="name"
-            v-model="form.name"
-            type="text"
-            :readonly="isEdit"
-          />
+          <input id="name" v-model="form.name" type="text" :readonly="isEdit" />
         </div>
 
         <!-- cnname -->
         <div class="form-item">
           <label for="cnname">{{ labels.cnname }}</label>
-          <input id="nname" v-model="form.cnname" type="text"/>
+          <input id="nname" v-model="form.cnname" type="text" />
         </div>
 
         <!-- mode -->
@@ -34,33 +28,25 @@
         <!-- start -->
         <div class="form-item">
           <label for="start">{{ labels.start }}</label>
-          <input id="start" v-model="form.start" type="datetime-local"/>
+          <input id="start" v-model="form.start" type="datetime-local" />
         </div>
 
         <!-- end -->
         <div class="form-item">
           <label for="end">{{ labels.end }}</label>
-          <input id="end" v-model="form.end" type="datetime-local"/>
+          <input id="end" v-model="form.end" type="datetime-local" />
         </div>
 
         <!-- ispublic -->
         <div class="form-item">
           <label>是否公开</label>
-          <div style="display:flex;gap:12px;align-items:center;">
-            <label style="font-weight:normal;margin:0;">
-              <input
-                type="radio"
-                :value="true"
-                v-model="form.publicContest"
-              />
+          <div style="display: flex; gap: 12px; align-items: center">
+            <label style="font-weight: normal; margin: 0">
+              <input type="radio" :value="true" v-model="form.publicContest" />
               是
             </label>
-            <label style="font-weight:normal;margin:0;">
-              <input
-                type="radio"
-                :value="false"
-                v-model="form.publicContest"
-              />
+            <label style="font-weight: normal; margin: 0">
+              <input type="radio" :value="false" v-model="form.publicContest" />
               否
             </label>
           </div>
@@ -69,21 +55,20 @@
         <!-- note -->
         <div class="form-item full">
           <label for="note">{{ labels.note }}</label>
-          <textarea id="note" v-model="form.note" rows="10" placeholder="支持 Markdown 格式"/>
+          <textarea id="note" v-model="form.note" rows="10" placeholder="支持 Markdown 格式" />
         </div>
 
         <!-- note Markdown 渲染 -->
         <div class="form-item full">
-          <label style="width:auto;">备注预览</label>
-          <div
-            class="markdown-preview"
-            v-html="renderedNote"
-          />
+          <label style="width: auto">备注预览</label>
+          <div class="markdown-preview" v-html="renderedNote" />
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit">{{ isEdit ? '更新竞赛' : '添加竞赛' }}</button>
+        <button type="submit" @click="returnCallBack">
+          {{ isEdit ? '更新竞赛' : '添加竞赛' }}
+        </button>
       </div>
     </form>
   </div>
@@ -98,7 +83,8 @@ const route = useRoute()
 const router = useRouter()
 
 const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip
+
+const REMOTE_SERVER_URL = import.meta.env.VITE_REMOTE_SERVER_URL
 
 const isEdit = computed(() => !!route.query.ctname)
 
@@ -110,7 +96,7 @@ const initialForm = {
   start: '',
   end: '',
   publicContest: true, // 直接使用布尔值
-  note: ''
+  note: '',
 }
 
 const form = ref({ ...initialForm })
@@ -122,12 +108,10 @@ const labels = {
   start: '开始时间',
   end: '结束时间',
   publicContest: '是否公开', // 保持一致的命名方式
-  note: '备注信息'
+  note: '备注信息',
 }
 
-const renderedNote = computed(() => 
-  marked.parse(form.value.note || '')
-)
+const renderedNote = computed(() => marked.parse(form.value.note || ''))
 
 const fetchCompetitionData = async () => {
   if (!isEdit.value) return
@@ -135,9 +119,9 @@ const fetchCompetitionData = async () => {
     const token = localStorage.getItem('jwt')
     const params = new URLSearchParams({ ctname: route.query.ctname })
 
-    const res = await fetch(`http://${ip}/contest/full/getContest?${params}`, {
+    const res = await fetch(`${REMOTE_SERVER_URL}/contest/full/getContest?${params}`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     })
     if (!res.ok) throw new Error('获取竞赛数据失败')
     const data = await res.json()
@@ -166,16 +150,16 @@ const handleFormSubmit = async (method, endpoint) => {
       start: form.value.start,
       end: form.value.end,
       publicContest: Boolean(form.value.publicContest),
-      note: form.value.note
+      note: form.value.note,
     }
 
-    const res = await fetch(`http://${ip}/${endpoint}`, {
+    const res = await fetch(`${REMOTE_SERVER_URL}/${endpoint}`, {
       method: method,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     })
 
     if (!res.ok) throw new Error('操作失败')
@@ -234,6 +218,10 @@ const updateCompetition = () => {
 onMounted(() => {
   fetchCompetitionData()
 })
+
+function returnCallBack() {
+  router.push('/main')
+}
 </script>
 
 <style scoped>
