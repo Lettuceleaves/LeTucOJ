@@ -1,0 +1,22 @@
+FROM debian:bookworm-slim
+
+# 安装必要工具
+RUN apt-get update && apt-get install -y ca-certificates curl gnupg && rm -rf /var/lib/apt/lists/*
+
+# 添加 Docker 官方源
+RUN install -m 0755 -d /etc/apt/keyrings \
+ && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+ && chmod a+r /etc/apt/keyrings/docker.gpg \
+ && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" \
+    > /etc/apt/sources.list.d/docker.list
+
+# 安装 Java + docker-ce-cli
+RUN apt-get update && apt-get install -y openjdk-17-jre docker-ce-cli && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY sys.jar /app/
+RUN chmod +x /app/sys.jar
+
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+EXPOSE 2121
+CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/sys.jar"]

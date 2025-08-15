@@ -4,10 +4,16 @@
 
     <form @submit.prevent="handleSubmit">
       <div class="grid-container">
+
         <!-- name -->
         <div class="form-item">
           <label for="name">{{ labels.name }}</label>
-          <input id="name" v-model="form.name" type="text" :readonly="isEdit" />
+          <input 
+            id="name" 
+            v-model="form.name" 
+            type="text" 
+            :readonly="isEdit"
+          />
         </div>
 
         <!-- cnname -->
@@ -44,28 +50,23 @@
         <div class="form-item">
           <label for="publicProblem">是否公开</label>
           <select v-model="form.publicProblem">
-            <option value="true">是</option>
-            <option value="false">否</option>
+            <option value=true>是</option>
+            <option value=false>否</option>
           </select>
         </div>
 
         <div class="form-item">
           <label for="showsolution">是否展示题解</label>
           <select v-model="form.showsolution">
-            <option value="true">是</option>
-            <option value="false">否</option>
+            <option value=true>是</option>
+            <option value=false>否</option>
           </select>
         </div>
 
         <!-- 题目描述输入区域 -->
         <div class="form-item full">
           <label for="content">题目描述（可编辑）</label>
-          <textarea
-            id="content"
-            v-model="form.content"
-            rows="10"
-            placeholder="请输入题目描述 Markdown"
-          />
+          <textarea id="content" v-model="form.content" rows="10" placeholder="请输入题目描述 Markdown" />
         </div>
 
         <!-- content 用 Markdown 渲染（只读） -->
@@ -96,12 +97,17 @@
         <label>输入输出</label>
         <div class="input-output-box" v-for="(item, index) in inputOutputSections" :key="index">
           <div class="input-output-content">
-            <textarea
-              v-model="item.input"
-              placeholder="请输入内容"
+            <textarea 
+              v-model="item.input" 
+              placeholder="请输入内容" 
               @input="adjustHeight($event, index, 'input')"
             />
-            <textarea v-model="item.output" placeholder="输出内容" ref="outputRefs" disabled />
+            <textarea 
+              v-model="item.output" 
+              placeholder="输出内容" 
+              ref="outputRefs"
+              disabled
+            />
           </div>
           <div class="input-output-actions">
             <button type="button" @click="submit(index)">提交</button>
@@ -109,6 +115,7 @@
           </div>
         </div>
       </div>
+
     </form>
 
     <!-- Add New Section Button -->
@@ -132,8 +139,7 @@ const router = useRouter()
 const isEdit = computed(() => !!route.query.name)
 
 const instance = getCurrentInstance()
-
-const REMOTE_SERVER_URL = import.meta.env.VITE_REMOTE_SERVER_URL
+const ip = instance.appContext.config.globalProperties.$ip
 
 // 渲染 Markdown
 const renderedMarkdown = computed(() => marked.parse(form.value.content || ''))
@@ -173,9 +179,9 @@ onMounted(async () => {
     try {
       const token = localStorage.getItem('jwt')
       const params = new URLSearchParams({ qname: route.query.name })
-      const response = await fetch(`${REMOTE_SERVER_URL}/practice/full/get?${params}`, {
+      const response = await fetch(`http://${ip}/practice/full/get?${params}`, {
         method: 'GET',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       })
       const data = await response.json()
       Object.assign(form.value, data.data)
@@ -192,14 +198,14 @@ const handleSubmit = () => {
 const addProblem = async () => {
   try {
     const token = localStorage.getItem('jwt')
-    const res = await fetch(`${REMOTE_SERVER_URL}/practice/fullRoot/insert`, {
+    const res = await fetch(`http://${ip}/practice/fullRoot/insert`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify(form.value),
-    }).then((r) => r.json())
+      body: JSON.stringify(form.value)
+    }).then(r => r.json())
 
     if (res.status === 0) {
       alert('添加成功')
@@ -218,14 +224,14 @@ const updateProblem = async () => {
 
     const payload = { ...form.value }
 
-    const res = await fetch(`${REMOTE_SERVER_URL}/practice/fullRoot/update`, {
+    const res = await fetch(`http://${ip}/practice/fullRoot/update`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify(payload),
-    }).then((r) => r.json())
+      body: JSON.stringify(payload)
+    }).then(r => r.json())
 
     if (res.status === 0) {
       alert('更新成功')
@@ -251,11 +257,11 @@ const submit = async (index) => {
     return
   } else if (inputOutputSections.value[index].input && inputOutputSections.value[index].output) {
     try {
-      const response = await fetch(`${REMOTE_SERVER_URL}/practice/submitCase`, {
+      const response = await fetch(`http://${ip}/practice/submitCase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+          Authorization: `Bearer ${localStorage.getItem('jwt')}`
         },
         body: JSON.stringify({
           name: form.value.name,
@@ -287,11 +293,11 @@ const getOutput = async (index) => {
     return
   } else if (inputOutputSections.value[index].input) {
     try {
-      const response = await fetch(`${REMOTE_SERVER_URL}/practice/getCase`, {
+      const response = await fetch(`http://${ip}/practice/getCase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+          Authorization: `Bearer ${localStorage.getItem('jwt')}`
         },
         body: JSON.stringify({
           input: inputOutputSections.value[index].input,

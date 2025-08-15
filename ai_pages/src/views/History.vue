@@ -34,16 +34,17 @@
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 
 const instance = getCurrentInstance()
-
-const REMOTE_SERVER_URL = import.meta.env.VITE_REMOTE_SERVER_URL
+const ip = instance.appContext.config.globalProperties.$ip
 
 /* --------------- 数据 --------------- */
 const records = ref([])
-const role = ref('')
-const name = ref('') // 当前登录用户名
+const role   = ref('')
+const name   = ref('')        // 当前登录用户名
 
 /* --------------- 计算属性 --------------- */
-const sortedRecords = computed(() => [...records.value].sort((a, b) => b.submitTime - a.submitTime))
+const sortedRecords = computed(() =>
+  [...records.value].sort((a, b) => b.submitTime - a.submitTime)
+)
 const isPrivileged = computed(() => ['ROOT', 'MANAGER'].includes(role.value))
 
 /* --------------- 工具 --------------- */
@@ -53,8 +54,8 @@ const parseJwt = (token) => {
   const jsonPayload = decodeURIComponent(
     atob(base64)
       .split('')
-      .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-      .join(''),
+      .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+      .join('')
   )
   return JSON.parse(jsonPayload)
 }
@@ -72,7 +73,7 @@ const parseRole = () => {
   try {
     const payload = parseJwt(token)
     role.value = payload.role || ''
-    name.value = payload.sub || ''
+    name.value = payload.sub  || ''
   } catch {
     alert('解析角色失败')
   }
@@ -82,14 +83,14 @@ const fetchRecords = async (userName = '') => {
   const token = localStorage.getItem('jwt')
   const params = new URLSearchParams(userName ? { pname: userName } : {})
   try {
-    const res = await fetch(`${REMOTE_SERVER_URL}/practice/recordList/any?${params}`, {
+    const res = await fetch(`http://${ip}/practice/recordList/any?${params}`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` }
     })
     const json = await res.json()
     if (json.status === 0) {
       // 给每条记录加一个 _showCode 用于折叠
-      records.value = (json.data ?? []).map((r) => ({ ...r, _showCode: false }))
+      records.value = (json.data ?? []).map(r => ({ ...r, _showCode: false }))
     } else {
       alert(json.error || '拉取记录失败')
     }
@@ -113,19 +114,18 @@ const searchByUser = () => {
 const searchAll = async () => {
   const token = localStorage.getItem('jwt')
   try {
-    const res = await fetch(`${REMOTE_SERVER_URL}/practice/recordList/all?`, {
+    const res = await fetch(`http://${ip}/practice/recordList/all?`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` }
     })
     const json = await res.json()
     if (json.status === 0) {
       // 给每条记录加一个 _showCode 用于折叠
-      records.value = (json.data ?? []).map((r) => ({ ...r, _showCode: false }))
+      records.value = (json.data ?? []).map(r => ({ ...r, _showCode: false }))
     } else {
       alert(json.error || '拉取记录失败')
     }
-  } catch (e) {
-    b
+  } catch (e) {b
     alert('网络错误：' + e.message)
   }
 }

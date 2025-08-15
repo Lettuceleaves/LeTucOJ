@@ -2,28 +2,20 @@
   <div class="contest-parent">
     <!-- 标题栏 -->
     <div class="title-bar">
-      <div class="title-item" :class="{ active: activeTab === 'list' }" @click="activeTab = 'list'">
-        题单
-      </div>
-      <div
-        class="title-item"
-        :class="{ active: activeTab === 'contest' }"
-        @click="activeTab = 'contest'"
-      >
-        竞赛
-      </div>
-      <div class="title-item" :class="{ active: activeTab === 'user' }" @click="activeTab = 'user'">
-        用户
-      </div>
+      <div class="title-item" :class="{ active: activeTab === 'list' }"
+           @click="activeTab = 'list'">题单</div>
+      <div class="title-item" :class="{ active: activeTab === 'contest' }"
+           @click="activeTab = 'contest'">竞赛</div>
+      <div class="title-item" :class="{ active: activeTab === 'user' }"
+           @click="activeTab = 'user'">用户</div>
       <div class="spacer"></div>
     </div>
 
     <!-- 内容区域 -->
     <div class="content">
       <ProblemList v-show="activeTab === 'list'" />
-      <Contest v-show="activeTab === 'contest'" />
-      <User v-show="activeTab === 'user'" />
-      <!-- 2. 直接用 v-show -->
+      <Contest     v-show="activeTab === 'contest'" />
+      <User        v-show="activeTab === 'user'" />  <!-- 2. 直接用 v-show -->
     </div>
   </div>
 </template>
@@ -62,11 +54,7 @@ const onCompetition = () => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 .title-bar {
   display: flex;

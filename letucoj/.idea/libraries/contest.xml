@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="contest">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/contest/contest.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

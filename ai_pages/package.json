@@ -11,7 +11,6 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.48.4",
     "axios": "^1.10.0",
     "codemirror": "^5.65.19",
     "dompurify": "^3.2.6",

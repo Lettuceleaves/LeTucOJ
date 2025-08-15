@@ -1,0 +1,30 @@
+server:
+  port: 5555
+
+spring:
+  application:
+    name: user
+  datasource:
+    url: jdbc:mysql://mysql:3306/letucoj?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: letuc
+    password: 430103535
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    root: INFO
+    org.springframework: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.mybatis: DEBUG
+    com.OMS.practice_service: DEBUG
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.OMS.user_service.repository
+  configuration:
+    map-underscore-to-camel-case: true
