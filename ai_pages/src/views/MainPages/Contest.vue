@@ -11,16 +11,22 @@
     <div v-else-if="error" class="status error">加载失败：{{ error }}</div>
     <ul v-else class="contest-items">
       <li v-if="contests.length === 0 && !loading" class="empty">暂无竞赛</li>
-      <li v-for="c in contests" :key="c.name" class="contest-item">
+      <li
+        v-for="c in contests"
+        :key="c.name"
+        class="contest-item"
+      >
         <div class="info" @click="goDetail(c)">
-          <div class="name">{{ c.cnname }}({{ c.name }})</div>
+          <div class="name">{{ c.cnname }}（{{ c.name }}）</div>
           <div class="meta">
             <span>{{ formatTime(c.start) }} - {{ formatTime(c.end) }}</span>
             <span v-if="inAssessment(c)" class="badge ongoing">进行中</span>
             <span v-else-if="beforeStart(c)" class="badge upcoming">未开始</span>
             <span v-else class="badge ended">已结束</span>
           </div>
-          <div v-if="beforeStart(c)" class="countdown">倒计时：{{ countdowns[c.name] }}</div>
+          <div v-if="beforeStart(c)" class="countdown">
+            倒计时：{{ countdowns[c.name] }}
+          </div>
         </div>
         <div class="ops">
           <button v-if="isAdmin" @click.stop="editContest(c)">修改</button>
@@ -34,9 +40,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-// const ip = import.meta.env.VITE_API_IP
-const REMOTE_SERVER_URL = import.meta.env.VITE_REMOTE_SERVER_URL
-
+const ip = import.meta.env.VITE_API_IP || 'localhost:7777'
 const router = useRouter()
 
 /* 数据 */
@@ -59,9 +63,9 @@ function parseToken() {
       decodeURIComponent(
         atob(payload64.replace(/-/g, '+').replace(/_/g, '/'))
           .split('')
-          .map((c) => `%${c.charCodeAt(0).toString(16).padStart(2, '0')}`)
-          .join(''),
-      ),
+          .map(c => `%${c.charCodeAt(0).toString(16).padStart(2, '0')}`)
+          .join('')
+      )
     )
     userRole.value = payload.role
   } catch {
@@ -72,11 +76,10 @@ function parseToken() {
 function formatTime(ts) {
   const d = new Date(ts)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-    d.getDate(),
-  ).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(
-    2,
-    '0',
-  )}`
+    d.getDate()
+  ).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(
+    d.getMinutes()
+  ).padStart(2, '0')}`
 }
 
 function beforeStart(c) {
@@ -109,9 +112,9 @@ async function fetchList() {
   error.value = null
   try {
     const token = localStorage.getItem('jwt') || ''
-    const res = await fetch(`${REMOTE_SERVER_URL}/contest/list/contest`, {
+    const res = await fetch(`http://${ip}/contest/list/contest`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
     })
     const text = await res.text()
     if (text.trim().startsWith('<')) {
@@ -121,7 +124,7 @@ async function fetchList() {
     const json = JSON.parse(text)
     if (json.status === 0 || json.status === 1) {
       contests.value = json.data || []
-      contests.value.forEach((c) => beforeStart(c) && startCountdown(c))
+      contests.value.forEach(c => beforeStart(c) && startCountdown(c))
     } else {
       error.value = json.error || '未知错误'
     }

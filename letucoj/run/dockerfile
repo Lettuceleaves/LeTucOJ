@@ -1,0 +1,23 @@
+FROM debian:bookworm-slim
+
+RUN echo "deb http://ftp.de.debian.org/debian sid main" > /etc/apt/sources.list.d/unstable.list
+
+RUN apt-get update && apt-get install -y \
+        openjdk-17-jre \
+        gcc-13 \
+        libc6-dev \
+        make
+
+RUN ln -s /usr/bin/gcc-13 /usr/bin/gcc
+RUN gcc --version
+RUN ls -l /usr/bin/gcc
+RUN rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+RUN mkdir -p /app/localRun
+COPY run.jar /app/
+RUN chmod +x /app/run.jar
+
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+EXPOSE 1001
+CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/run.jar"]
