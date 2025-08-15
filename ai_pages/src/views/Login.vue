@@ -16,41 +16,43 @@
 </template>
 
 <script setup>
-import { ref, getCurrentInstance  } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { ref, getCurrentInstance } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
 
-const username = ref('');
-const password = ref('');
-const router = useRouter();
+const username = ref('')
+const password = ref('')
+const router = useRouter()
 
 const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip
+
+const REMOTE_SERVER_URL = import.meta.env.VITE_REMOTE_SERVER_URL
+
+// consolo.log(REMOTE_SERVER_URL)
 
 const login = async () => {
   try {
-    const response = await axios.post(`http://${ip}/user/login`, {
+    const response = await axios.post(`${REMOTE_SERVER_URL}/user/login`, {
       username: username.value,
       password: password.value,
-    });
+    })
 
     if (response.data && response.data.data.token) {
       // 存储 token
-      localStorage.setItem('jwt', response.data.data.token);
+      localStorage.setItem('jwt', response.data.data.token)
       // 角色等信息如果后端没返回，可以省略
-      router.push('/main');
+      router.push('/main')
     } else {
-      alert('登录失败：后端未返回 token');
+      alert('登录失败：后端未返回 token')
     }
   } catch (error) {
     if (error.response && error.response.data) {
-      alert('登录失败：' + (error.response.data.error || '未知错误'));
+      alert('登录失败：' + (error.response.data.error || '未知错误'))
     } else {
-      alert('登录失败：网络错误或服务器未响应');
+      alert('登录失败：网络错误或服务器未响应')
     }
   }
-};
-
+}
 </script>
 
 <style scoped>

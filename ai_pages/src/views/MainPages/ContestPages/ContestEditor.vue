@@ -2,13 +2,7 @@
   <div class="online-editor">
     <!-- 标题栏 -->
     <div class="title-bar">
-      <div
-        class="title-item"
-        :class="{ active: activeTab === 'back' }"
-        @click="goBack"
-      >
-        返回
-      </div>
+      <div class="title-item" :class="{ active: activeTab === 'back' }" @click="goBack">返回</div>
 
       <div
         class="title-item"
@@ -34,7 +28,6 @@
         结果
       </div>
     </div>
-
 
     <!-- 内容区域 -->
     <div class="content">
@@ -70,7 +63,8 @@ const editorReady = ref(true)
 const result = ref(null)
 const problemData = ref({})
 const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip
+
+const REMOTE_SERVER_URL = import.meta.env.VITE_REMOTE_SERVER_URL
 
 const questionPageRef = ref(null)
 const resultData = computed(() => result.value || { status: -1 })
@@ -80,26 +74,26 @@ const sendCode = async (code) => {
   try {
     const token = localStorage.getItem('jwt')
     const params = new URLSearchParams({
-      qname: problem.value,      // ✅ 使用 route.query
-      ctname: contest.value,     // ✅ 使用 route.query
-      lang: 'C'
+      qname: problem.value, // ✅ 使用 route.query
+      ctname: contest.value, // ✅ 使用 route.query
+      lang: 'C',
     })
     console.log('提交参数', params.toString())
 
-    const response = await fetch(`http://${ip}/contest/submit?${params}`, {
+    const response = await fetch(`${REMOTE_SERVER_URL}/contest/submit?${params}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: code
+      body: code,
     })
     const data = await response.json()
     result.value = {
       status: data.status,
       data: data.data,
       dataAsString: data.dataAsString,
-      error: data.error || null
+      error: data.error || null,
     }
   } catch (error) {
     result.value = { status: -1, error: error.message || '未知错误' }
@@ -131,12 +125,12 @@ const fetchDataOnRefresh = async () => {
     const token = localStorage.getItem('jwt')
     const params = new URLSearchParams({
       qname: problem.value,
-      ctname: contest.value
+      ctname: contest.value,
     })
 
-    const response = await fetch(`http://${ip}/practice/full/get?${params}`, {
+    const response = await fetch(`${REMOTE_SERVER_URL}/practice/full/get?${params}`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     })
     if (!response.ok) throw new Error(`请求失败，状态码：${response.status}`)
     const data = await response.json()
@@ -200,5 +194,4 @@ onMounted(() => {
   height: calc(100vh - 50px);
   overflow-y: auto;
 }
-
 </style>

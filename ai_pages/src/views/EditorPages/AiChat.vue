@@ -2,14 +2,8 @@
   <div class="card ai-card">
     <h3 class="title">AI 聊天</h3>
     <div class="ai-window" ref="aiWindow">
-      <div
-        v-for="(msg, index) in messages"
-        :key="index"
-        :class="['ai-message', msg.role]"
-      >
-        <strong class="role-label">
-          {{ msg.role === 'user' ? '我' : 'AI' }}：
-        </strong>
+      <div v-for="(msg, index) in messages" :key="index" :class="['ai-message', msg.role]">
+        <strong class="role-label"> {{ msg.role === 'user' ? '我' : 'AI' }}： </strong>
         <div v-if="msg.role === 'user'" class="msg-content">
           {{ msg.content }}
         </div>
@@ -33,7 +27,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 
 defineExpose({
-  sendMessage
+  sendMessage,
 })
 
 // 配置marked - 修复标题渲染问题
@@ -47,12 +41,12 @@ marked.setOptions({
   // 修复中文标题问题
   langPrefix: 'language-',
   // 自定义标题渲染
-  renderer: new marked.Renderer()
+  renderer: new marked.Renderer(),
 })
 
 // 全局IP配置
 const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip || 'localhost'
+const REMOTE_SERVER_URL = import.meta.env.VITE_REMOTE_SERVER_URL || 'localhost'
 
 const messages = ref([])
 const inputText = ref('')
@@ -62,10 +56,10 @@ let eventSource = null
 // 安全渲染Markdown - 修复标题问题
 const renderMarkdown = (content) => {
   if (!content) return ''
-  
+
   // 修复标题格式：确保 # 后有空格
   const fixedContent = content.replace(/(^|\n)(#+)([^#\s])/g, '$1$2 $3')
-  
+
   try {
     const rawHtml = marked(fixedContent)
     return DOMPurify.sanitize(rawHtml)
@@ -93,10 +87,10 @@ function sendMessage(text) {
   messages.value.push({ role: 'user', content: trimmed })
 
   // 添加AI占位消息
-  messages.value.push({ 
-    role: 'assistant', 
-    raw: '', 
-    html: '<div class="loading">AI正在思考...</div>' 
+  messages.value.push({
+    role: 'assistant',
+    raw: '',
+    html: '<div class="loading">AI正在思考...</div>',
   })
   const idx = messages.value.length - 1
 
@@ -111,7 +105,7 @@ function sendMessage(text) {
 
   // 建立新的SSE连接
   eventSource = new EventSource(
-    `http://${ip}:9999/advice?userFile=${encodeURIComponent(trimmed)}`
+    `${REMOTE_SERVER_URL}:9999/advice?userFile=${encodeURIComponent(trimmed)}`,
   )
 
   // 接收流式数据
@@ -233,7 +227,7 @@ onUnmounted(() => {
 
 /* 其他样式保持不变 */
 .markdown-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   word-wrap: break-word;
@@ -256,7 +250,14 @@ onUnmounted(() => {
   background-color: rgba(175, 184, 193, 0.2);
   border-radius: 3px;
   padding: 0.2em 0.4em;
-  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    SF Mono,
+    Menlo,
+    Consolas,
+    Liberation Mono,
+    monospace;
   font-size: 85%;
 }
 

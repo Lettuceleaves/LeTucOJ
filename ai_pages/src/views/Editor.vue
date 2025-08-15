@@ -2,11 +2,37 @@
   <div class="online-editor">
     <!-- 标题栏 -->
     <div class="title-bar">
-      <div class="title-item" :class="{ active: activeTab === 'description' }" @click="activeTab = 'description'">描述</div>
-      <div class="title-item" :class="{ active: activeTab === 'question' }" @click="activeTab = 'question'">答题</div>
-      <div class="title-item" :class="{ active: activeTab === 'solution' }" @click="activeTab = 'solution'">题解</div>
-      <div class="title-item" :class="{ active: activeTab === 'result' }" @click="activeTab = 'result'">结果</div>
-      <div class="title-item" :class="{ active: activeTab === 'ai' }" @click="activeTab = 'ai'">AI</div>
+      <div
+        class="title-item"
+        :class="{ active: activeTab === 'description' }"
+        @click="activeTab = 'description'"
+      >
+        描述
+      </div>
+      <div
+        class="title-item"
+        :class="{ active: activeTab === 'question' }"
+        @click="activeTab = 'question'"
+      >
+        答题
+      </div>
+      <div
+        class="title-item"
+        :class="{ active: activeTab === 'solution' }"
+        @click="activeTab = 'solution'"
+      >
+        题解
+      </div>
+      <div
+        class="title-item"
+        :class="{ active: activeTab === 'result' }"
+        @click="activeTab = 'result'"
+      >
+        结果
+      </div>
+      <div class="title-item" :class="{ active: activeTab === 'ai' }" @click="activeTab = 'ai'">
+        AI
+      </div>
     </div>
 
     <!-- 内容区域 -->
@@ -50,7 +76,7 @@ const aiChatRef = ref(null)
 
 const resultData = computed(() => result.value || { status: -1 })
 const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip
+const REMOTE_SERVER_URL = import.meta.env.VITE_REMOTE_SERVER_URL
 
 const questionPageRef = ref(null)
 
@@ -61,12 +87,12 @@ const handleSubmit = () => {
     alert('无法获取代码内容')
     return
   }
-  
+
   console.log('开始处理提交')
-  
+
   // 1. 执行原来的提交操作
   submitCode(code)
-  
+
   // 2. 同时发送给AI分析
   sendToAI(code)
 }
@@ -74,21 +100,21 @@ const handleSubmit = () => {
 // 发送给AI分析
 const sendToAI = (code) => {
   console.log('准备发送给AI:', code ? '代码存在' : '代码不存在')
-  
+
   // 确保AI聊天组件已经渲染
   nextTick(() => {
     if (aiChatRef.value) {
       console.log('AI组件引用存在')
-      
+
       // 添加提示词让AI分析代码
       const prompt = `请分析以下JavaScript代码：\n\`\`\`javascript\n${code}\n\`\`\`\n`
       console.log('发送给AI的提示:', prompt)
-      
+
       try {
         // 调用AI聊天组件的发送消息方法
         aiChatRef.value.sendMessage(prompt)
         console.log('AI消息发送成功')
-        
+
         // 切换到AI标签页
         activeTab.value = 'ai'
       } catch (e) {
@@ -108,19 +134,19 @@ const sendCode = async (code) => {
     const token = localStorage.getItem('jwt')
     const params = new URLSearchParams({
       qname: name,
-      lang: 'C'
-    });
-    const response = await fetch(`http://${ip}/practice/submit?${params}`, {
+      lang: 'C',
+    })
+    const response = await fetch(`${REMOTE_SERVER_URL}/practice/submit?${params}`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: code
+      body: code,
     })
     const data = await response.json()
     console.log('后端响应数据:', data)
-    
+
     result.value = {
       status: data.status,
       data: data.data,
@@ -182,13 +208,13 @@ const fetchDataOnRefresh = async () => {
   try {
     const token = localStorage.getItem('jwt')
     const params = new URLSearchParams({
-      qname: name
-    });
+      qname: name,
+    })
     const response = await fetch(`http://${ip}/practice/full/get?${params}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
     if (!response.ok) throw new Error(`请求失败，状态码：${response.status}`)
 
@@ -202,7 +228,7 @@ const fetchDataOnRefresh = async () => {
 }
 
 watch(activeTab, async (newVal, oldVal) => {
-  await nextTick();
+  await nextTick()
 
   if (oldVal === 'question') {
     try {

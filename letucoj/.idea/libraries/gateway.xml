@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="gateway">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/gateway/gateway.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
