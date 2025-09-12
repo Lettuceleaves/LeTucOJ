@@ -13,7 +13,6 @@ com\LetucOJ\contest\service\impl\DBServiceImpl.class
 com\LetucOJ\contest\service\PracticeService.class
 com\LetucOJ\contest\model\db\ProblemStatusDTO.class
 com\LetucOJ\contest\model\net\ContestProblemDTO.class
-com\LetucOJ\contest\config\MinioConfig.class
 com\LetucOJ\contest\model\method\CheckDTO.class
 com\LetucOJ\contest\repos\MinioRepos.class
 com\LetucOJ\contest\model\db\BoardDTO.class

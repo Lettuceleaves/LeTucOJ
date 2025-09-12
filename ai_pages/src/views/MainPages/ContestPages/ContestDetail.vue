@@ -50,7 +50,6 @@
         <template v-else>
           <!-- 题目列表 -->
           <ul class="problem-list">
-            <!-- 题目列表 -->
             <li
               v-for="p in problemList"
               :key="p.problemName"
@@ -94,7 +93,6 @@
               </div>
             </li>
 
-
             <!-- 添加按钮（作为最后一项） -->
             <li
               v-if="canAddProblem && !isAddingProblem"
@@ -107,7 +105,6 @@
         </template>
       </section>
 
-      <!-- 榜单 -->
       <section class="leaderboard">
         <div class="section-header"><h3>榜单</h3></div>
 
@@ -115,36 +112,55 @@
           <p>暂无提交记录</p>
         </div>
 
-        <!-- 动态列数 + 80% 宽 + 正方形单元格 -->
-        <div
-          v-else
-          class="board-wrapper"
-          :style="{ '--cols': colCount }"
-        >
+        <!-- 表格：粘性表头 + 斑马纹 + 悬停 -->
+        <div v-else class="board">
           <!-- 表头 -->
-          <div class="board-row header-row">
-            <div class="cell">用户</div>
-            <div class="cell" v-for="p in uniqueProblems" :key="p">{{ p }}</div>
-            <div class="cell">总分</div>
-            <div class="cell">最后提交</div>
+          <div class="board-header" :style="{ '--cols': colCount }">
+            <div class="cell th left-sticky">排名 / 用户</div>
+            <div class="cell th" v-for="p in uniqueProblems" :key="p">{{ p }}</div>
+            <div class="cell th">总分</div>
+            <div class="cell th">最后提交</div>
           </div>
 
           <!-- 表体 -->
-          <div
-            class="board-row"
-            v-for="(row, user) in groupedByUser"
-            :key="user"
-          >
-            <div class="cell">{{ row.userCnname || user }}</div>
-            <div class="cell" v-for="p in uniqueProblems" :key="p">
-              {{ row.scores[p] ?? 0 }}
+          <div class="board-body" :style="{ '--cols': colCount }">
+            <div
+              class="board-row"
+              v-for="(row, idx) in rows"
+              :key="row.user"
+            >
+              <!-- 用户与排名 -->
+              <div class="cell left-sticky user-cell">
+                <span class="rank" :class="medalClass(idx)">{{ idx + 1 }}</span>
+                <span class="avatar">{{ (row.userCnname || row.user).slice(0,1).toUpperCase() }}</span>
+                <span class="uname" :title="row.user">{{ row.userCnname || row.user }}</span>
+              </div>
+
+              <!-- 每题得分（填充：未答白、部分绿、满分金；数字黑色） -->
+              <div
+                class="cell score"
+                v-for="p in uniqueProblems"
+                :key="p"
+                :style="scoreBgStyle(row.scores[p] ?? 0, p)"
+                :class="{ pass: (row.scores[p] ?? 0) > 0 }"
+              >
+                <span class="score-text">{{ row.scores[p] ?? 0 }}</span>
+              </div>
+
+              <!-- 总分（进度条） -->
+              <div class="cell total">
+                <div class="bar">
+                  <div class="bar-inner" :style="{ width: totalPercent(row) }"></div>
+                </div>
+                <span class="total-text">{{ row.totalScore }}</span>
+              </div>
+
+              <!-- 最后提交 -->
+              <div class="cell">{{ formatTime(row.lastSubmit) }}</div>
             </div>
-            <div class="cell">{{ row.totalScore }}</div>
-            <div class="cell">{{ formatTime(row.lastSubmit) }}</div>
           </div>
         </div>
       </section>
-
 
     </div>
   </div>
@@ -163,10 +179,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-const ip = import.meta.env.VITE_API_IP || 'localhost:7777'
+const instance = getCurrentInstance()
+const ip = instance.appContext.config.globalProperties.$ip
 
 const route = useRoute()
 const router = useRouter()
@@ -190,7 +207,6 @@ function parseRoleFromJWT() {
   }
 }
 
-
 // 确保传递 ctname 给 props
 const props = defineProps({
   contest: {
@@ -201,7 +217,6 @@ const props = defineProps({
 
 // 在 fetchFullContest 和 fetchProblemList 方法中使用 ctname
 console.log(ctname) // 测试是否正确获取到参数
-
 
 /* emits */
 const emit = defineEmits(['close', 'view-leaderboard'])
@@ -402,7 +417,7 @@ const remainingText = computed(() => {
   const m = Math.floor(sec / 60)
   const s = sec % 60
   return `还有 ${m}m${s}s 开始`
-})
+}) // <- 修复：这里要以 }) 结束
 
 /* methods */
 function formatTime(ts) {
@@ -578,6 +593,72 @@ async function fetchAttendStatus() {
   }
 }
 
+// 将 user -> row 的 map 转成排序数组，并计算最大总分用于进度条
+const rows = computed(() => {
+  const arr = Object.entries(groupedByUser.value).map(([user, row]) => ({
+    ...row,
+    user
+  }))
+  arr.sort((a, b) => b.totalScore - a.totalScore)
+  return arr
+})
+
+const maxTotal = computed(() =>
+  rows.value.length ? Math.max(...rows.value.map(r => r.totalScore)) : 0
+)
+
+function totalPercent(row) {
+  if (!maxTotal.value) return '0%'
+  return `${Math.round((row.totalScore / maxTotal.value) * 100)}%`
+}
+
+function medalClass(index) {
+  if (index === 0) return 'gold'
+  if (index === 1) return 'silver'
+  if (index === 2) return 'bronze'
+  return ''
+}
+
+/* ====== 每题得分：按比例填充（基于题目满分） ====== */
+// 从题目列表建立满分映射：problemName -> maxScore
+const problemMaxMap = computed(() => {
+  const map = {}
+  for (const p of problemList.value) {
+    map[p.problemName] = Number(p.score) || 0
+  }
+  return map
+})
+function maxScoreOf(problemName) {
+  return problemMaxMap.value[problemName] ?? 0
+}
+/**
+ * 计算每题格子的背景：
+ * - 0 或无满分 -> 白色
+ * - 0 < 分数 < 满分 -> 绿色按比例填充
+ * - 分数 >= 满分 -> 金色
+ * 文本统一黑色
+ */
+function scoreBgStyle(score, problemName) {
+  const max = maxScoreOf(problemName)
+  const s = Number(score) || 0
+
+  const base = { color: '#111827' } // 统一黑色数字
+
+  if (!max || s <= 0) return { ...base, background: '#ffffff' } // 未答题：白色
+  if (s >= max) return { ...base, background: '#FFD700' }       // 满分：金色
+
+  const pct = Math.max(0, Math.min(100, (s / max) * 100))
+  const pctStr = pct.toFixed(2) + '%'
+  return {
+    ...base,
+    background: `linear-gradient(90deg,
+      rgba(40,167,69,.35) 0%,
+      rgba(40,167,69,.35) ${pctStr},
+      transparent ${pctStr},
+      transparent 100%)`
+  }
+}
+
 /* lifecycle */
 onMounted(async () => {
   parseRoleFromJWT()
@@ -592,6 +673,7 @@ onUnmounted(() => {
   if (timer) clearInterval(timer)
 })
 </script>
+
 <style scoped>
 
 /* 外层 80% 宽，水平居中 */
@@ -798,7 +880,6 @@ section.info p {
 }
 
 /* ---------- 添加题目交互 ---------- */
-/* ---------- 添加题目交互 ---------- */
 .add-problem-row {
   padding: 16px;
   background: #f8f9fa; /* 改为浅灰色背景 */
@@ -867,7 +948,6 @@ section.info p {
   box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
 }
 
-
 /* ---------- 添加按钮行 ---------- */
 .add-button-row {
   text-align: center;
@@ -931,7 +1011,7 @@ section.info p {
   background: #007bff;
   color: #fff;
   border: 1px solid #007bff;
-    border-radius: 6px;
+  border-radius: 6px;
 }
 .actions button:first-child:hover:not(:disabled) {
   background: #0056b3;
@@ -1039,5 +1119,158 @@ section.info p {
 .btn-delete:hover {
   background: #c0392b;
 }
+
+/* ========== Leaderboard 样式（新版） ========== */
+.board {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: #fff;
+}
+
+/* 通用网格：列数由 --cols 控制（= 题目数 + 2 列：总分、最后提交 + 1 列用户） */
+.board-header,
+.board-body {
+  display: grid;
+  grid-template-columns: 220px repeat(calc(var(--cols) - 2), minmax(90px, 1fr)) 120px 160px;
+}
+
+.cell {
+  word-break: break-word;
+  white-space: normal; /* ✅ 自动换行 */
+  padding: 8px;
+  font-size: 14px;
+}
+
+.cell.th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #334155;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px solid var(--border);
+}
+
+.board-body .board-row:nth-child(even) .cell {
+  background: #fbfdff; /* 斑马纹 */
+}
+.board-body .board-row:hover .cell {
+  background: #f2f7ff; /* 悬停高亮 */
+}
+
+.board-header,
+.board-body {
+  display: grid;
+  grid-template-columns: 1.2fr repeat(calc(var(--cols) - 3), 1fr) 0.8fr 1fr; 
+  /* ✅ 用户列更宽，题目列平均，最后两列略小 */
+  width: 100%; /* ✅ 占满父容器 */
+}
+
+/* 左侧第一列（用户）粘性，避免横向滚动看不见用户名 */
+.left-sticky {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+/* 用户单元格：排行 + 头像 + 名称 */
+.user-cell {
+  padding-left: 14px;
+}
+
+.rank {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #111827;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+.rank.gold   { background: #fde68a; color: #8a5800; }   /* 金牌 */
+.rank.silver { background: #e5e7eb; color: #4b5563; }   /* 银牌 */
+.rank.bronze { background: #fcd5b5; color: #7b3f00; }   /* 铜牌 */
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1e40af;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.uname {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 分数样式（原规则；下面覆盖为黑色显示） */
+.score {
+  font-variant-numeric: tabular-nums;
+  color: #6b7280;
+}
+.score.pass {
+  color: #0a7b3e;
+  font-weight: 600;
+}
+
+/* 总分：进度条 + 数字 */
+.total {
+  gap: 10px;
+}
+.total .bar {
+  flex: 1;
+  height: 8px;
+  background: #eef2ff;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.total .bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #2563eb);
+  border-radius: 999px;
+}
+.total .total-text {
+  width: 42px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #111827;
+  font-weight: 600;
+}
+
+/* 响应式微调：窄屏时压缩列宽 */
+@media (max-width: 900px) {
+  .board-header,
+  .board-body {
+    grid-template-columns: 200px repeat(calc(var(--cols) - 2), minmax(72px, 1fr)) 110px 140px;
+  }
+  .uname { max-width: 110px; }
+}
+@media (max-width: 720px) {
+  .board-header,
+  .board-body {
+    grid-template-columns: 180px repeat(calc(var(--cols) - 2), minmax(64px, 1fr)) 100px 120px;
+  }
+  .uname { max-width: 96px; }
+}
+
+/* ====== 覆盖：每题得分填充 + 黑色文字（放在末尾以确保覆盖） ====== */
+.cell.score { color: #111827; }
+.cell.score .score-text { color: #111827; }
+.score.pass { color: #111827 !important; }
 
 </style>

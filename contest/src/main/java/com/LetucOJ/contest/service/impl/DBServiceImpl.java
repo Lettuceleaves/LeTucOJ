@@ -36,11 +36,11 @@ public class DBServiceImpl implements DBService {
             List<ContestInfoDTO> list = mybatisRepos.getContestList();
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte)1, null, "practice/getContestList: No problems found in Mybatis");
+                return new ResultVO((byte)1, null, "contest/getContestList: No problems found in Mybatis");
             }
             return new ResultVO((byte)0, list, null);
         } catch (Exception e) {
-            return new ResultVO((byte)5, null, "practice/getContestList: Error retrieving contest list from Mybatis: " + e.getMessage());
+            return new ResultVO((byte)5, null, "contest/getContestList: Error retrieving contest list from Mybatis: " + e.getMessage());
         }
     }
 
@@ -50,7 +50,7 @@ public class DBServiceImpl implements DBService {
             ContestInfoDTO dbDtoContest = mybatisRepos.getContest(contestName);
 
             if (!dbDtoContest.isPublicContest()) {
-                return new ResultVO((byte) 5, null, "practice/getProblemList: Not Public");
+                return new ResultVO((byte) 5, null, "contest/getProblemList: Not Public");
             }
 
             // check time
@@ -61,25 +61,25 @@ public class DBServiceImpl implements DBService {
                 if (now.isBefore(start)) {
                     long secondsToStart = Duration.between(now, start).getSeconds();
                     return new ResultVO((byte)5, null,
-                            "practice/submit: Contest has not started yet, start in "
+                            "contest/submit: Contest has not started yet, start in "
                                     + secondsToStart + " seconds");
                 } else if (now.isAfter(end)) {
-                    return new ResultVO((byte)5, null, "practice/submit: Contest has already ended");
+                    return new ResultVO((byte)5, null, "contest/submit: Contest has already ended");
                 }
             } else {
-                return new ResultVO((byte)5, null, "practice/submit: Contest start or end time is not set");
+                return new ResultVO((byte)5, null, "contest/submit: Contest start or end time is not set");
             }
 
 
             List<ContestProblemDTO> list = mybatisRepos.getProblemList(contestName);
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte) 1, null, "practice/getProblemList: No problems found in Mybatis");
+                return new ResultVO((byte) 1, null, "contest/getProblemList: No problems found in Mybatis");
             }
 
             return new ResultVO((byte) 0, list, null);
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/getProblemList: Error retrieving problem list from Mybatis: " + e.getMessage());
+            return new ResultVO((byte) 5, null, "contest/getProblemList: Error retrieving problem list from Mybatis: " + e.getMessage());
         }
     }
 
@@ -89,12 +89,12 @@ public class DBServiceImpl implements DBService {
             List<ContestProblemDTO> list = mybatisRepos.getProblemList(contestName);
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte) 1, null, "practice/getProblemList: No problems found in Mybatis");
+                return new ResultVO((byte) 1, null, "contest/getProblemList: No problems found in Mybatis");
             }
 
             return new ResultVO((byte) 0, list, null);
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/getProblemList: Error retrieving problem list from Mybatis: " + e.getMessage());
+            return new ResultVO((byte) 5, null, "contest/getProblemList: Error retrieving problem list from Mybatis: " + e.getMessage());
         }
     }
 
@@ -104,19 +104,19 @@ public class DBServiceImpl implements DBService {
             ContestInfoDTO dbDtoContest = mybatisRepos.getContest(contestName);
 
             if (!dbDtoContest.isPublicContest()) {
-                return new ResultVO((byte) 5, null, "practice/getProblem: Not Public");
+                return new ResultVO((byte) 5, null, "contest/getProblem: Not Public");
             }
 
             FullInfoDTO dbDto = mybatisRepos.getProblem(name);
 
             if (dbDto == null) {
-                return new ResultVO((byte) 5, null, "practice/getProblem: Problem not found in Mybatis");
+                return new ResultVO((byte) 5, null, "contest/getProblem: Problem not found in Mybatis");
             } else {
                 dbDto.setSolution("题解已隐藏");
                 return new ResultVO((byte) 0, dbDto, null);
             }
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/getProblem: Error retrieving problem from Mybatis: " + e.getMessage());
+            return new ResultVO((byte) 5, null, "contest/getProblem: Error retrieving problem from Mybatis: " + e.getMessage());
         }
     }
     @Override
@@ -125,13 +125,13 @@ public class DBServiceImpl implements DBService {
             FullInfoDTO dbDto = mybatisRepos.getProblem(name);
 
             if (dbDto == null) {
-                return new ResultVO((byte) 5, null, "practice/getProblem: Problem not found in Mybatis");
+                return new ResultVO((byte) 5, null, "contest/getProblem: Problem not found in Mybatis");
             } else {
                 dbDto.setSolution("题解已隐藏");
                 return new ResultVO((byte) 0, dbDto, null);
             }
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/getProblem: Error retrieving problem from Mybatis: " + e.getMessage());
+            return new ResultVO((byte) 5, null, "contest/getProblem: Error retrieving problem from Mybatis: " + e.getMessage());
         }
     }
 
@@ -150,7 +150,7 @@ public class DBServiceImpl implements DBService {
             } else if (inContest == 0) {
                 return new ResultVO((byte)1, null, "contest/getUserStatus: User has not joined the contest");
             } else {
-                return new ResultVO((byte)0, inContest, null);
+                return new ResultVO((byte)0, null, null);
             }
         } catch (Exception e) {
             return new ResultVO((byte)5, null, "contest/getUserStatus: Error retrieving user status from Mybatis: " + e.getMessage());
@@ -248,14 +248,14 @@ public class DBServiceImpl implements DBService {
                 if (rows != null && rows > 0) {
                     response = new ResultVO(0, null, null);
                 } else {
-                    response = new ResultVO(5, null, "practice/insertContest: Mybatis return not >=0 or is null");
+                    response = new ResultVO(5, null, "contest/insertContest: Mybatis return not >=0 or is null");
                 }
             } catch (Exception e) {
-                return new ResultVO(5, null, "practice/insertContest: " + e.getMessage());
+                return new ResultVO(5, null, "contest/insertContest: " + e.getMessage());
             }
             return response;
         } catch (Exception e) {
-            return new ResultVO((byte)5, null, "practice/insertContest: Error inserting contest into Mybatis: " + e.getMessage());
+            return new ResultVO((byte)5, null, "contest/insertContest: Error inserting contest into Mybatis: " + e.getMessage());
         }
     }
 
@@ -273,20 +273,20 @@ public class DBServiceImpl implements DBService {
                 if (rows != null && rows > 0) {
                     response = new ResultVO((byte) 0, null, null);
                 } else {
-                    response = new ResultVO((byte) 5, null, "practice/updateContest: Mybatis return not >=0 or is null");
+                    response = new ResultVO((byte) 5, null, "contest/updateContest: Mybatis return not >=0 or is null");
                 }
             } catch (Exception e) {
-                return new ResultVO((byte) 5, null, "practice/updateContest: " + e.getMessage());
+                return new ResultVO((byte) 5, null, "contest/updateContest: " + e.getMessage());
             }
             return response;
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/updateContest: Error updating contest in Mybatis: " + e.getMessage());
+            return new ResultVO((byte) 5, null, "contest/updateContest: Error updating contest in Mybatis: " + e.getMessage());
         }
     }
 
     @Override
     public ResultVO deleteContest(String ctname) {
-        return new ResultVO((byte)5, null, "practice/deleteContest: Delete operation is not supported yet");
+        return new ResultVO((byte)5, null, "contest/deleteContest: Delete operation is not supported yet");
     }
 
     @Override
@@ -350,6 +350,11 @@ public class DBServiceImpl implements DBService {
     @Override
     public ResultVO attend(String name, String cnname, String contestName) {
         try {
+            ContestInfoDTO dbDtoContest = mybatisRepos.getContest(contestName);
+
+            if (!dbDtoContest.isPublicContest()) {
+                return new ResultVO((byte) 5, null, "contest/getProblemList: Not Public");
+            }
             if (name == null || name.isEmpty()) {
                 return new ResultVO((byte)5, null, "practice/attend: userName is null or empty");
             }

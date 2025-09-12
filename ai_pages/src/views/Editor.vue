@@ -7,6 +7,7 @@
       <div class="title-item" :class="{ active: activeTab === 'solution' }" @click="activeTab = 'solution'">题解</div>
       <div class="title-item" :class="{ active: activeTab === 'result' }" @click="activeTab = 'result'">结果</div>
       <div class="title-item" :class="{ active: activeTab === 'ai' }" @click="activeTab = 'ai'">AI</div>
+      <button class="back-btn" @click="goBack">返回</button>
     </div>
 
     <!-- 内容区域 -->
@@ -54,6 +55,11 @@ const ip = instance.appContext.config.globalProperties.$ip
 
 const questionPageRef = ref(null)
 
+const goBack = () => {
+  router.back()  // 或 router.go(-1)
+}
+
+
 // 统一的提交处理函数
 const handleSubmit = () => {
   const code = questionPageRef.value?.getCode()
@@ -81,7 +87,7 @@ const sendToAI = (code) => {
       console.log('AI组件引用存在')
       
       // 添加提示词让AI分析代码
-      const prompt = `请分析以下JavaScript代码：\n\`\`\`javascript\n${code}\n\`\`\`\n`
+      const prompt = `请分析以下的C语言代码，发给出建议：${code}\n\`\`\`\n`
       console.log('发送给AI的提示:', prompt)
       
       try {
@@ -104,6 +110,10 @@ const sendCode = async (code) => {
   console.log('发送代码到后端:', code ? '代码存在' : '代码不存在')
   activeTab.value = 'result'
 
+  result.value = {
+    status: -1,
+    data: "正在提交，请等待"
+  }
   try {
     const token = localStorage.getItem('jwt')
     const params = new URLSearchParams({
@@ -232,6 +242,22 @@ onMounted(() => {
 </script>
 
 <style>
+.back-btn {
+  background: #ef4444; /* 红色按钮，易识别 */
+  color: #fff;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.back-btn:hover {
+  background: #dc2626; /* hover 深红色 */
+}
+
+
 .online-editor {
   height: 100vh;
   width: 100vw;

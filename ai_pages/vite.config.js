@@ -1,20 +1,16 @@
-import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import vueDevTools from 'vite-plugin-vue-devtools'
+import monacoPlugin from 'vite-plugin-monaco-editor'
 
-// https://vite.dev/config/
+// 取 .default（commonjs 转 esm 的坑）
+const monaco = monacoPlugin.default || monacoPlugin
+
 export default defineConfig({
-  base: '/',
-  
   plugins: [
     vue(),
-    vueDevTools(),
-  ],
-  
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    },
-  },
+    monaco({
+      languages: ['markdown'],
+      publicPath: '/assets/'   // 与 build.assetsDir 保持一致
+    })
+  ]
 })

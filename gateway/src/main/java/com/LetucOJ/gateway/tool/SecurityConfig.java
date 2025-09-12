@@ -32,7 +32,7 @@ public class SecurityConfig {
 
                         // 公开接口
                         .pathMatchers(
-                                "/user/register", "/user/login"
+                                "/user/register", "/user/login", "/", "/index.html", "/static/**", "/assets/**", "/favicon.ico", "/code.txt"
                         ).permitAll()
 
                         // 用户权限接口
@@ -49,7 +49,7 @@ public class SecurityConfig {
                                 "/practice/submitCase", "/user/activate", "/user/deactivate", "/practice/listRoot", "/practice/fullRoot/get",
                                 "/user/users", "/user/managers", "/user/promote", "/user/demote", "/practice/submitInRoot", "/practice/searchListInRoot",
                                 "/contest/insertContest", "/contest/updateContest", "/contest/insertProblem",
-                                "/contest/deleteProblem", "/sys/doc/get", "/sys/doc/update"
+                                "/contest/deleteProblem", "/sys/doc/get", "/sys/doc/update", "/sys/refresh/sql"
                         ).hasAnyRole("MANAGER", "ROOT")
 
 

@@ -2,13 +2,6 @@
   <div class="online-editor">
     <!-- 标题栏 -->
     <div class="title-bar">
-      <div
-        class="title-item"
-        :class="{ active: activeTab === 'back' }"
-        @click="goBack"
-      >
-        返回
-      </div>
 
       <div
         class="title-item"
@@ -33,6 +26,7 @@
       >
         结果
       </div>
+      <button class="back-btn" @click="goBack">返回</button>
     </div>
 
 
@@ -77,6 +71,10 @@ const resultData = computed(() => result.value || { status: -1 })
 
 const sendCode = async (code) => {
   activeTab.value = 'result'
+  result.value = {
+    status: -1,
+    data: "正在提交，请等待"
+  }
   try {
     const token = localStorage.getItem('jwt')
     const params = new URLSearchParams({
@@ -116,7 +114,7 @@ const handleSubmit = () => {
 }
 
 const goBack = () => {
-  router.back() // 返回上一页，也可用 router.push('/指定路径')
+  router.back()
 }
 
 const checkCode = () => {
@@ -164,6 +162,20 @@ onMounted(() => {
 </script>
 
 <style>
+.back-btn {
+  background: #ef4444; /* 红色按钮，易识别 */
+  color: #fff;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.back-btn:hover {
+  background: #dc2626; /* hover 深红色 */
+}
 .online-editor {
   height: 100vh;
   width: 100vw;

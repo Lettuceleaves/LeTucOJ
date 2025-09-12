@@ -19,7 +19,7 @@
     "highlight.js": "^11.11.1",
     "marked": "^16.1.1",
     "monaco-editor": "^0.52.2",
-    "monaco-editor-vue3": "^0.1.10",
+    "monaco-editor-vue3": "^1.0.3",
     "pinia": "^3.0.3",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
@@ -33,6 +33,7 @@
     "globals": "^16.2.0",
     "prettier": "3.5.3",
     "vite": "^6.3.5",
+    "vite-plugin-monaco-editor": "^1.1.0",
     "vite-plugin-vue-devtools": "^7.7.7",
     "vuepress": "^2.0.0-rc.24"
   }

@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -34,6 +35,19 @@ public class JwtFilter implements WebFilter {
     private static final List<String> WHITELIST = List.of(
             "/user/login", "/user/register"
     );
+
+    // 白名单
+    private static final List<String> STATIC = List.of(
+            "/", "/index.html",
+            "/static/**", "/assets/**",
+            "/**/*.js", "/**/*.css", "/**/*.ico", "/**/*.png", "/**/*.woff2", "/code.txt"
+    );
+
+    private static final AntPathMatcher MATCHER = new AntPathMatcher();
+
+    private boolean isStatic(String path) {
+        return STATIC.stream().anyMatch(p -> MATCHER.match(p, path));
+    }
 
     /** 需要注入 ttl 参数的接口 */
     private static final List<String> TTL_REQUIRED = List.of(
@@ -61,11 +75,9 @@ public class JwtFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
-        System.out.println("------" + "Method:" + exchange.getRequest().getMethod() + " " + exchange);
+        System.out.println("------" + "Method:" + exchange.getRequest().getMethod() + " " + exchange + " " + chain);
 
-        // 跳过 OPTIONS 和白名单路径
-        if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod())
-                || WHITELIST.contains(path)) {
+        if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod()) || isStatic(path) || WHITELIST.contains(path)) {
             return chain.filter(exchange);
         }
 

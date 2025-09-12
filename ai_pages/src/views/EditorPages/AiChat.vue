@@ -84,49 +84,43 @@ function scrollToBottom() {
   })
 }
 
-// 发送消息并流式接收AI回复
-function sendMessage(text) {
+async function sendMessage(text) {
   const trimmed = text.trim()
+  const token = localStorage.getItem('jwt') || ''
   if (!trimmed) return
 
-  // 显示用户消息
   messages.value.push({ role: 'user', content: trimmed })
-
-  // 添加AI占位消息
-  messages.value.push({ 
-    role: 'assistant', 
-    raw: '', 
-    html: '<div class="loading">AI正在思考...</div>' 
-  })
+  messages.value.push({ role: 'assistant', raw: '', html: '' })
   const idx = messages.value.length - 1
-
   inputText.value = ''
   scrollToBottom()
 
-  // 关闭已有SSE
-  if (eventSource) {
-    eventSource.close()
-    eventSource = null
-  }
+  const res = await fetch(`http://${ip}/advice`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ userFile: trimmed })
+  })
 
-  // 建立新的SSE连接
-  eventSource = new EventSource(
-    `http://${ip}:9999/advice?userFile=${encodeURIComponent(trimmed)}`
-  )
+  const reader = res.body
+    .pipeThrough(new TextDecoderStream())
+    .getReader()
 
-  // 接收流式数据
-  eventSource.onmessage = (e) => {
-    const msg = messages.value[idx]
-    msg.raw += e.data
-    msg.html = renderMarkdown(msg.raw)
-    scrollToBottom()
-  }
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
 
-  eventSource.onerror = () => {
-    if (eventSource) {
-      eventSource.close()
-      eventSource = null
+    // --- 新增：解析 SSE 格式 ---
+    const lines = value.split(/\r?\n/)
+    for (const line of lines) {
+      if (line.startsWith('data:')) {
+        const chunk = line.slice(5)        // 去掉 "data:"
+        messages.value[idx].raw += chunk
+      }
     }
+    // --- 解析完 ---
+
+    messages.value[idx].html = renderMarkdown(messages.value[idx].raw)
+    scrollToBottom()
   }
 }
 

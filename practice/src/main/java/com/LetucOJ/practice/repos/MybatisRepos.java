@@ -19,16 +19,16 @@ public interface MybatisRepos {
     @Update("UPDATE problem SET caseAmount = caseAmount + 1 WHERE name = #{name}")
     Integer incrementCaseAmount(String name);
 
-    @Select("SELECT name, cnname FROM problem WHERE public = 1 ORDER BY #{order} LIMIT #{start}, #{limit}")
+    @Select("SELECT name, cnname FROM problem WHERE public = 1 ORDER BY ${order} LIMIT #{start}, #{limit}")
     List<ListDTO> getList(ListServiceDTO listServiceDTO);
 
-    @Select("SELECT name, cnname FROM problem WHERE public = 1 AND (cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%')) ORDER BY #{order} LIMIT #{start}, #{limit}")
+    @Select("SELECT name, cnname FROM problem WHERE public = 1 AND (cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%')) ORDER BY ${order} LIMIT #{start}, #{limit}")
     List<ListDTO> searchList(ListServiceDTO listServiceDTO);
 
-    @Select("SELECT name, cnname FROM problem ORDER BY #{order} LIMIT #{start}, #{limit}")
+    @Select("SELECT name, cnname FROM problem ORDER BY ${order} LIMIT #{start}, #{limit}")
     List<ListDTO> getListInRoot(ListServiceDTO listServiceDTO);
 
-    @Select("SELECT name, cnname FROM problem WHERE cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%') ORDER BY #{order} LIMIT #{start}, #{limit}")
+    @Select("SELECT name, cnname FROM problem WHERE cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%') ORDER BY ${order} LIMIT #{start}, #{limit}")
     List<ListDTO> searchListInRoot(ListServiceDTO listServiceDTO);
 
     @Select("SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public > 0 AS publicProblem, solution, showsolution " +
@@ -44,7 +44,7 @@ public interface MybatisRepos {
     @Insert("INSERT INTO problem (name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public, solution, showsolution) VALUES (#{name}, #{cnname}, #{caseAmount}, #{difficulty}, #{tags}, #{authors}, #{createtime}, #{updateat}, #{content}, #{freq}, #{publicProblem}, #{solution}, #{showsolution})")
     Integer insertProblem(FullInfoDTO fullInfoDTO);
 
-    @Update("UPDATE problem SET cnname = #{cnname}, caseAmount = #{caseAmount}, difficulty = #{difficulty}, tags = #{tags}, authors = #{authors}, createtime = #{createtime}, updateat = #{updateat}, content = #{content}, freq = #{freq}, public = #{publicProblem}, solution = #{solution}, showsolution = #{showsolution} WHERE name = #{name}")
+    @Update("UPDATE problem SET cnname = #{cnname}, caseAmount = #{caseAmount}, difficulty = #{difficulty}, tags = #{tags}, authors = #{authors}, updateat = #{updateat}, content = #{content}, freq = #{freq}, public = #{publicProblem}, solution = #{solution}, showsolution = #{showsolution} WHERE name = #{name}")
     Integer updateProblem(FullInfoDTO fullInfoDTO);
 
     @Delete("DELETE FROM problem WHERE name = #{name}")

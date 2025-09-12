@@ -34,6 +34,16 @@ const login = async () => {
       password: password.value,
     });
 
+    if (response.data.status === 0) {
+    } else if (response.data.status === 1) {
+      alert('账号未激活，请联系管理员');
+      router.push('/');
+      return;
+    } else {
+      alert(JSON.stringify(response));
+      return;
+    }
+
     if (response.data && response.data.data.token) {
       // 存储 token
       localStorage.setItem('jwt', response.data.data.token);

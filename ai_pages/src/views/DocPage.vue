@@ -43,9 +43,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, getCurrentInstance } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import axios from 'axios';
+
+const instance = getCurrentInstance()
+const ip = instance.appContext.config.globalProperties.$ip
 
 // 配置Marked解析器
 marked.setOptions({
@@ -107,24 +111,21 @@ function extractHeadingsFromDOM() {
 
 onMounted(async () => {
   try {
+    
+    const token = localStorage.getItem('jwt')
+    const response = await axios.get(`http://${ip}/sys/doc/get`, {
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (response.data.status !== 0) {
+      throw new Error('获取文档失败: ' + (response.data.error || '未知错误'));
+    }
+    
     // 模拟从服务器获取文档
-    const mockContent = `# Markdown 文档示例
-
-## 章节 1
-这是第一章的内容，包含**粗体**和*斜体*文本。
-
-### 子章节 1.1
-- 列表项 1
-- 列表项 2
-- 列表项 3
-
-## 章节 2
-\`\`\`javascript
-// 代码块示例
-function helloWorld() {
-  console.log('Hello, Markdown!');
-}
-\`\`\``
+    const mockContent = response.data.data;
     
     rawContent.value = mockContent
     await parseMarkdown(mockContent)
@@ -146,13 +147,23 @@ watch(rawContent, (val) => {
 
 async function saveToServer() {
   try {
-    console.log('保存内容:', rawContent.value.substring(0, 50) + '...')
-    // 实际项目中发送到服务器
-    // await fetch('/api/save-md', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ content: rawContent.value }),
-    // })
+    
+    const token = localStorage.getItem('jwt')
+    
+    const response = await axios.put(
+      `http://${ip}/sys/doc/update`,
+      rawContent.value,
+      {
+        headers: {
+          "Content-Type": "text/plain",
+          "Authorization": `Bearer ${token}`
+        }
+      }
+    );
+
+    if (response.data.status !== 0) {
+      throw new Error('获取文档失败: ' + (response.data.error || '未知错误'));
+    }
     alert('保存成功!')
   } catch (err) {
     console.error('保存失败:', err)

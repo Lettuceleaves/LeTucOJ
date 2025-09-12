@@ -120,6 +120,7 @@ public class ContainerPool {
 
     private void containerInit(int id) throws Exception {
         String name = "run" + lang + id;
+        destroyRunContainer(name);
         int port = 1010 + id;
 
         System.out.println("Create Docker Container..." + id);
@@ -161,7 +162,6 @@ public class ContainerPool {
         RunClient client = factory.forContainer(name, 1010 + id);
         ResultVO resultVO = client.run(payload);
         System.out.println("Task done on container " + id);
-        destroyRunContainer(name);
         return resultVO;
     }
 
@@ -216,7 +216,7 @@ public class ContainerPool {
         if (exitCode == 0) {
             System.out.println("Container " + name + " destroyed successfully.");
         } else {
-            System.err.println("Failed to destroy container " + name);
+            System.out.println("Failed to destroy container " + name);
         }
     }
 }

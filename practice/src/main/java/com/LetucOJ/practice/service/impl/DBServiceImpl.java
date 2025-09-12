@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class DBServiceImpl implements DBService {
@@ -88,6 +89,14 @@ public class DBServiceImpl implements DBService {
                 return new ResultVO((byte) 5, null, "practice/searchList: Start or limit is null");
             }
 
+            if (dto.getOrder() == null || dto.getOrder().isEmpty()) {
+                dto.setOrder("name");
+            }
+
+            if (!Objects.equals(dto.getOrder(), "name") && !Objects.equals(dto.getOrder(), "difficulty") && !Objects.equals(dto.getOrder(), "cnname")) {
+                dto.setOrder("name");
+            }
+
             List<ListDTO> list = mybatisRepos.searchList(dto);
 
             if (list == null || list.isEmpty()) {
@@ -105,6 +114,14 @@ public class DBServiceImpl implements DBService {
         try {
             if (dto.getStart() == null || dto.getLimit() == null) {
                 return new ResultVO((byte) 5, null, "practice/searchListInRoot: Start or limit is null");
+            }
+
+            if (dto.getOrder() == null || dto.getOrder().isEmpty()) {
+                dto.setOrder("name");
+            }
+
+            if (!Objects.equals(dto.getOrder(), "name") && !Objects.equals(dto.getOrder(), "difficulty") && !Objects.equals(dto.getOrder(), "cnname")) {
+                dto.setOrder("name");
             }
 
             List<ListDTO> list = mybatisRepos.searchListInRoot(dto);

@@ -78,7 +78,12 @@ public interface MybatisRepos {
 
 
     // --- 排行榜（使用视图，动态组合所有用户×题目） ---
-    @Select("SELECT * FROM contest_board_view " +
+    @Select("SELECT contest_name AS contestName, " +
+            "       user_name AS userName, " +
+            "       problem_name AS problemName, " +
+            "       score ," +
+            "       attempts AS times," +
+            "       last_submit as lastSubmit FROM contest_board " +
             "WHERE contest_name = #{contestName} " +
             "  AND user_name    = #{userName}    " +
             "  AND problem_name = #{problemName}")
@@ -86,8 +91,17 @@ public interface MybatisRepos {
                                              @Param("userName")    String userName,
                                              @Param("problemName") String problemName);
 
-    @Select("SELECT * FROM contest_board_view " +
-            "WHERE contest_name = #{contestName}")
+    @Select("SELECT u.user_name AS userName, u.cnname AS userCnname, p.problem_name AS problemName, " +
+            "       COALESCE(b.score, 0) AS score, " +
+            "       COALESCE(b.attempts, 0) AS times, " +
+            "       b.last_submit AS lastSubmit " +
+            "FROM contest_user u " +
+            "JOIN contest_problem p ON p.contest_name = u.contest_name " +
+            "LEFT JOIN contest_board b ON b.contest_name = u.contest_name " +
+            "                          AND b.user_name    = u.user_name " +
+            "                          AND b.problem_name = p.problem_name " +
+            "WHERE u.contest_name = #{contestName} " +
+            "ORDER BY u.user_name, p.problem_name")
     List<BoardDTO> getBoard(@Param("contestName") String contestName);
 
     @Insert("INSERT INTO contest_board " +

@@ -133,34 +133,77 @@ const searchAll = async () => {
 
 <style scoped>
 .record-list {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  color: #333;
 }
+
+/* 顶部操作栏 */
 .action-bar {
+  display: flex;
+  gap: 12px;
   margin-bottom: 20px;
 }
 .action-bar button {
-  margin-right: 12px;
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background 0.2s;
 }
+.action-bar button:hover {
+  background: #2563eb;
+}
+
+/* 列表 */
 .records {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 .record {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
+.record:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* 行 */
 .row {
-  line-height: 1.6;
+  line-height: 1.7;
+  margin-bottom: 6px;
 }
 .label {
   font-weight: 600;
   margin-right: 6px;
+  color: #555;
 }
+.row:last-child {
+  margin-bottom: 0;
+}
+
+/* 提交时间 */
+.row span.label + span,
+.row span.label + div {
+  color: #666;
+  font-size: 0.92em;
+}
+
+/* 代码区域 */
 .code-area {
+  margin-top: 10px;
   display: flex;
   align-items: flex-start;
 }
@@ -168,15 +211,27 @@ const searchAll = async () => {
   margin-left: 8px;
   font-size: 0.85em;
   cursor: pointer;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.toggle-btn:hover {
+  background: #059669;
 }
 .code-block {
-  margin: 6px 0 0 0;
-  padding: 8px;
-  background: #f6f8fa;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+  margin: 10px 0 0 0;
+  padding: 10px;
+  background: #1e293b;
+  color: #f8fafc;
+  border-radius: 6px;
   overflow-x: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
+  white-space: pre;
+  font-family: "Fira Code", "Courier New", monospace;
+  font-size: 0.9em;
+  line-height: 1.5;
 }
 </style>
+

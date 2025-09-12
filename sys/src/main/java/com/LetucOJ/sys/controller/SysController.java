@@ -37,4 +37,8 @@ public class SysController {
     public ResultVO run(@RequestBody List<String> files, @RequestParam String lang) {
         return monitor.submit(files, lang);
     }
+    @GetMapping("/refresh/sql")
+    public ResultVO refreshSql() {
+        return sysService.refreshSql();
+    }
 }

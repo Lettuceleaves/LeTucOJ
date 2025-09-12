@@ -1,4 +1,4 @@
-version: "3.8"
+
 services:
   redis:
     image: redis:7.2-alpine
@@ -63,6 +63,8 @@ services:
     mem_reservation: 256m
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
+      # ↓↓↓ 新增一行，覆盖 application.yml 中的 mysql.host
+      - MYSQL_HOST=mysql
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     user: "0:0"
@@ -111,3 +113,30 @@ services:
       MYSQL_DATABASE: letucoj
     mem_limit: 2g
     mem_reservation: 1g
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx1g
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ../es/data:/usr/share/elasticsearch/data
+      - ../es/elasticsearch-analysis-ik-7.16.1.zip:/tmp/ik.zip:ro
+    mem_limit: 2g
+    mem_reservation: 1g
+    entrypoint: >
+      /bin/bash -c '
+        if [ ! -d /usr/share/elasticsearch/plugins/ik ]; then
+          bin/elasticsearch-plugin install --batch file:///tmp/ik.zip;
+        fi &&
+        exec /usr/local/bin/docker-entrypoint.sh
+      '
+
+
+volumes:
+  elasticsearch-data:
+    external: true

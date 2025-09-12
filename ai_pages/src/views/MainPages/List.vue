@@ -10,41 +10,59 @@
       class="search-input"
     />
 
-    <!-- 排序按钮与选项 -->
-    <div class="sort-container">
-      <button @click="showSortOptions = !showSortOptions">排序</button>
-      <div v-if="showSortOptions" class="sort-options">
-        <label>
-          <input type="radio" value="name" v-model="sortField" @change="fetchProblems" />
-          按题目名称
-        </label>
-        <label>
-          <input type="radio" value="caseAmount" v-model="sortField" @change="fetchProblems" />
-          按测试用例数量
-        </label>
+    <!-- 🔧 工具栏：左中右三段 -->
+    <div class="toolbar">
+      <!-- 左：排序 + 更新 -->
+      <div class="toolbar-left">
+        <div class="dropdown">
+          <button class="btn" @click="showSortOptions = !showSortOptions">
+            排序 <span class="caret">▾</span>
+          </button>
+          <div v-if="showSortOptions" class="dropdown-menu">
+            <label class="dropdown-item">
+              <input type="radio" value="name" v-model="sortField" @change="fetchProblems" />
+              按英文名
+            </label>
+            <label class="dropdown-item">
+              <input type="radio" value="cnname" v-model="sortField" @change="fetchProblems" />
+              按中文名
+            </label>
+            <label class="dropdown-item">
+              <input type="radio" value="difficulty" v-model="sortField" @change="fetchProblems" />
+              按难度
+            </label>
+          </div>
+        </div>
+        <button class="btn" @click="applyFilters">更新</button>
+      </div>
+
+      <!-- 中：分页 -->
+      <div class="toolbar-center">
+        <button class="btn" @click="prevPage" :disabled="currentPage === 1">上一页</button>
+        <span class="page-indicator">第 {{ currentPage }} 页</span>
+        <button class="btn" @click="nextPage" :disabled="!hasMore">下一页</button>
+      </div>
+
+      <!-- 右：创建/历史 -->
+      <div class="toolbar-right">
+        <button
+          v-if="userInfo && (userInfo === 'MANAGER' || userInfo === 'ROOT')"
+          class="btn"
+          @click="navigateToCreateProblem"
+        >
+          创建题目
+        </button>
+        <button class="btn" @click="navigateToHistory">历史记录</button>
       </div>
     </div>
 
-    <!-- 权限控制按钮 -->
-    <div class="action-buttons">
-      <div v-if="userInfo && (userInfo === 'MANAGER' || userInfo === 'ROOT')">
-        <button @click="navigateToCreateProblem">创建题目</button>
-        <button @click="navigateToManageUsers">用户管理</button>
-      </div>
-
-      <div>
-        <button @click="navigateToHistory">历史记录</button>
-        <button @click="navigateToCompetition">比赛</button>
-      </div>
-    </div>
-
-    <!-- 列表渲染 -->
+    <!-- 列表渲染（占据剩余高度；内部滚动） -->
     <ul class="problem-list">
       <li v-for="item in displayedProblems" :key="item.name" class="problem-item">
         <div class="problem-item-content">
-          <router-link :to="`/editor/${item.name}`">
+          <router-link :to="`/editor/${item.name}`" class="problem-link">
             <div><strong>{{ item.cnname || '(无中文名)' }}</strong></div>
-            <div style="font-size: 0.9em; color: gray;">
+            <div class="meta-line">
               [英文名: {{ item.name }}] · {{ item.caseAmount }} 个测试点
             </div>
           </router-link>
@@ -55,187 +73,321 @@
         </div>
       </li>
     </ul>
-
-    <!-- 分页控制 -->
-    <div class="pagination">
-      <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
-      <span>第 {{ currentPage }} 页</span>
-      <button @click="nextPage" :disabled="!hasMore">下一页</button>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, getCurrentInstance } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, getCurrentInstance, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
-const instance = getCurrentInstance();
-const ip = instance?.appContext.config.globalProperties.$ip || 'localhost:7777';
+const router = useRouter()
+const instance = getCurrentInstance()
+const ip = instance?.appContext.config.globalProperties.$ip || 'localhost:7777'
 
-const allProblems = ref([]);
-const searchKeyword = ref('');
-const sortField = ref('');
-const showSortOptions = ref(false);
+/** ------------ 响应式状态 ------------ **/
+const allProblems = ref([])
+const displayedProblems = computed(() => allProblems.value)
 
-const currentPage = ref(1);
-const pageSize = 10;
-const hasMore = ref(true);
-const userInfo = ref(null);
+const searchKeyword = ref('')
+const sortField = ref('')
+const showSortOptions = ref(false)
 
-// JWT解析
+const currentPage = ref(1)
+const pageSize = 10
+const hasMore = ref(true)
+const userInfo = ref(null)
+
+const order = ref('')
+const like = ref('')
+
+/** ------------ 工具函数 ------------ **/
 const parseJwt = (token) => {
-  const base64Url = token.split('.')[1];
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
-    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-  ).join(''));
-  return JSON.parse(jsonPayload);
-};
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
 
 const loadUserInfo = () => {
-  const token = localStorage.getItem('jwt');
-  if (token) {
-    const parsed = parseJwt(token);
-    userInfo.value = parsed.role;
-  } else {
-    alert('未登录或 JWT 错误');
+  const token = localStorage.getItem('jwt')
+  if (!token) {
+    alert('未登录或 JWT 错误')
+    return
   }
-};
+  const parsed = parseJwt(token)
+  userInfo.value = parsed.role ?? null
+}
 
+/** ------------ 拉取列表 ------------ **/
 const fetchProblems = async () => {
   try {
-    const token = localStorage.getItem('jwt');
-    // 拼 query 参数
-    const params = new URLSearchParams({
-      start: (currentPage.value - 1) * pageSize,
-      limit: pageSize,
-      order: sortField.value === 'caseAmount' ? 'caseAmount' : 'name', // 按你的单选按钮
-      like: searchKeyword.value.trim() || ''
-    });
+    const token = localStorage.getItem('jwt') || ''
+    const useSearchApi = !!(like.value || order.value)
 
-    const res = await fetch(`http://${ip}/practice/list?${params}`, {
+    const resolvedOrder =
+      sortField.value === 'difficulty' ? 'difficulty'
+      : sortField.value === 'cnname'   ? 'cnname'
+      : /* 默认 */                     'name'
+
+    const params = new URLSearchParams({
+      start: String((currentPage.value - 1) * pageSize),
+      limit: String(pageSize),
+      order: resolvedOrder,
+      like: like.value || searchKeyword.value.trim()
+    })
+
+    const url = useSearchApi
+      ? `http://${ip}/practice/searchList?${params}`
+      : `http://${ip}/practice/list?${params}`
+
+    const res = await fetch(url, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
-    });
+    })
 
-    const json = await res.json();
+    const json = await res.json()
     if (json.status === 0 && Array.isArray(json.data)) {
-      // 假设后端直接返回数组
-      allProblems.value = json.data;
-      hasMore.value = json.data.length === pageSize;
+      allProblems.value = json.data
+      hasMore.value = json.data.length === pageSize
     } else {
-      alert(json.message || '加载失败');
-      hasMore.value = false;
+      allProblems.value = []
+      hasMore.value = false
+      alert(json.message || '加载失败')
     }
   } catch (e) {
-    alert('网络错误：' + e.message);
-    hasMore.value = false;
+    allProblems.value = []
+    hasMore.value = false
+    alert('网络错误：' + (e?.message || e))
   }
-};
+}
 
-// 排序和筛选
-const displayedProblems = computed(() => {
-  let data = allProblems.value;
-
-  if (searchKeyword.value.trim()) {
-    const keyword = searchKeyword.value.trim().toLowerCase();
-    data = data.filter(p => p.name?.toLowerCase().includes(keyword));
-  }
-
-  if (sortField.value === 'name') {
-    data = [...data].sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortField.value === 'caseAmount') {
-    data = [...data].sort((a, b) => b.caseAmount - a.caseAmount);
-  }
-
-  return data;
-});
+/** ------------ 搜索 / 排序 / 分页 ------------ **/
+const applyFilters = () => {
+  currentPage.value = 1
+  order.value = sortField.value || ''
+  like.value = searchKeyword.value.trim()
+  fetchProblems()
+}
 
 const handleSearch = () => {
-  currentPage.value = 1;
-  fetchProblems();
-};
+  currentPage.value = 1
+  fetchProblems()
+}
 
 const prevPage = () => {
   if (currentPage.value > 1) {
-    currentPage.value--;
-    fetchProblems();
+    currentPage.value--
+    fetchProblems()
   }
-};
+}
 
 const nextPage = () => {
   if (hasMore.value) {
-    currentPage.value++;
-    fetchProblems();
+    currentPage.value++
+    fetchProblems()
   }
-};
+}
 
-// 跳转逻辑
-const navigateToCreateProblem = () => router.push('/form');
-const navigateToManageUsers = () => router.push('/manage-users');
-const navigateToHistory = () => router.push('/history');
-const navigateToCompetition = () => router.push('/competition');
+watch(sortField, () => {
+  currentPage.value = 1
+  fetchProblems()
+})
 
+/** ------------ 路由 ------------ **/
+const navigateToCreateProblem = () => router.push('/form')
+const navigateToHistory = () => router.push('/history')
+
+/** ------------ 启动 ------------ **/
 onMounted(() => {
-  loadUserInfo();
-  fetchProblems();
-});
+  loadUserInfo()
+  fetchProblems()
+})
 </script>
 
 <style scoped>
+/* ===================== 重新设计的布局核心 ===================== */
+/* 用 Grid 明确分四行：标题、搜索、工具栏、列表（可滚动） */
 .problem-list-container {
-  max-width: 800px;
+  /* —— 视口高度：兼容各浏览器 —— */
+  height: 100vh;                 /* 基础 */
+}
+@supports (height: 100svh) {
+  .problem-list-container { height: 100svh; }  /* 小视口单位（解决移动端地址栏收起/展开） */
+}
+@supports (height: 100dvh) {
+  .problem-list-container { height: 100dvh; }  /* 动态视口单位（iOS 15+/现代浏览器） */
+}
+
+.problem-list-container {
+  /* 安全区与底部缓冲 */
+  --safe-bottom: max(16px, env(safe-area-inset-bottom));
+  --list-bottom-gap: clamp(64px, 10vh, 128px);
+
+  max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 16px 24px 0;          /* 顶部/左右留白，底部不留，避免双重内边距 */
+  padding-bottom: var(--safe-bottom);
+
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+
+  /* 用 Grid 精准分配高度 */
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;  /* h2 / 搜索 / 工具栏 / 列表 */
+  gap: 12px;
+
+  /* 仅让最后一行（列表）滚动，外层不裁切下边界的安全区 */
+  overflow: hidden;
+}
+
+/* ===================== 标题与搜索 ===================== */
+h2 {
+  margin: 0;
 }
 .search-input {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: 0.3s;
 }
-.sort-container {
-  margin-bottom: 10px;
-  position: relative;
+.search-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 6px rgba(37, 99, 235, 0.2);
 }
-.sort-container button {
-  padding: 6px 12px;
-  background-color: #3b82f6;
-  color: white;
+
+/* ===================== 工具栏 ===================== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.toolbar-left, .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.page-indicator {
+  color: #374151;
+  font-size: 14px;
+}
+
+/* 按钮 */
+.btn {
+  padding: 8px 16px;
+  background-color: #2563eb;
+  color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
+  transition: background 0.25s, transform 0.05s;
+  white-space: nowrap;
 }
-.sort-options {
+.btn:hover { background-color: #1e4db7; }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+/* 下拉 */
+.dropdown { position: relative; }
+.caret { margin-left: 6px; font-size: 12px; opacity: 0.9; }
+.dropdown-menu {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  min-width: 180px;
   background: #fff;
   border: 1px solid #ddd;
-  padding: 8px;
-  position: absolute;
-  top: 40px;
-  left: 0;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  padding: 10px 12px;
   z-index: 10;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ===================== 列表（滚动区，关键重构） ===================== */
 .problem-list {
+  /* 作为 Grid 最后一行的可滚动区域 */
   list-style: none;
+  margin: 0;
   padding: 0;
+
+  /* ✅ 关键：允许在 Grid/Flex 容器内正确收缩并产生滚动 */
+  min-height: 0;               /* 解决“滚不动到最底部”的常见根因 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
+  /* ✅ 始终预留可见的底部缓冲 + iOS 安全区，避免最后几项被遮挡 */
+  padding-bottom: 0;           /* 真正的缓冲通过 ::after 提供，避免被最后一项 margin 抵消 */
 }
+.problem-list::after {
+  content: "";
+  display: block;
+  height: calc(var(--list-bottom-gap) + var(--safe-bottom));
+}
+
+/* 可选：顶部/底部渐隐，提示可滚动（纯视觉，不影响交互） */
+/*
+.problem-list {
+  mask-image: linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+}
+*/
+
+/* 列表项 */
 .problem-item {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+  background: #f9fafb;
+  margin-bottom: 12px;
+  padding: 14px;
+  border-radius: 8px;
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+.problem-item:last-child { margin-bottom: 0; }
+.problem-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 .problem-item-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
+.problem-link { text-decoration: none; color: inherit; }
+.problem-item strong { font-size: 18px; color: #111827; }
+.meta-line { font-size: 14px; color: #6b7280; }
+
+.modify-link a {
+  color: #2563eb;
+  font-size: 14px;
+  text-decoration: none;
 }
+.modify-link a:hover { text-decoration: underline; }
 </style>
+

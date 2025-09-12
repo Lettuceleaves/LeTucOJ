@@ -11,10 +11,6 @@ spring:
           uri: http://user:5555
           predicates:
             - Path=/user/**
-        - id: contest
-          uri: http://contest:1234
-          predicates:
-            - Path=/contest/**
         - id: practice
           uri: http://practice:2222
           predicates:

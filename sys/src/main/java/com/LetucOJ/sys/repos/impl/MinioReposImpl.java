@@ -1,20 +1,17 @@
 package com.LetucOJ.sys.repos.impl;
 
-import com.LetucOJ.sys.model.FileDTO;
 import com.LetucOJ.sys.repos.MinioRepos;
-import io.minio.GetObjectArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.StatObjectArgs;
+import io.minio.*;
+import io.minio.errors.ErrorResponseException;
 import io.minio.errors.MinioException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-
 
 @Repository
 public class MinioReposImpl implements MinioRepos {
@@ -22,96 +19,89 @@ public class MinioReposImpl implements MinioRepos {
     @Autowired
     private MinioClient minioClient;
 
-    private final String bucketName = "doc";
-
-    public String get() {
-        String objectName = "doc";
-
-        // 检查文件是否存在
-        if (checkExistFile(objectName)) {
-            throw new RuntimeException("File not exist: " + objectName);
+    /**
+     * 按对象名读取文本内容
+     *
+     * @param objectName 对象名
+     * @param bucketName 桶名
+     * @return 文本内容字符串
+     */
+    @Override
+    public String get(String objectName, String bucketName) {
+        if (!checkExistFile(objectName, bucketName)) {
+            throw new RuntimeException("File does not exist: " + objectName);
         }
 
-        // 下载文件内容
-        try (InputStream inputStream = minioClient.getObject(
+        try (InputStream in = minioClient.getObject(
                 GetObjectArgs.builder()
                         .bucket(bucketName)
                         .object(objectName)
                         .build())) {
-            return new String(inputStream.readAllBytes());
+            return new String(in.readAllBytes());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to get object: " + e.getMessage(), e);
         }
     }
 
-    public String update(byte[] doc) {
-        String objectName = "doc";
-
-        // 检查文件是否已存在
-        if (checkExistFile(objectName)) {
-            return "File does not exist: " + bucketName + "/" + objectName;
-        }
-
-        // 上传文件内容
+    /**
+     * 上传或覆盖对象
+     *
+     * @param objectName 对象名
+     * @param bucketName 桶名
+     * @param data    文本内容
+     * @param mimeType   MIME 类型（如 text/plain）
+     * @return 成功返回 null，失败返回错误信息
+     */
+    public String put(String objectName, String bucketName, byte[] data, String mimeType) {
         try {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .stream(new java.io.ByteArrayInputStream(doc), doc.length, -1)
-                            .contentType("text/plain")
-                            .build()
-            );
-            return null;
-        } catch (Exception e) {
-            return "Error updating file: " + e.getMessage();
-        }
-    }
-
-    // 新建文件
-    private String createFile(String objectName, String content) {
-        try {
-            // 检查文件是否已存在
-            if (!checkExistFile(objectName)) {
-                return "File already exists: " + bucketName + "/" + objectName;
+            // 1. 桶不存在就创建
+            boolean exists = minioClient.bucketExists(
+                    io.minio.BucketExistsArgs.builder().bucket(bucketName).build());
+            if (!exists) {
+                minioClient.makeBucket(
+                        io.minio.MakeBucketArgs.builder().bucket(bucketName).build());
             }
 
-            // 上传文件内容
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .stream(new java.io.ByteArrayInputStream(content.getBytes()), content.length(), -1)
-                            .contentType("text/plain")
-                            .build()
-            );
-            return null;
+            // 2. 上传对象
+            try (ByteArrayInputStream in = new ByteArrayInputStream(data)) {
+                minioClient.putObject(
+                        PutObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(objectName)
+                                .stream(in, data.length, -1)
+                                .contentType(mimeType == null ? "application/octet-stream" : mimeType)
+                                .build());
+            }
+            return null;           // 成功
         } catch (Exception e) {
-            return "Error creating file: " + e.getMessage();
+            return "Failed to put object: " + e.getMessage();
         }
     }
 
-    private boolean checkExistFile(String objectName) {
+
+    /**
+     * 判断对象是否存在
+     *
+     * @param objectName 对象名
+     * @param bucketName 桶名
+     * @return true=存在，false=不存在
+     */
+    private boolean checkExistFile(String objectName, String bucketName) {
         try {
-            // 检查文件是否存在
             minioClient.statObject(
                     StatObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectName)
-                            .build()
-            );
-            return false; // 文件存在
-        } catch (MinioException e) {
-            if (e.getMessage().contains("not exist")) {
-                return true; // 文件不存在
-            } else {
-                e.printStackTrace();
-                throw new RuntimeException("Error checking file existence: " + e.getMessage());
+                            .build());
+            return true;           // 文件存在
+        } catch (ErrorResponseException e) {   // 这里精准捕获
+            String err = e.errorResponse().code();
+            if ("NoSuchKey".equals(err) || "NotFound".equals(err)) {
+                return false;      // 文件不存在
             }
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeyException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new RuntimeException("Minio error: " + err, e);
+        } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException("Error checking file existence", e);
         }
     }
-
 }

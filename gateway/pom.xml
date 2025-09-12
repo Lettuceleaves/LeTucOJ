@@ -15,46 +15,25 @@
 
     <dependencies>
 
-        <!-- spring webflux starter -->
+        <!-- spring-webflux-starter -->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
-        <!-- Gateway pom.xml -->
+        <!-- redis -->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
-        <!-- loadbalancer -->
-
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
-        </dependency>
-
-        <!-- spring-cloud openfeign -->
+        <!-- openfeign -->
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
-
-        <!-- spring-cloud bootstrap -->
-
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-        </dependency>
-
-        <!-- redis -->
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
 
         <!-- lombok -->
@@ -64,14 +43,14 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
-        <!-- spring-boot security -->
+        <!-- spring-boot-security -->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- spring-boot gateWay -->
+        <!-- spring-boot-gateway -->
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -95,7 +74,6 @@
             <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
-
 
     </dependencies>
 

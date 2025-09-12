@@ -1,35 +1,50 @@
 <template>
   <div class="contest-list">
+    <!-- 标题栏 -->
     <div class="header">
-      <h2>竞赛考核</h2>
+      <h2>🏆 竞赛考核</h2>
       <div class="actions">
-        <button v-if="isAdmin" @click="createContest">新建竞赛</button>
+        <button v-if="isAdmin" class="btn primary" @click="createContest">+ 新建竞赛</button>
       </div>
     </div>
 
+    <!-- 状态显示 -->
     <div v-if="loading" class="status">正在加载竞赛列表...</div>
     <div v-else-if="error" class="status error">加载失败：{{ error }}</div>
+
+    <!-- 列表 -->
     <ul v-else class="contest-items">
-      <li v-if="contests.length === 0 && !loading" class="empty">暂无竞赛</li>
+      <li v-if="contests.length === 0" class="empty">暂无竞赛</li>
+
       <li
         v-for="c in contests"
         :key="c.name"
         class="contest-item"
       >
+        <!-- 左侧信息块 -->
         <div class="info" @click="goDetail(c)">
-          <div class="name">{{ c.cnname }}（{{ c.name }}）</div>
+          <div class="name">{{ c.cnname }} <span class="en-name">({{ c.name }})</span></div>
           <div class="meta">
-            <span>{{ formatTime(c.start) }} - {{ formatTime(c.end) }}</span>
-            <span v-if="inAssessment(c)" class="badge ongoing">进行中</span>
-            <span v-else-if="beforeStart(c)" class="badge upcoming">未开始</span>
-            <span v-else class="badge ended">已结束</span>
+            <span class="time">{{ formatTime(c.start) }} - {{ formatTime(c.end) }}</span>
+            <span
+              class="badge"
+              :class="{
+                ongoing: inAssessment(c),
+                upcoming: beforeStart(c),
+                ended: !beforeStart(c) && !inAssessment(c)
+              }"
+            >
+              {{ inAssessment(c) ? '进行中' : beforeStart(c) ? '未开始' : '已结束' }}
+            </span>
           </div>
           <div v-if="beforeStart(c)" class="countdown">
-            倒计时：{{ countdowns[c.name] }}
+            ⏳ 倒计时：<span>{{ countdowns[c.name] }}</span>
           </div>
         </div>
+
+        <!-- 右侧操作按钮 -->
         <div class="ops">
-          <button v-if="isAdmin" @click.stop="editContest(c)">修改</button>
+          <button v-if="isAdmin" class="btn secondary" @click.stop="editContest(c)">修改</button>
         </div>
       </li>
     </ul>
@@ -37,10 +52,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 
-const ip = import.meta.env.VITE_API_IP || 'localhost:7777'
+const instance = getCurrentInstance()
+const ip = instance.appContext.config.globalProperties.$ip
 const router = useRouter()
 
 /* 数据 */
@@ -96,7 +112,7 @@ function getRemaining(c) {
   const sec = Math.floor(delta / 1000)
   const m = Math.floor(sec / 60)
   const s = sec % 60
-  return `${m}m${s}s`
+  return `${m}分${s}秒`
 }
 function startCountdown(c) {
   countdowns.value[c.name] = getRemaining(c)
@@ -118,7 +134,7 @@ async function fetchList() {
     })
     const text = await res.text()
     if (text.trim().startsWith('<')) {
-      error.value = '接口返回 HTML，路径/权限/后端错误，详见控制台'
+      error.value = '接口返回 HTML，可能是路径或权限问题'
       return
     }
     const json = JSON.parse(text)
@@ -158,83 +174,142 @@ onUnmounted(() => {
 
 <style scoped>
 .contest-list {
-  padding: 16px;
+  padding: 20px;
   max-width: 1000px;
   margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
 }
+
+/* 标题栏 */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
+.header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* 操作按钮 */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: 0.3s;
+}
+.btn.primary {
+  background: #2563eb;
+  color: #fff;
+}
+.btn.primary:hover {
+  background: #1e4db7;
+}
+.btn.secondary {
+  background: #10b981;
+  color: #fff;
+}
+.btn.secondary:hover {
+  background: #059669;
+}
+
+/* 列表 */
 .contest-items {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 .contest-item {
+  background: #f9fafb;
+  margin-bottom: 12px;
+  padding: 16px;
+  border-radius: 8px;
   display: flex;
   justify-content: space-between;
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
   align-items: flex-start;
-  gap: 12px;
+  transition: box-shadow 0.3s, transform 0.3s;
 }
+.contest-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* 信息部分 */
 .info {
   flex: 1;
   cursor: pointer;
 }
 .name {
-  font-weight: bold;
-  font-size: 1.1em;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+.en-name {
+  font-size: 14px;
+  color: #6b7280;
 }
 .meta {
-  margin-top: 4px;
-  font-size: 0.9em;
-  color: #555;
+  margin-top: 6px;
+  font-size: 14px;
+  color: #4b5563;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
 }
+.time {
+  font-weight: 500;
+}
+
+/* 状态标签 */
 .badge {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.75em;
-  margin-left: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: white;
 }
 .ongoing {
   background: #10b981;
-  color: white;
 }
 .upcoming {
   background: #f59e0b;
-  color: white;
 }
 .ended {
   background: #9ca3af;
-  color: white;
 }
+
+/* 倒计时 */
 .countdown {
-  margin-top: 6px;
-  font-size: 0.9em;
+  margin-top: 8px;
+  font-size: 14px;
   color: #1f2937;
+  font-weight: 500;
 }
+
+/* 操作按钮右侧 */
 .ops button {
-  background: #3b82f6;
-  border: none;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
+  font-size: 13px;
 }
+
+/* 空状态与加载 */
 .empty {
   padding: 20px;
-  color: #777;
+  text-align: center;
+  color: #6b7280;
 }
 .status {
   padding: 12px;
+  text-align: center;
 }
 .status.error {
   color: #b91c1c;
+  font-weight: bold;
 }
 </style>

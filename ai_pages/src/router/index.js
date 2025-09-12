@@ -1,44 +1,38 @@
-import { createRouter, createWebHashHistory  } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import Login from '../views/Login.vue';
-import Register from '../views/Register.vue';
-import Editor from '../views/Editor.vue';
-import ProblemForm from '../views/ProblemForm.vue';
-import DocPage from '@/views/DocPage.vue'
+import { createRouter, createWebHashHistory } from 'vue-router';
 
 const router = createRouter({
-  history: createWebHashHistory (),
+  history: createWebHashHistory(),
   routes: [
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('../views/HomeView.vue'),
     },
     {
       path: '/login',
       name: 'Login',
-      component: Login,
+      component: () => import('../views/Login.vue'),
     },
     {
       path: '/register',
       name: 'Register',
-      component: Register,
+      component: () => import('../views/Register.vue'),
     },
     {
       path: '/editor/:name',
       name: 'Editor',
-      component: Editor,
-      props: true // ✅ 让 name 参数传给组件
+      component: () => import('../views/Editor.vue'),
+      props: true,
     },
     {
       path: '/form',
       name: 'form',
-      component: ProblemForm,
+      component: () => import('../views/ProblemForm.vue'),
     },
-    { 
+    {
       path: '/docs',
       name: 'docs',
-      component: DocPage 
+      component: () => import('../views/DocPage.vue'),
     },
     {
       path: '/history',
@@ -49,33 +43,35 @@ const router = createRouter({
       path: '/main',
       name: 'main',
       component: () => import('../views/Main.vue'),
-    }
-    ,
+    },
     {
       path: '/contest',
       name: 'contest',
       component: () => import('../views/MainPages/Contest.vue'),
-    },{
+    },
+    {
       path: '/contest/detail',
       name: 'contestDetail',
       component: () => import('../views/MainPages/ContestPages/ContestDetail.vue'),
-      props: true
-    },{
+      props: true,
+    },
+    {
       path: '/contest/form',
       name: 'contestForm',
       component: () => import('../views/MainPages/ContestPages/ContestForm.vue'),
-      props: true
-    },{
+      props: true,
+    },
+    {
       path: '/contest/editor',
       name: 'contestEditor',
       component: () => import('../views/MainPages/ContestPages/ContestEditor.vue'),
-    },{
+    },
+    {
       path: '/user',
       name: 'user',
       component: () => import('../views/UserPage.vue'),
-    }
+    },
   ],
-})
+});
 
-export default router
-
+export default router;

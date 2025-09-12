@@ -24,3 +24,10 @@ mybatis-plus:
   type-aliases-package: com.OMS.user_service.repository
   configuration:
     map-underscore-to-camel-case: true
+
+mysql:
+  host: mysql
+  port: 3306
+  user: letuc
+  password: 430103535
+
