@@ -20,7 +20,7 @@ public class SubmitController {
 
     @PostMapping("/submit")
     public ResultVO submit(@RequestParam("pname") String pname, @RequestParam("cnname") String cnname, @RequestParam("qname") String qname, @RequestParam("lang") String lang, @RequestBody String code) throws Exception {
-        ResultVO result = practiceService.submit(qname, code, false);
+        ResultVO result = practiceService.submit(pname, qname, code, false);
         Integer res = mybatisRepos.insertRecord(new RecordDTO(pname, cnname, qname, lang, code, result.getStatus() + " $ " + result.getError(), 0L, 0L, System.currentTimeMillis()));
         if (res == null || res <= 0) {
             return new ResultVO((byte) 5, null, "practice/submit: Failed to insert record into database");
@@ -30,7 +30,7 @@ public class SubmitController {
 
     @PostMapping("/submitInRoot")
     public ResultVO submitInRoot(@RequestParam("pname") String pname, @RequestParam("cnname") String cnname, @RequestParam("qname") String qname, @RequestParam("lang") String lang, @RequestBody String code) throws Exception {
-        ResultVO result = practiceService.submit(qname, code, true);
+        ResultVO result = practiceService.submit(pname, qname, code, true);
         try {
             Integer res = mybatisRepos.insertRecord(new RecordDTO(pname, cnname, qname, lang, code, result.getStatus() + " $ " + result.getError(), 0L, 0L, System.currentTimeMillis()));
             if (res == null || res <= 0) {

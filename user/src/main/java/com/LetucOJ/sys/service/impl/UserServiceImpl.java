@@ -7,12 +7,15 @@ import com.LetucOJ.sys.model.UserDTO;
 import com.LetucOJ.sys.repos.UserMybatisRepos;
 import com.LetucOJ.sys.service.UserService;
 import com.LetucOJ.sys.util.PasswordUtil;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -171,4 +174,78 @@ public class UserServiceImpl implements UserService {
             return new ResultVO(1, null, "Demotion failed: " + e.getMessage());
         }
     }
+
+    @Override
+    public ResultVO getUserRankings() {
+        /* ---------- 1. 取数据 ---------- */
+        List<Map<String, Object>> rankings = userMybatisRepos.listCorrect();
+        List<UserDTO> users = userMybatisRepos.getUsersByRole("USER");
+
+        if (rankings == null || rankings.isEmpty()) {
+            return new ResultVO(1, null, "No rankings found");
+        }
+        if (users == null || users.isEmpty()) {
+            return new ResultVO(1, null, "No users found");
+        }
+
+        /* ---------- 2. 题目 -> 分数 ---------- */
+        Map<String, Integer> scoreMap = userMybatisRepos.points()
+                .stream()
+                .collect(Collectors.toMap(
+                        m -> m.get("name").toString().trim(),
+                        m -> Integer.parseInt(m.get("difficulty").toString())));
+
+        /* ---------- 3. 用户 -> UserDTO ---------- */
+        Map<String, UserDTO> userMap = users.stream()
+                .collect(Collectors.toMap(UserDTO::getUserName, Function.identity()));
+
+        /* ---------- 4. 小顶堆：总分升序，同分则 userName 降序 ---------- */
+        PriorityQueue<Map<String, Object>> heap = new PriorityQueue<>((a, b) -> {
+            int sa = (int) a.get("totalScore");
+            int sb = (int) b.get("totalScore");
+            if (sa != sb) return Integer.compare(sa, sb);
+            String ua = (String) a.get("userName");
+            String ub = (String) b.get("userName");
+            return ub.compareTo(ua);
+        });
+
+        /* ---------- 5. 同时统计题数 & 总分 ---------- */
+        Map<String, Integer> userCount  = new HashMap<>();   // 用户 -> 题数
+        Map<String, Integer> userScore  = new HashMap<>();   // 用户 -> 总分
+        for (Map<String, Object> rec : rankings) {
+            String userName = Optional.ofNullable(
+                            rec.get("userName") != null ? rec.get("userName") : rec.get("user_name"))
+                    .map(Object::toString).map(String::trim).orElse(null);
+            String problemName = Optional.ofNullable(rec.get("name"))
+                    .map(Object::toString).map(String::trim).orElse(null);
+            if (userName == null || problemName == null) continue;
+
+            int score = scoreMap.getOrDefault(problemName, 0);
+            userCount.merge(userName, 1, Integer::sum);        // 题数 +1
+            userScore.merge(userName, score, Integer::sum);    // 分数 +score
+        }
+
+        /* ---------- 6. 填充堆，只留前 20 ---------- */
+        userScore.forEach((userName, totalScore) -> {
+            UserDTO u = userMap.get(userName);
+            if (u == null) return;
+
+            Map<String, Object> row = new HashMap<>();
+            row.put("cnname", u.getCnname());
+            row.put("userName", userName);
+            row.put("count", userCount.get(userName));   // 完成题数
+            row.put("totalScore", totalScore);           // 总分
+
+            heap.offer(row);
+            if (heap.size() > 20) heap.poll();
+        });
+
+        /* ---------- 7. 堆 -> 列表 -> 反转得降序 ---------- */
+        List<Map<String, Object>> top20 = new ArrayList<>();
+        while (!heap.isEmpty()) top20.add(heap.poll());
+        Collections.reverse(top20);
+
+        return new ResultVO(0, top20, null);
+    }
+
 }

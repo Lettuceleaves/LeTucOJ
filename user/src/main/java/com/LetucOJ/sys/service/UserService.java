@@ -16,4 +16,5 @@ public interface UserService {
     ResultVO getAllManagers();
     ResultVO promoteToManager(String userName);
     ResultVO demoteToUser(String userName);
+    ResultVO getUserRankings();
 }

@@ -33,7 +33,7 @@ public class SysServiceImpl implements SysService {
             if (result == null || result.isEmpty()) {
                 return new ResultVO(5, null, "sys/getDoc: Document not found in MinIO");
             } else {
-                return new ResultVO(0, result, null);
+                return new ResultVO(0, new String(result.getBytes(), StandardCharsets.UTF_8), null);
             }
         } catch (Exception e) {
             return new ResultVO(5, null, "sys/getDoc: " + e.getMessage());

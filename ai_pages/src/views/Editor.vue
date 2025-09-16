@@ -2,24 +2,22 @@
   <div class="online-editor">
     <!-- 标题栏 -->
     <div class="title-bar">
-      <div class="title-item" :class="{ active: activeTab === 'description' }" @click="activeTab = 'description'">描述</div>
-      <div class="title-item" :class="{ active: activeTab === 'question' }" @click="activeTab = 'question'">答题</div>
-      <div class="title-item" :class="{ active: activeTab === 'solution' }" @click="activeTab = 'solution'">题解</div>
-      <div class="title-item" :class="{ active: activeTab === 'result' }" @click="activeTab = 'result'">结果</div>
-      <div class="title-item" :class="{ active: activeTab === 'ai' }" @click="activeTab = 'ai'">AI</div>
+      <div class="title-item" :class="{active:activeTab==='do'}"     @click="activeTab='do'">做题</div>
+      <div class="title-item" :class="{active:activeTab==='solution'}" @click="activeTab='solution'">题解</div>
+      <div class="title-item" :class="{active:activeTab==='result'}"   @click="activeTab='result'">结果</div>
+      <div class="title-item" :class="{active:activeTab==='ai'}"       @click="activeTab='ai'">AI</div>
       <button class="back-btn" @click="goBack">返回</button>
     </div>
-
     <!-- 内容区域 -->
     <div class="content">
-      <DescriptionPage v-show="activeTab === 'description'" :data="problemData" />
-      <QuestionPage
-        v-show="activeTab === 'question'"
+      <DoPage
+        v-show="activeTab==='do'"
         :editorReady="editorReady"
+        :problemData="problemData"
         @exit="goToLogin"
         @submit="handleSubmit"
         @check="checkCode"
-        ref="questionPageRef"
+        ref="doPageRef"
       />
       <SolutionPage v-show="activeTab === 'solution'" :solution="solutionContent" />
       <ResultPage v-show="activeTab === 'result'" :result="resultData" />
@@ -32,8 +30,7 @@
 import { ref, computed, onMounted, watch, nextTick, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 
-import DescriptionPage from './EditorPages/DescriptionPage.vue'
-import QuestionPage from './EditorPages/QuestionPage.vue'
+import DoPage from './EditorPages/DoPage.vue'
 import SolutionPage from './EditorPages/SolutionPage.vue'
 import ResultPage from './EditorPages/ResultPage.vue'
 import AiChat from './EditorPages/AiChat.vue'
@@ -42,7 +39,7 @@ const router = useRouter()
 const props = defineProps({ name: { type: String, required: true } })
 const name = props.name
 
-const activeTab = ref('description')
+const activeTab = ref('do')
 const editorReady = ref(false)
 const result = ref(null)
 const solutionContent = ref('')
@@ -53,7 +50,7 @@ const resultData = computed(() => result.value || { status: -1 })
 const instance = getCurrentInstance()
 const ip = instance.appContext.config.globalProperties.$ip
 
-const questionPageRef = ref(null)
+const doPageRef = ref(null)
 
 const goBack = () => {
   router.back()  // 或 router.go(-1)
@@ -62,7 +59,7 @@ const goBack = () => {
 
 // 统一的提交处理函数
 const handleSubmit = () => {
-  const code = questionPageRef.value?.getCode()
+  const code = doPageRef.value?.getCode?.()
   if (!code) {
     alert('无法获取代码内容')
     return
@@ -95,8 +92,8 @@ const sendToAI = (code) => {
         aiChatRef.value.sendMessage(prompt)
         console.log('AI消息发送成功')
         
-        // 切换到AI标签页
-        activeTab.value = 'ai'
+        // 切换到结果标签页
+        activeTab.value = 'result'
       } catch (e) {
         console.error('调用AI组件方法失败:', e)
       }
@@ -178,7 +175,7 @@ const sendCode = async (code) => {
 const submitCode = (code) => sendCode(code)
 
 const checkCode = () => {
-  const code = questionPageRef.value?.getCode()
+  const code = doPageRef.value?.getCode?.()
   if (code) {
     sendCode(code)
   } else {
@@ -212,28 +209,19 @@ const fetchDataOnRefresh = async () => {
 }
 
 watch(activeTab, async (newVal, oldVal) => {
-  await nextTick();
-
-  if (oldVal === 'question') {
-    try {
-      const code = questionPageRef.value?.getCode?.()
-      if (code) {
-        localStorage.setItem('userCode', code)
-      }
-    } catch (e) {
-      console.warn('保存代码失败：', e)
+  if (oldVal === 'do') {
+    const code = doPageRef.value?.getCode?.()
+    if (code) {
+      localStorage.setItem('userCode', code)
     }
   }
 
-  if (newVal === 'question') {
+  if (newVal === 'do') {
     const savedCode = localStorage.getItem('userCode')
-    try {
-      questionPageRef.value?.setCode?.(savedCode)
-    } catch (e) {
-      console.warn('加载代码失败：', e)
-    }
+    doPageRef.value?.setCode?.(savedCode)
   }
 })
+
 
 onMounted(() => {
   editorReady.value = true

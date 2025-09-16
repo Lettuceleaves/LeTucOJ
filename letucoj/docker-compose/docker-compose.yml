@@ -135,7 +135,15 @@ services:
         fi &&
         exec /usr/local/bin/docker-entrypoint.sh
       '
-
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway
+    mem_limit: 128m
+    mem_reservation: 64m
 
 volumes:
   elasticsearch-data:

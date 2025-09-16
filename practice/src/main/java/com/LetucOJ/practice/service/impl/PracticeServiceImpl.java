@@ -24,7 +24,7 @@ public class PracticeServiceImpl implements PracticeService {
     @Autowired
     private MybatisRepos mybatisRepos;
 
-    public ResultVO submit(String qname, String code, boolean root) throws Exception {
+    public ResultVO submit(String pname, String qname, String code, boolean root) throws Exception {
         try {
             List<String> inputs = new ArrayList<>();
             inputs.add(code);
@@ -74,6 +74,11 @@ public class PracticeServiceImpl implements PracticeService {
             }
             CheckDTO checkResult = checkAnswer(expectedOutputs, ((List<String>)runResult.getData()).toArray(new String[expectedOutputs.length]));
             if (checkResult.getStatus() == 0) {
+                System.out.println("Accepted");
+                Integer check = mybatisRepos.checkCorrect(pname, qname);
+                if (check == null || check == 0) {
+                    mybatisRepos.insertCorrect(pname, qname);
+                }
                 return new ResultVO((byte) 0, null, null);
             } else if (checkResult.getStatus() == 1) {
                 return new ResultVO((byte) 1, null, checkResult.getMessage());

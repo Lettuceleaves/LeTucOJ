@@ -10,9 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class DBServiceImpl implements DBService {
@@ -26,21 +24,7 @@ public class DBServiceImpl implements DBService {
     @Autowired
     private RunClient runClient;
 
-    public ResultVO getAmount() {
-        try {
-            Integer amount = mybatisRepos.getAmount();
-
-            if (amount == null || amount < 0) {
-                return new ResultVO((byte) 5, null, "practice/getAmount: Amount is null or negative");
-            }
-
-            return new ResultVO((byte) 0, amount, null);
-        } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/getAmount: " + e.getMessage());
-        }
-    }
-
-    public ResultVO getList(ListServiceDTO dto) {
+    public ResultVO getList(ListServiceDTO dto, String name) {
 
         try {
 
@@ -48,42 +32,68 @@ public class DBServiceImpl implements DBService {
                 return new ResultVO(5, null, "practice/getList: Start or limit is null");
             }
 
+            Integer amount = mybatisRepos.getAmount(dto);
             List<ListDTO> list = mybatisRepos.getList(dto);
+            Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
                 return new ResultVO((byte) 1, null, "practice/getList: No problems found in Mybatis");
+            } else if (amount == null || amount < 0) {
+                return new ResultVO((byte) 5, null, "practice/getList: Amount is null or <0 in Mybatis");
             }
 
-            return new ResultVO((byte) 0, list, null);
+            for (ListDTO item : list) {
+                if (acceptedSet.contains(item.getName())) {
+                    item.setAccepted(1);
+                }
+            }
+
+            return new ResultVO((byte) 0,
+                    Map.of(
+                            "list",   list,
+                            "amount", amount
+                    ), null);
         } catch (Exception e) {
             return new ResultVO((byte) 5, null, "practice/getList: " + e.getMessage());
         }
     }
 
-    public ResultVO getListInRoot(ListServiceDTO dto) {
+    public ResultVO getListInRoot(ListServiceDTO dto, String name) {
 
         try {
-
-            System.out.println("DTO: " + dto);
 
             if (dto.getStart() == null || dto.getLimit() == null) {
                 return new ResultVO((byte) 5, null, "practice/getListInRoot: Start or limit is null");
             }
 
+            Integer amount = mybatisRepos.getAmountInRoot(dto);
             List<ListDTO> list = mybatisRepos.getListInRoot(dto);
+            Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
                 return new ResultVO((byte) 1, null, "practice/getListInRoot: No problems found in Mybatis");
+            } else if (amount == null || amount < 0) {
+                return new ResultVO((byte) 5, null, "practice/getListInRoot: Amount is null or <0 in Mybatis");
             }
 
-            return new ResultVO((byte) 0, list, null);
+            for (ListDTO item : list) {
+                if (acceptedSet.contains(item.getName())) {
+                    item.setAccepted(1);
+                }
+            }
+
+            return new ResultVO((byte) 0,
+                    Map.of(
+                            "list",   list,
+                            "amount", amount
+                    ), null);
         } catch (Exception e) {
             return new ResultVO((byte) 5, null, "practice/getListInRoot: " + e.getMessage());
         }
     }
 
     @Override
-    public ResultVO searchList(ListServiceDTO dto) {
+    public ResultVO searchList(ListServiceDTO dto, String name) {
         try {
             if (dto.getStart() == null || dto.getLimit() == null) {
                 return new ResultVO((byte) 5, null, "practice/searchList: Start or limit is null");
@@ -97,20 +107,34 @@ public class DBServiceImpl implements DBService {
                 dto.setOrder("name");
             }
 
+            Integer amount = mybatisRepos.getSearchAmount(dto);
             List<ListDTO> list = mybatisRepos.searchList(dto);
+            Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
                 return new ResultVO((byte) 1, null, "practice/searchList: No problems found in Mybatis");
+            } else if (amount == null || amount < 0) {
+                return new ResultVO((byte) 5, null, "practice/searchList: Amount is null or <0 in Mybatis");
             }
 
-            return new ResultVO((byte) 0, list, null);
+            for (ListDTO item : list) {
+                if (acceptedSet.contains(item.getName())) {
+                    item.setAccepted(1);
+                }
+            }
+
+            return new ResultVO((byte) 0,
+                    Map.of(
+                            "list",   list,
+                            "amount", amount
+                    ), null);
         } catch (Exception e) {
             return new ResultVO((byte) 5, null, "practice/searchList: " + e.getMessage());
         }
     }
 
     @Override
-    public ResultVO searchListInRoot(ListServiceDTO dto) {
+    public ResultVO searchListInRoot(ListServiceDTO dto, String name) {
         try {
             if (dto.getStart() == null || dto.getLimit() == null) {
                 return new ResultVO((byte) 5, null, "practice/searchListInRoot: Start or limit is null");
@@ -124,13 +148,27 @@ public class DBServiceImpl implements DBService {
                 dto.setOrder("name");
             }
 
+            Integer amount = mybatisRepos.getSearchAmountInRoot(dto);
             List<ListDTO> list = mybatisRepos.searchListInRoot(dto);
+            Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
                 return new ResultVO((byte) 1, null, "practice/searchListInRoot: No problems found in Mybatis");
+            } else if (amount == null || amount < 0) {
+                return new ResultVO((byte) 5, null, "practice/searchListInRoot: Amount is null or <0 in Mybatis");
             }
 
-            return new ResultVO((byte) 0, list, null);
+            for (ListDTO item : list) {
+                if (acceptedSet.contains(item.getName())) {
+                    item.setAccepted(1);
+                }
+            }
+
+            return new ResultVO((byte) 0,
+                    Map.of(
+                            "list",   list,
+                            "amount", amount
+                    ), null);
         } catch (Exception e) {
             return new ResultVO((byte) 5, null, "practice/searchListInRoot: " + e.getMessage());
         }

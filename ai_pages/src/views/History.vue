@@ -5,6 +5,10 @@
       <button @click="searchByUser">查找特定用户记录</button>
       <button @click="searchAll">查找全部用户记录</button>
     </div>
+    
+    <div class="action-bar common-actions">
+      <button class="home-btn red" @click="goHome">返回主页</button>
+    </div>
 
     <ul class="records">
       <li v-for="r in sortedRecords" :key="r.submitTime" class="record">
@@ -32,9 +36,15 @@
 
 <script setup>
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
+import { useRouter } from 'vue-router'
 
 const instance = getCurrentInstance()
 const ip = instance.appContext.config.globalProperties.$ip
+
+/* 路由跳转 */
+const router = useRouter()
+
+const goHome = () => router.push('/main')   // 根据你的路由表调整路径
 
 /* --------------- 数据 --------------- */
 const records = ref([])
@@ -233,5 +243,13 @@ const searchAll = async () => {
   font-size: 0.9em;
   line-height: 1.5;
 }
+/* 红色皮肤 */
+button.red {
+  background: #ef4444;        /* Tailwind red-500 */
+}
+button.red:hover {
+  background: #dc2626;        /* Tailwind red-600 */
+}
+
 </style>
 

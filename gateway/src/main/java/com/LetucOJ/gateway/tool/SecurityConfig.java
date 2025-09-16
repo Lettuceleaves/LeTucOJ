@@ -32,7 +32,7 @@ public class SecurityConfig {
 
                         // 公开接口
                         .pathMatchers(
-                                "/user/register", "/user/login", "/", "/index.html", "/static/**", "/assets/**", "/favicon.ico", "/code.txt"
+                                "/user/register", "/user/login", "/", "/index.html", "/static/**", "/assets/**", "/favicon.ico", "/code.txt", "/sys/doc/get"
                         ).permitAll()
 
                         // 用户权限接口
@@ -40,7 +40,8 @@ public class SecurityConfig {
                                 "/practice/list", "/practice/searchList", "/practice/full/get",
                                 "/practice/submit", "/contest/full/getProblem", "/contest/full/getContest",
                                 "/contest/attend", "/contest/list/problem", "/contest/list/contest", "/contest/inContest",
-                                "/contest/list/board", "/contest/submit", "/user/logout", "/user/changePassword", "/advice", "/practice/count"
+                                "/contest/list/board", "/contest/submit", "/user/logout", "/user/changePassword", "/advice", "/practice/count", "/recordList/self",
+                                "/user/rank"
                         ).hasAnyRole("USER", "MANAGER", "ROOT")
 
                         // 管理员权限接口
@@ -49,11 +50,8 @@ public class SecurityConfig {
                                 "/practice/submitCase", "/user/activate", "/user/deactivate", "/practice/listRoot", "/practice/fullRoot/get",
                                 "/user/users", "/user/managers", "/user/promote", "/user/demote", "/practice/submitInRoot", "/practice/searchListInRoot",
                                 "/contest/insertContest", "/contest/updateContest", "/contest/insertProblem",
-                                "/contest/deleteProblem", "/sys/doc/get", "/sys/doc/update", "/sys/refresh/sql"
+                                "/contest/deleteProblem", "/sys/doc/update", "/sys/refresh/sql", "/recordList/all", "/recordList/any"
                         ).hasAnyRole("MANAGER", "ROOT")
-
-
-
 
 
                         .anyExchange().authenticated()

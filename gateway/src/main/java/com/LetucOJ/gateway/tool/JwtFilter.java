@@ -33,7 +33,7 @@ public class JwtFilter implements WebFilter {
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String BLACKLIST_PREFIX = "jwt:blacklist:";
     private static final List<String> WHITELIST = List.of(
-            "/user/login", "/user/register"
+            "/user/login", "/user/register", "/sys/doc/get"
     );
 
     // 白名单
@@ -56,7 +56,9 @@ public class JwtFilter implements WebFilter {
 
     /** 需要注入 pname 参数的接口 */
     private static final List<String> NAME_REQUIRED = List.of(
-            "/contest/attend", "/contest/submit", "/contest/submitInRoot", "/practice/recordList/self", "/practice/submit", "/practice/submitInRoot", "/user/change-password", "/contest/inContest"
+            "/contest/attend", "/contest/submit", "/contest/submitInRoot", "/practice/recordList/self",
+            "/practice/submit", "/practice/submitInRoot", "/user/change-password", "/contest/inContest", "/practice/list",
+            "/practice/listRoot", "/practice/searchList", "/practice/searchListInRoot"
     );
 
     /** 需要注入 cnname 参数的接口 */

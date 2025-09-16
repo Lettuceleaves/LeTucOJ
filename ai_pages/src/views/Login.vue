@@ -1,9 +1,12 @@
 <template>
   <main class="login-container">
     <h1>登录</h1>
+    <div class="back-wrap">
+      <button class="btn-back" @click="goHome">返回主页</button>
+    </div>
     <form @submit.prevent="login">
       <div>
-        <label for="username">用户名：</label>
+        <label for="username">英文用户名：</label>
         <input type="text" id="username" v-model="username" required />
       </div>
       <div>
@@ -23,6 +26,8 @@ import { useRouter } from 'vue-router';
 const username = ref('');
 const password = ref('');
 const router = useRouter();
+
+const goHome = () => router.push('/')
 
 const instance = getCurrentInstance()
 const ip = instance.appContext.config.globalProperties.$ip
@@ -64,6 +69,7 @@ const login = async () => {
 </script>
 
 <style scoped>
+/* ========== 容器 ========== */
 .login-container {
   max-width: 400px;
   margin: 50px auto;
@@ -78,6 +84,7 @@ const login = async () => {
   margin-bottom: 20px;
 }
 
+/* ========== 表单元素 ========== */
 .login-container form div {
   margin-bottom: 10px;
 }
@@ -93,17 +100,40 @@ const login = async () => {
   box-sizing: border-box;
 }
 
+/* 统一按钮基础外观 */
 .login-container button {
   width: 100%;
   padding: 10px;
-  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
 }
 
-.login-container button:hover {
+/* 登录按钮 */
+.login-container button[type="submit"] {
+  background-color: #007bff;
+}
+.login-container button[type="submit"]:hover {
   background-color: #0056b3;
+}
+
+/* 红色返回按钮（深度选择器保证 scoped 生效） */
+:deep(.btn-back) {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  background-color: #ef4444;   /* Tailwind red-500 */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+:deep(.btn-back:hover) {
+  background-color: #dc2626;   /* Tailwind red-600 */
 }
 </style>

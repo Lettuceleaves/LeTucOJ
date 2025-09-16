@@ -108,7 +108,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import {
   ref,
@@ -121,6 +120,7 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import * as monaco from 'monaco-editor'
+import { setupMyC } from '../components/monaco-c'
 import 'monaco-editor/min/vs/editor/editor.main.css'
 
 /* -------------------------------------------------- */
@@ -171,7 +171,7 @@ const labels = {
 const renderedMarkdown = computed(() => marked.parse(form.value.content || ''))
 
 /* -------------------------------------------------- */
-/* 4. Monaco 编辑器                                      */
+/* 4. Monaco 编辑器（去重版）                             */
 /* -------------------------------------------------- */
 const editorDom = ref(null)
 let editor = null
@@ -179,14 +179,21 @@ let disposer = null
 
 function createEditor() {
   if (editor) return
+
+  setupMyC(monaco)          // ② 注册语言、主题、补全
+
   editor = monaco.editor.create(editorDom.value, {
     value: form.value.solution,
-    language: 'markdown',
+    language: 'myC',        // ③ 使用自定义语言
+    theme: 'myCTheme',      // ④ 使用自定义主题
     automaticLayout: true,
     minimap: { enabled: false },
     fontSize: 15,
     scrollBeyondLastLine: false,
+    suggestOnTriggerCharacters: true,
+    quickSuggestions: true,
   })
+
   // 双向绑定
   disposer = editor.onDidChangeModelContent(() => {
     form.value.solution = editor.getValue()
@@ -200,7 +207,6 @@ function disposeEditor() {
 }
 
 onMounted(async () => {
-  // 拉取题目详情
   if (isEdit.value) {
     try {
       const token = localStorage.getItem('jwt')
@@ -269,7 +275,7 @@ async function updateProblem() {
 }
 
 /* -------------------------------------------------- */
-/* 6. 输入输出区块                                       */
+/* 6. 输入输出区块（无改动）                              */
 /* -------------------------------------------------- */
 const inputOutputSections = ref([{ input: '', output: '' }])
 const outputRefs = ref([])
@@ -437,5 +443,77 @@ button:hover {
   max-height: 40vh;
   overflow-y: auto;
 }
-/* 其余 input-output-box / add-section-btn 样式与原文件相同，此处省略 */
+.input-output-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-top: 20px;
+  background-color: #f7f7f7;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.input-output-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 90%;
+}
+
+.input-output-content textarea {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  min-height: 10px;
+  resize: vertical;
+  height: auto;
+  white-space: pre-wrap;
+  overflow: hidden;
+}
+
+.input-output-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.input-output-actions button {
+  padding: 8px 12px;
+  width: 80px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.input-output-actions button:hover {
+  background: #2563eb;
+}
+
+.add-section-btn {
+  position: relative;
+  left: 50%;
+  margin-top: 20px;
+  width: 50px;
+  height: 50px;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.add-section-btn:hover {
+  background-color: #2563eb;
+}
 </style>

@@ -32,12 +32,11 @@ public class Monitor implements CommandLineRunner {
     @Override
     public void run(String... args) throws UnknownHostException {
         ResultVO resultVO = monitorInit();
-        System.out.println(resultVO.toJson());
     }
 
     private ResultVO monitorInit() throws UnknownHostException {
 //        name = java.net.InetAddress.getLocalHost().getHostName();
-        if (!waitForMysqlReady(30)) {
+        if (!waitForMysqlReady(3600)) {
             return new ResultVO(5, null, "Monitor initialization failed: MySQL not ready");
         }
         configDTO = sysMybatisRepos.getConfig(name);

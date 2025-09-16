@@ -14,4 +14,4 @@ app.use(ElementPlus)
 app.config.globalProperties.$dialog = Dialog
 
 app.mount('#app')
-app.config.globalProperties.$ip = "172.23.128.1:7777"
+app.config.globalProperties.$ip = "letucoj.cn"

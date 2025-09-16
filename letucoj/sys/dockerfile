@@ -1,24 +1,17 @@
-FROM debian:bookworm-slim
+# -------------- 基础：官方已瘦身 JRE --------------
+FROM openjdk:17-slim
 
-# 1) 一次性安装所有必需软件
-RUN apt-get update && \
-    apt-get install -y \
-        ca-certificates \
-        curl \
-        gnupg \
-        openjdk-17-jre \
-        mariadb-client && \
-    rm -rf /var/lib/apt/lists/*
-
-# 2) 如需 Docker CLI（可选）
-#    下面 4 行按需保留；若用不到 DinD，可整段删除
-RUN install -m 0755 -d /etc/apt/keyrings && \
-    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list && \
-    apt-get update && apt-get install -y docker-ce-cli && rm -rf /var/lib/apt/lists/*
+# 安装 docker-cli 与 mysqldump
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        docker.io \
+        default-mysql-client; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+           /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 
 WORKDIR /app
-COPY sys.jar /app/sys.jar
+COPY sys.jar /app/
 RUN chmod +x /app/sys.jar
 
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"

@@ -2,7 +2,7 @@
   <div class="card">
     <h3 class="title">运行结果</h3>
     <div :class="['result-box', resultStatusClass]">
-      <p><strong>状态码：</strong>{{ result.status }}</p>
+      <p><strong>状态：</strong>{{ resultStatusText }}</p>
       <p><strong>输出信息：</strong>{{ result.dataAsString || result.data || '无输出' }}</p>
       <p v-if="result.error"><strong>错误信息：</strong>{{ result.error }}</p>
     </div>
@@ -16,12 +16,26 @@ const props = defineProps({
   result: Object,
 })
 
+const statusTextMap = {
+  0: '通过',
+  1: '答案错误',
+  2: '编译错误',
+  3: '运行时错误',
+  4: '超时',
+  5: '服务器错误',
+  '-1': '未知状态',
+}
+
+const resultStatusText = computed(() => {
+  return statusTextMap[props.result.status] ?? '未知状态'
+})
+
 const resultStatusClass = computed(() => {
   switch (props.result.status) {
     case 0:
-      return 'result-success' // accept
+      return 'result-success'
     case 1:
-      return 'result-fail' // wrong
+      return 'result-fail'
     case 2:
       return 'result-compile-error'
     case 3:
@@ -35,6 +49,7 @@ const resultStatusClass = computed(() => {
   }
 })
 </script>
+
 
 <style scoped>
 .result-success {

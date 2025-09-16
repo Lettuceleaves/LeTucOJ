@@ -1,3 +1,4 @@
+<!-- MonacoCEditor.vue -->
 <template>
   <div class="editor-wrap">
     <div ref="el" class="monaco-target"></div>
@@ -12,11 +13,11 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import * as monaco from 'monaco-editor'   // 直接整体引入
-import 'monaco-editor/min/vs/editor/editor.main.css'
+import * as monaco from 'monaco-editor'
+import { setupMyC } from '../../components/monaco-c'
 
 const props = defineProps({ editorReady: Boolean })
-const emit = defineEmits(['exit','submit','check'])
+const emit = defineEmits(['exit', 'submit', 'check'])
 
 const el = ref()
 let ed = null
@@ -28,17 +29,34 @@ defineExpose({ getCode, setCode })
 
 function create() {
   if (ed) return
+
+  setupMyC(monaco)
+
   ed = monaco.editor.create(el.value, {
-    value: localStorage.getItem('userCode') || '#include <stdio.h>\n\nint main() {\n    return 0;\n}',
-    language: 'c',          // 小写即可，插件已注册
+    value: `#include <stdio.h>
+
+int main() {
+    int myVar = 10;
+    return 0;
+}`,
+    language: 'myC',
+    theme: 'myCTheme',
     automaticLayout: true,
-    minimap: { enabled: false }
+    minimap: { enabled: false },
+    autoClosingBrackets: 'always',
+    autoClosingQuotes: 'always',
+    autoSurround: 'languageDefined',
+    formatOnType: true,
+    formatOnPaste: true,
+    autoIndent: 'full',
+    suggestOnTriggerCharacters: true,
+    quickSuggestions: true
   })
 
+  // 自动保存
   dis = ed.onKeyDown(e => {
     if (e.browserEvent.key === ' ' || e.browserEvent.key === 'Enter') {
-      const code = getCode()
-      if (code) localStorage.setItem('userCode', code)
+      localStorage.setItem('userCode', getCode())
     }
   })
 }
@@ -49,6 +67,7 @@ watch(() => props.editorReady, async r => { if (r) { await nextTick(); create() 
 </script>
 
 <style scoped>
+/* 与原组件保持一致 */
 .editor-wrap { height: calc(100vh - 60px); position: relative; }
 .monaco-target { width: 100%; height: 100%; }
 .floating-buttons { position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; }

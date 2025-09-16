@@ -1,3 +1,4 @@
+<!-- ContestParent.vue -->
 <template>
   <div class="contest-parent">
     <!-- 标题栏 -->
@@ -16,17 +17,41 @@
 
       <div
         class="title-item"
+        :class="{ active: activeTab === 'rank' }"
+        @click="switchTab('rank')"
+      >排行榜</div>
+
+      <!-- 仅管理员可见 -->
+      <div
+        v-if="showUserTab"
+        class="title-item"
         :class="{ active: activeTab === 'user' }"
         @click="switchTab('user')"
       >用户</div>
 
-      <div class="spacer"></div>
+      <!-- 中间圆角状态框 -->
+      <div
+        class="nav-status"
+        :class="{
+          'status-loading': loadStatus === 'loading',
+          'status-success': loadStatus === 'success',
+          'status-error': loadStatus === 'error'
+        }"
+        @click="navStatusClick"
+        title="编辑器加载状态（失败可点击重试）"
+      >
+        <span v-if="loadStatus === 'loading'">
+          编辑器组件加载中，请加载完毕后再点击列表项
+        </span>
+        <span v-else-if="loadStatus === 'success'">加载成功</span>
+        <span v-else>加载失败</span>
+      </div>
 
-      <!-- ✅ 新增返回按钮 -->
+      <div class="spacer"></div>
       <button class="back-btn" @click="goBack">返回</button>
     </div>
 
-    <!-- 内容区域：Suspense 外层，KeepAlive 放到 default 槽；动态组件加 key -->
+    <!-- 内容区域 -->
     <div class="content">
       <Suspense>
         <template #default>
@@ -35,11 +60,10 @@
               :is="currentComp"
               :key="activeTab"
               class="tab-pane"
+              :editor-ready="editorReady"
             />
           </KeepAlive>
         </template>
-
-        <!-- 骨架屏 -->
         <template #fallback>
           <div class="skeleton">
             <div class="skeleton-line w-60"></div>
@@ -54,7 +78,6 @@
   </div>
 </template>
 
-
 <script setup>
 import { ref, computed, onMounted, nextTick, defineAsyncComponent, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
@@ -62,56 +85,93 @@ import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const route = useRoute()
 
-// --- 读取 URL 上的 ?tab= 值，默认 'list'
-const initialTab = (typeof route.query.tab === 'string' ? route.query.tab : 'list')
-const activeTab = ref(['list', 'contest', 'user'].includes(initialTab) ? initialTab : 'list')
+/* ---------- 1. 解析 JWT 拿到角色 ---------- */
+const parseJwt = (tk) => {
+  try {
+    const base64Url = tk.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
+const token = () => localStorage.getItem('jwt') || ''
+const role = ref(parseJwt(token()).role || '')
 
-// --- 异步组件（首屏仅加载题单；其他在空闲时预拉取） ---
+/* ---------- 2. 是否显示「用户」Tab ---------- */
+const showUserTab = computed(() => role.value === 'ROOT' || role.value === 'MANAGER')
+
+/* ---------- 3. 标签页初始值 ---------- */
+const initialTab = (typeof route.query.tab === 'string' ? route.query.tab : 'list')
+const activeTab = ref(['list', 'contest', 'rank', 'user'].includes(initialTab) ? initialTab : 'list')
+
+/* ---------- 4. 异步组件 ---------- */
 const AsyncProblemList = defineAsyncComponent(() =>
   import(/* webpackChunkName: "tab-problem-list" */ './MainPages/List.vue')
 )
 const AsyncContest = defineAsyncComponent(() =>
   import(/* webpackChunkName: "tab-contest" */ './MainPages/Contest.vue')
 )
+const AsyncRank = defineAsyncComponent(() =>
+  import(/* webpackChunkName: "tab-rank" */ './MainPages/Rank.vue')
+)
 const AsyncUser = defineAsyncComponent(() =>
   import(/* webpackChunkName: "tab-user" */ '../views/UserPage.vue')
 )
-
-// 当前激活组件映射
-const compMap = {
-  list: AsyncProblemList,
-  contest: AsyncContest,
-  user: AsyncUser
-}
+const compMap = { list: AsyncProblemList, contest: AsyncContest, rank: AsyncRank, user: AsyncUser }
 const currentComp = computed(() => compMap[activeTab.value])
 
-const goBack = () => {
-  router.back()  // 或 router.go(-1)
-}
-
-// 切换标签：顺带把 tab 写回 URL（不会刷新页面）
+/* ---------- 5. 切换标签 + URL 同步 ---------- */
 function switchTab(tab) {
   if (tab === activeTab.value) return
   activeTab.value = tab
 }
-
-// 同步：当 activeTab 改变时，把 ?tab=xxx 写入 URL
 watch(activeTab, (val) => {
-  const q = { ...route.query, tab: val }
-  router.replace({ path: route.path, query: q })
+  router.replace({ path: route.path, query: { ...route.query, tab: val } })
 })
-
-// 同步：当 URL 上的 tab 变化时（外部跳转/用户改地址），更新 activeTab
 watch(() => route.query.tab, (val) => {
-  if (typeof val === 'string' && ['list', 'contest', 'user'].includes(val)) {
+  if (typeof val === 'string' && ['list', 'contest', 'rank', 'user'].includes(val)) {
     if (val !== activeTab.value) activeTab.value = val
   }
 })
 
-// 空闲时预取：首屏稳定后预拉取其它两个标签组件的 chunk
+/* ---------- 6. 权限兜底 ---------- */
+watch(showUserTab, (visible) => {
+  if (!visible && activeTab.value === 'user') switchTab('list')
+})
+
+/* ---------- 7. 返回 ---------- */
+const goBack = () => router.push('/')
+/* ---------- 8. Monaco 预加载 ---------- */
+const loadStatus = ref('loading')
+const editorReady = computed(() => loadStatus.value === 'success')
+async function preloadMonaco() {
+  try {
+    await import('monaco-editor')
+    await import('monaco-editor/min/vs/editor/editor.main.css')
+    loadStatus.value = 'success'
+  } catch {
+    loadStatus.value = 'error'
+  }
+}
+function navStatusClick() {
+  if (loadStatus.value === 'error') {
+    loadStatus.value = 'loading'
+    preloadMonaco()
+  } else if (loadStatus.value === 'loading') {
+    alert('Monaco 正在加载，请稍候')
+  }
+}
+
+/* ---------- 9. 空闲预拉取其它 chunk ---------- */
 function prefetchIdle() {
   const doPrefetch = () => {
-    // 触发动态 import（浏览器会从缓存中命中）
     AsyncContest.__asyncLoader && AsyncContest.__asyncLoader()
     AsyncUser.__asyncLoader && AsyncUser.__asyncLoader()
   }
@@ -122,27 +182,21 @@ function prefetchIdle() {
   }
 }
 
+/* ---------- 10. 挂载 ---------- */
 onMounted(async () => {
+  preloadMonaco()
   await nextTick()
-  // 若首次进入没有 tab，则把默认 tab 写回 URL，保证后续返回可还原
   if (!route.query.tab) {
     router.replace({ path: route.path, query: { ...route.query, tab: activeTab.value } })
   }
   prefetchIdle()
 })
-
-/** --- 可选的页面跳转函数：保留你原有逻辑（若外部仍在使用） --- **/
-const onCreate = () => router.push('/form')
-const onUser = () => router.push('/user')
-const onHistory = () => router.push('/history')
-const onCompetition = () => router.push('/competition')
 </script>
 
-
 <style scoped>
-
+/* 样式保持你原来的，无需改动 */
 .back-btn {
-  background: #ef4444; /* 红色按钮，易识别 */
+  background: #ef4444;
   color: #fff;
   padding: 8px 14px;
   border: none;
@@ -153,16 +207,14 @@ const onCompetition = () => router.push('/competition')
   transition: background 0.3s ease;
 }
 .back-btn:hover {
-  background: #dc2626; /* hover 深红色 */
+  background: #dc2626;
 }
-
 .contest-parent {
   height: 100vh;
   display: flex;
   flex-direction: column;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
-
 .title-bar {
   display: flex;
   align-items: center;
@@ -170,8 +222,9 @@ const onCompetition = () => router.push('/competition')
   padding: 10px 16px;
   background: #f5f5f5;
   border-bottom: 1px solid #d1d5e0;
+  position: relative;
+  min-height: 56px;
 }
-
 .title-item {
   padding: 10px 18px;
   cursor: pointer;
@@ -187,23 +240,51 @@ const onCompetition = () => router.push('/competition')
   background: #3b82f6;
   color: white;
 }
-
 .spacer {
   flex: 1;
 }
-
+.nav-status {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  padding: 8px 16px;
+  border-radius: 14px;
+  min-width: 340px;
+  max-width: calc(100% - 160px);
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
+  color: #ffffff;
+  cursor: default;
+  user-select: none;
+  transition: background-color 0.25s ease, transform 0.12s ease;
+}
+.nav-status[title] {
+  cursor: pointer;
+}
+.status-loading {
+  background-color: #d1a500;
+}
+.status-success {
+  background-color: #16a34a;
+}
+.status-error {
+  background-color: #dc2626;
+}
+.nav-status:active {
+  transform: translate(-50%, -48%);
+}
 .content {
-  /* 关键：避免首屏绘制整块内容，按需渲染可见后代 */
   content-visibility: auto;
-  contain-intrinsic-size: 800px; /* 估算高度，防 layout shift，可按需调整 */
-
+  contain-intrinsic-size: 800px;
   flex: 1;
   position: relative;
-  overflow: hidden; /* 首页不滚，由各自子页内部分页控制 */
+  overflow: hidden;
   padding: 0;
 }
-
-/* 骨架屏样式 */
 .skeleton {
   padding: 24px;
 }
@@ -220,13 +301,10 @@ const onCompetition = () => router.push('/competition')
 .skeleton-line.w-80 { width: 80%; }
 .skeleton-line.w-85 { width: 85%; }
 .skeleton-line.w-90 { width: 90%; }
-
 @keyframes shine {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
-
-/* 可选：给每个 tab pane 一个容器类 */
 .tab-pane {
   height: 100%;
   width: 100%;

@@ -66,4 +66,9 @@ public class UserController {
     public ResultVO demote(@RequestParam("pname") String pname) {
         return userService.demoteToUser(pname);
     }
+
+    @GetMapping("/rank")
+    public ResultVO getRankings() {
+        return userService.getUserRankings();
+    }
 }

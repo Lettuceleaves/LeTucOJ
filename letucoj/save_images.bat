@@ -37,5 +37,9 @@ echo Saved sys image...
 docker save -o images/contest_latest.tar contest:latest
 echo Saved contest image...
 
+:: 保存 nginx 镜像
+docker save -o images/nginx_latest.tar nginx:latest
+echo Saved nginx image...
+
 echo Docker images saved successfully.
 pause

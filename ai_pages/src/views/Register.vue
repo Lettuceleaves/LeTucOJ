@@ -79,7 +79,7 @@ const register = async () => {
 
     if (json.status === 0) {
       alert('注册成功！')
-      router.push('/main');
+      router.push('/login');
     } else {
       alert('注册失败：' + (json.error || '未知错误'))
     }

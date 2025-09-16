@@ -7,4 +7,5 @@ public class ProblemStatusDTO {
     boolean publicProblem;
     boolean showsolution;
     int caseAmount;
+    int correct;
 }

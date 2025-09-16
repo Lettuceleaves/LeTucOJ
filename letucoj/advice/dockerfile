@@ -1,27 +1,17 @@
 FROM debian:bookworm-slim
 
-# 添加 Debian Unstable 软件源
-RUN echo "deb http://ftp.de.debian.org/debian sid main" > /etc/apt/sources.list.d/unstable.list
+# 仅用稳定源安装 Java 17
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        openjdk-17-jre-headless; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+           /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 
-# 更新软件包索引并安装 Java 17 和 GCC 13 编译环境
-RUN apt-get update && apt-get install -y \
-        openjdk-17-jre
-
-# 清理缓存以减小镜像大小
-RUN rm -rf /var/lib/apt/lists/*
-
-# 设置工作目录
 WORKDIR /app
-
-# 将文件复制到容器的指定目录
 COPY advice.jar /app/
-
 RUN chmod +x /app/advice.jar
 
-# 默认 JVM 参数：最小 256m，最大 512m，并启用容器内存支持
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
-
 EXPOSE 9999
-
-# 修改为 shell 形式，让 JVM 读取并使用 $JAVA_OPTS
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/advice.jar"]

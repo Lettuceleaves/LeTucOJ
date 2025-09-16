@@ -3,11 +3,10 @@ package com.LetucOJ.practice.service;
 import com.LetucOJ.practice.model.*;
 
 public interface DBService {
-    ResultVO getAmount();
-    ResultVO getList(ListServiceDTO dto);
-    ResultVO getListInRoot(ListServiceDTO dto);
-    ResultVO searchList(ListServiceDTO dto);
-    ResultVO searchListInRoot(ListServiceDTO dto);
+    ResultVO getList(ListServiceDTO dto, String name);
+    ResultVO getListInRoot(ListServiceDTO dto, String name);
+    ResultVO searchList(ListServiceDTO dto, String name);
+    ResultVO searchListInRoot(ListServiceDTO dto, String name);
     ResultVO getProblem(String name);
     ResultVO getProblemInRoot(String name);
     ResultVO insertProblem(FullInfoDTO dto);

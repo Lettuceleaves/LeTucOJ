@@ -115,8 +115,9 @@ onMounted(async () => {
     const token = localStorage.getItem('jwt')
     const response = await axios.get(`http://${ip}/sys/doc/get`, {
       headers: {
-        "Content-Type": "application/json",
-        'Authorization': `Bearer ${token}`
+        "Content-Type": "application/json; charset=UTF-8",
+        'Authorization': `Bearer ${token}`,
+        "Accept-Charset": "utf-8",
       }
     });
 
@@ -124,7 +125,6 @@ onMounted(async () => {
       throw new Error('获取文档失败: ' + (response.data.error || '未知错误'));
     }
     
-    // 模拟从服务器获取文档
     const mockContent = response.data.data;
     
     rawContent.value = mockContent
@@ -155,7 +155,7 @@ async function saveToServer() {
       rawContent.value,
       {
         headers: {
-          "Content-Type": "text/plain",
+          "Content-Type": "text/plain; charset=UTF-8",
           "Authorization": `Bearer ${token}`
         }
       }

@@ -36,6 +36,11 @@ cd contest
 docker build -t contest:latest .
 cd ..
 
+:: 构建 nginx 镜像
+cd nginx
+docker build -t nginx:latest .
+cd ..
+
 echo building Docker Compose...
 
 :: 启动 Docker Compose 服务

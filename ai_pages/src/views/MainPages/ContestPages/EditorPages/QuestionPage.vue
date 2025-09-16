@@ -1,17 +1,3 @@
-<template>
-  <div class="editor-wrap">
-    <!-- 挂载点 -->
-    <div ref="editorDom" class="monaco-target"></div>
-
-    <!-- 悬浮按钮 -->
-    <div class="floating-buttons">
-      <button @click="$emit('exit')">退出</button>
-      <button @click="$emit('submit')">提交</button>
-      <button @click="$emit('check')">检测</button>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import {
   ref,
@@ -22,6 +8,7 @@ import {
   defineExpose,
 } from 'vue'
 import * as monaco from 'monaco-editor'
+import { setupMyC } from '../../../../components/monaco-c'
 import 'monaco-editor/min/vs/editor/editor.main.css'
 
 const props = defineProps({ editorReady: Boolean })
@@ -39,18 +26,23 @@ defineExpose({ getCode, setCode })
 function createEditor() {
   if (editor) return
 
+  setupMyC(monaco)          // ② 注册语言、主题、补全
+
   editor = monaco.editor.create(editorDom.value, {
     value:
       localStorage.getItem('userCode') ||
       '#include <stdio.h>\n\nint main() {\n    \n    return 0;\n}',
-    language: 'c',          // 小写即可，插件已注册
+    language: 'myC',        // ③ 用我们注册的 language id
+    theme: 'myCTheme',      // ④ 用我们注册的 theme
     automaticLayout: true,
     minimap: { enabled: false },
     fontSize: 15,
     scrollBeyondLastLine: false,
+    suggestOnTriggerCharacters: true,
+    quickSuggestions: true,
   })
 
-  // 自动保存（空格 / 回车）
+  // 自动保存
   disposer = editor.onKeyDown((e) => {
     const key = e.browserEvent.key
     if (key === ' ' || key === 'Enter') {
@@ -85,36 +77,3 @@ watch(
   { immediate: true }
 )
 </script>
-
-<style scoped>
-.editor-wrap {
-  height: calc(100vh - 60px);
-  position: relative;
-}
-.monaco-target {
-  width: 100%;
-  height: 100%;
-}
-.floating-buttons {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 1000;
-}
-.floating-buttons button {
-  padding: 8px 12px;
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s;
-}
-.floating-buttons button:hover {
-  background-color: #2563eb;
-}
-</style>

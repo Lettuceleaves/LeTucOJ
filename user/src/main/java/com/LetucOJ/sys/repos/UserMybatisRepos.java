@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 @Repository
@@ -33,4 +34,10 @@ public interface UserMybatisRepos {
 
     @Update("UPDATE user SET password = #{password}, enabled = 0 WHERE user_name = #{userName}")
     Integer updatePasswordAndLock(@Param("userName") String userName, @Param("password") String password);
+
+    @Select("SELECT user_name  AS userName, problem_name AS name FROM correct")
+    List<Map<String, Object>> listCorrect();
+
+    @Select("SELECT name, difficulty FROM problem")
+    List<Map<String, Object>> points();
 }

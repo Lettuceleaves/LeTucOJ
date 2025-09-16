@@ -2,23 +2,28 @@
   <div class="problem-list-container">
     <h2>题单列表</h2>
 
-    <!-- 搜索框 -->
-    <input
-      v-model="searchKeyword"
-      @input="handleSearch"
-      placeholder="搜索题目..."
-      class="search-input"
-    />
+    <form @submit.prevent="handleSearch">
+      <input
+        ref="searchInput"
+        v-model="searchKeyword"
+        placeholder="搜索题目..."
+        class="search-input"
+        @keyup.enter="handleSearch"
+        @blur="handleSearch"
+      >
+    </form>
 
     <!-- 🔧 工具栏：左中右三段 -->
     <div class="toolbar">
       <!-- 左：排序 + 更新 -->
-      <div class="toolbar-left">
-        <div class="dropdown">
+      <div class="toolbar-left"><!-- 替换原来的下拉结构 -->
+        <div ref="sortDrop" class="dropdown">
           <button class="btn" @click="showSortOptions = !showSortOptions">
             排序 <span class="caret">▾</span>
           </button>
-          <div v-if="showSortOptions" class="dropdown-menu">
+
+          <!-- 原下拉菜单，保持不变 -->
+          <div v-if="showSortOptions" class="dropdown-menu" @mousedown.stop>
             <label class="dropdown-item">
               <input type="radio" value="name" v-model="sortField" @change="fetchProblems" />
               按英文名
@@ -58,16 +63,23 @@
 
     <!-- 列表渲染（占据剩余高度；内部滚动） -->
     <ul class="problem-list">
-      <li v-for="item in displayedProblems" :key="item.name" class="problem-item">
+      <li v-for="item in displayedProblems" :key="item.name" class="problem-item" :class="{ done: item.accepted }">
         <div class="problem-item-content">
           <router-link :to="`/editor/${item.name}`" class="problem-link">
-            <div><strong>{{ item.cnname || '(无中文名)' }}</strong></div>
+            <div class="title-line">
+              <strong>{{ item.cnname || '(无中文名)' }}</strong>
+
+              <span class="tag" v-if="item.tags">{{ item.tags }}</span>
+              <span class="difficulty" :style="{ background: difficultyColor(item.difficulty) }">
+                {{ item.difficulty }}
+              </span>
+            </div>
             <div class="meta-line">
-              [英文名: {{ item.name }}] · {{ item.caseAmount }} 个测试点
+              {{ item.name }}
             </div>
           </router-link>
 
-          <div v-if="userInfo && (userInfo === 'USER' || userInfo === 'ROOT')" class="modify-link">
+          <div v-if="userInfo && (userInfo === 'MANAGER' || userInfo === 'ROOT')" class="modify-link">
             <router-link :to="`/form?name=${item.name}`">修改</router-link>
           </div>
         </div>
@@ -89,7 +101,8 @@ const allProblems = ref([])
 const displayedProblems = computed(() => allProblems.value)
 
 const searchKeyword = ref('')
-const sortField = ref('')
+const lastKeyword   = ref('')
+const sortField = ref('difficulty')
 const showSortOptions = ref(false)
 
 const currentPage = ref(1)
@@ -142,7 +155,7 @@ const fetchProblems = async () => {
       start: String((currentPage.value - 1) * pageSize),
       limit: String(pageSize),
       order: resolvedOrder,
-      like: like.value || searchKeyword.value.trim()
+      like: searchKeyword.value.trim()
     })
 
     const url = useSearchApi
@@ -155,9 +168,9 @@ const fetchProblems = async () => {
     })
 
     const json = await res.json()
-    if (json.status === 0 && Array.isArray(json.data)) {
-      allProblems.value = json.data
-      hasMore.value = json.data.length === pageSize
+    if (json.status === 0 && Array.isArray(json.data.list)) {
+      allProblems.value = json.data.list
+      hasMore.value = json.data.amount > currentPage.value * pageSize
     } else {
       allProblems.value = []
       hasMore.value = false
@@ -170,6 +183,25 @@ const fetchProblems = async () => {
   }
 }
 
+// script setup 里加一个纯函数
+function difficultyColor(val) {
+  // 把 0-100 映射到 0-1
+  const ratio = Math.min(1, Math.max(0, val / 100))
+  // HSL：0°=红，120°=绿，越难越红
+  const hue = 120 * (1 - ratio)
+  return `hsl(${hue}, 80%, 45%)`
+}
+
+const sortDrop = ref(null)
+const searchInput = ref(null)
+
+
+function clickOutside(e) {
+  if (showSortOptions.value && !sortDrop.value?.contains(e.target)) {
+    showSortOptions.value = false
+  }
+}
+
 /** ------------ 搜索 / 排序 / 分页 ------------ **/
 const applyFilters = () => {
   currentPage.value = 1
@@ -179,7 +211,11 @@ const applyFilters = () => {
 }
 
 const handleSearch = () => {
+  const kw = searchKeyword.value.trim()
+  if (kw === lastKeyword.value) return
+  lastKeyword.value = kw
   currentPage.value = 1
+  like.value = kw
   fetchProblems()
 }
 
@@ -208,9 +244,11 @@ const navigateToHistory = () => router.push('/history')
 
 /** ------------ 启动 ------------ **/
 onMounted(() => {
+  document.addEventListener('mousedown', clickOutside)
   loadUserInfo()
   fetchProblems()
 })
+
 </script>
 
 <style scoped>
@@ -358,10 +396,25 @@ h2 {
 /*
 .problem-list {
   mask-image: linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
-}
+}-  text-align: center;
 */
 
 /* 列表项 */
+/* 样式 */
+.difficulty {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+  /* 不要写 background ！ */
+}
+
+
 .problem-item {
   background: #f9fafb;
   margin-bottom: 12px;
@@ -388,6 +441,19 @@ h2 {
   font-size: 14px;
   text-decoration: none;
 }
-.modify-link a:hover { text-decoration: underline; }
+.modify-link a:hover { text-decoration: underline; }/* 放在 <style scoped> 最后 */
+.problem-item.done {
+  background: #d1fae5; /*  Tailwind green-100  */
+}
+/* 标签 */
+.tag {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #e5e7eb;   /* 灰色 */
+  color: #374151;        /* 深灰文字 */
+  white-space: nowrap;
+}
+
 </style>
 
