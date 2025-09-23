@@ -1,5 +1,6 @@
 package com.LetucOJ.contest.service;
 
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.contest.model.db.ContestInfoDTO;
 import com.LetucOJ.contest.model.net.*;
 

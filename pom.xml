@@ -30,13 +30,13 @@
 
     <modules>
         <module>advice</module>
-        <module>common</module>
         <module>contest</module>
         <module>gateway</module>
         <module>practice</module>
         <module>run</module>
         <module>sys</module>
         <module>user</module>
+        <module>common</module>
     </modules>
 
     <properties>

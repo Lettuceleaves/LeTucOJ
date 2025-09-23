@@ -60,11 +60,17 @@ public interface MybatisRepos {
     @Delete("DELETE FROM problem WHERE name = #{name}")
     Integer deleteProblem(String name);
 
-    @Select("SELECT * FROM record")
-    List<RecordDTO> getAllRecords();
+    @Select("SELECT * FROM record ORDER BY submitTime DESC LIMIT #{start}, #{limit}")
+    List<RecordDTO> getAllRecords(int start, int limit);
 
-    @Select("SELECT * FROM record WHERE userName = #{userName}")
-    List<RecordDTO> getRecordsByName(String userName);
+    @Select("SELECT COUNT(*) FROM record")
+    Integer getAllRecordsCount();
+
+    @Select("SELECT * FROM record WHERE userName = #{userName} ORDER BY submitTime DESC LIMIT #{start}, #{limit}")
+    List<RecordDTO> getRecordsByName(String userName, int start, int limit);
+
+    @Select("SELECT COUNT(*) FROM record WHERE userName = #{userName}")
+    Integer getRecordsByNameCount(String userName);
 
     @Insert("INSERT INTO record (userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime) VALUES (#{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})")
     Integer insertRecord(RecordDTO recordDTO);

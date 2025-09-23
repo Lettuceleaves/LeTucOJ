@@ -1,9 +1,9 @@
 package com.LetucOJ.run.service;
 
-import com.LetucOJ.run.model.vo.ResultVO;
+import com.LetucOJ.common.result.ResultVO;
 
 import java.util.List;
 
 public interface RunService {
-     ResultVO run(List<String> inputFiles);
+     ResultVO run(List<String> inputFiles, String language);
 }

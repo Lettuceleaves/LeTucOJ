@@ -1,5 +1,6 @@
 package com.LetucOJ.practice.service;
 
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.model.*;
 
 public interface DBService {
@@ -14,6 +15,6 @@ public interface DBService {
     ResultVO deleteProblem(String name);
     ResultVO getCase(CaseInputDTO dto);
     ResultVO submitCase(CasePairDTO dto);
-    ResultVO recordListByName(String pname);
-    ResultVO recordListAll();
+    ResultVO recordListByName(String pname, int start, int limit);
+    ResultVO recordListAll(int start, int limit);
 }

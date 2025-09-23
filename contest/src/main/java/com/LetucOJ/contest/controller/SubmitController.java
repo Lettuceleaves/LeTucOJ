@@ -1,14 +1,11 @@
 package com.LetucOJ.contest.controller;
 
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.contest.model.db.RecordDTO;
-import com.LetucOJ.contest.model.net.ResultVO;
 import com.LetucOJ.contest.repos.MybatisRepos;
 import com.LetucOJ.contest.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/contest")

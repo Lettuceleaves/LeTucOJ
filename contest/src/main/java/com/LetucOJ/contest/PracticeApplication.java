@@ -7,7 +7,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ApplicationContext;
 
 @SpringBootApplication(
-        scanBasePackages = {"com.LetucOJ.contest", "com.LetucOJ.common"})
+        scanBasePackages = {"com.LetucOJ.contest", "com.LetucOJ.common"}
+)
 @EnableFeignClients
 public class PracticeApplication {
 

@@ -2,7 +2,6 @@ com\LetucOJ\sys\AuthApplication.class
 com\LetucOJ\sys\controller\UserController.class
 com\LetucOJ\sys\service\UserService.class
 com\LetucOJ\sys\repos\UserMybatisRepos.class
-com\LetucOJ\sys\model\ResultVO.class
 com\LetucOJ\sys\util\PasswordUtil.class
 com\LetucOJ\sys\model\JwtInfoVO.class
 com\LetucOJ\sys\model\UserDTO.class

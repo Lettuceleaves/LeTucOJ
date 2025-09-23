@@ -1,23 +1,18 @@
-FROM debian:bookworm-slim
+# -------------- 基础：官方已瘦身 JRE --------------
+FROM openjdk:17-slim
 
-# 仅使用 bookworm 官方源，不再引入 sid
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        openjdk-17-jre-headless \
-        gcc-12 \
-        libc6-dev \
-        make \
-    && rm -rf /var/lib/apt/lists/*
-
-# 把 gcc-12 设为默认 gcc（可选，若容器内需要直接调用 gcc）
-RUN ln -sf /usr/bin/gcc-12 /usr/bin/gcc
-
-# 验证版本
-RUN gcc --version && ls -l /usr/bin/gcc*
+# 安装 docker-cli
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        docker.io; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+            /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 
 WORKDIR /app
-RUN mkdir -p /app/localRun
 
-# 假设 run.jar 与 Dockerfile 同目录
+RUN mkdir -p user
+
 COPY run.jar /app/
 RUN chmod +x /app/run.jar
 

@@ -1,13 +1,12 @@
 package com.LetucOJ.sys.service.impl;
 
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.sys.model.JwtInfoVO;
 import com.LetucOJ.sys.model.RegisterRequestDTO;
-import com.LetucOJ.sys.model.ResultVO;
 import com.LetucOJ.sys.model.UserDTO;
 import com.LetucOJ.sys.repos.UserMybatisRepos;
 import com.LetucOJ.sys.service.UserService;
 import com.LetucOJ.sys.util.PasswordUtil;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;

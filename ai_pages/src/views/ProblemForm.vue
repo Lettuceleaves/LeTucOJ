@@ -349,7 +349,7 @@ async function getOutput(index) {
       body: JSON.stringify({
         input: inputOutputSections.value[index].input,
         code: form.value.solution,
-        name: form.value.name,
+        name: form.value.name
       }),
     }).then((r) => r.json())
     if (res.status === 0) {

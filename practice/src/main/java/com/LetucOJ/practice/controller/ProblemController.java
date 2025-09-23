@@ -1,9 +1,9 @@
 package com.LetucOJ.practice.controller;
 
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.model.CaseInputDTO;
 import com.LetucOJ.practice.model.CasePairDTO;
 import com.LetucOJ.practice.model.FullInfoDTO;
-import com.LetucOJ.practice.model.ResultVO;
 import com.LetucOJ.practice.service.DBService;
 import com.LetucOJ.practice.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;

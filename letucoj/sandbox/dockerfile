@@ -1,0 +1,58 @@
+# ---- 1. 基础镜像 ----
+FROM debian:bookworm-slim
+
+# ---- 2. 一次性安装所有依赖（包括常见语言的运行时和编译工具） ----
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        build-essential \
+        git \
+        pkg-config \
+        libcap-dev \
+        libsystemd-dev \
+        libprotobuf-dev \
+        protobuf-compiler \
+        libnl-route-3-dev \
+        flex \
+        bison \
+        openjdk-17-jre-headless \
+        curl \
+        bzip2 \
+        python3 \
+        python3-pip \
+        python3-dev \
+        ruby \
+        ruby-dev \
+        nodejs \
+        npm \
+        golang \
+        clang \
+        g++ \
+        rustc \
+        perl \
+        php \
+        php-cli \
+        php-dev \
+        && \
+    # 清理 apt 缓存，减少镜像大小
+    rm -rf /var/lib/apt/lists/*
+
+# ---- 3. 创建沙箱工作目录 ----
+RUN mkdir -p /var/local/lib/sandbox
+
+# ---- 4. 应用部分 ----
+WORKDIR /app
+COPY sandbox.jar /app/
+
+# 设置 JAVA_OPTS 环境变量
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+
+# 暴露端口
+EXPOSE 8778
+
+# 确保容器内以 root 用户运行
+USER root
+
+# 启动容器时执行 Java 程序
+CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/sandbox.jar"]

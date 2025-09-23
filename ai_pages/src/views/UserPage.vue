@@ -1,9 +1,7 @@
-<!-- UserList.vue -->
 <template>
   <div class="user-page">
     <h2>用户列表</h2>
 
-    <!-- 一键筛选未启用用户 -->
     <div class="filter-bar">
       <label>
         <input type="checkbox" v-model="onlyDisabled" />
@@ -11,12 +9,23 @@
       </label>
     </div>
 
-    <!-- 加载 / 错误 / 空状态 -->
+    <div class="refresh-container">
+      <button
+        @click="refreshSql"
+        :class="['btn-refresh', { 'btn-refresh-success': refreshStatus === 'success' }]"
+        :disabled="loading"
+      >
+        刷新 SQL 缓存
+      </button>
+      <div v-if="showMessage" class="message-bubble" :style="{ opacity: messageOpacity }">
+        {{ message }}
+      </div>
+    </div>
+
     <div v-if="loading" class="tip">加载中，请稍候…</div>
     <div v-else-if="error" class="tip error">{{ error }}</div>
     <div v-else-if="displayUsers.length === 0" class="tip">暂无用户</div>
 
-    <!-- 表格外壳，限定高度并允许滚动 -->
     <div v-else class="table-wrapper">
       <table class="user-table">
         <thead>
@@ -65,19 +74,19 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, onMounted, getCurrentInstance } from 'vue';
 
 /* ---------- 全局配置 ---------- */
 const instance = getCurrentInstance();
-const ip = instance!.appContext.config.globalProperties.$ip;
+const ip = instance.appContext.config.globalProperties.$ip;
 
-const role = ref<string>('');
-const name = ref<string>('');          // 当前登录用户名
+const role = ref('');
+const name = ref('');       // 当前登录用户名
 const token = () => localStorage.getItem('jwt') || '';
 
 /* ---------- 角色解析 ---------- */
-const parseJwt = (tk: string) => {
+const parseJwt = (tk) => {
   try {
     const base64Url = tk.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -107,20 +116,18 @@ const isAdmin = computed(() => {
   return r === 'ROOT' || r === 'MANAGER';
 });
 
-/* ---------- 类型定义 ---------- */
-interface UserDTO {
-  userName: string;
-  cnname: string;
-  password: string;
-  role: string;
-  enabled: boolean;
-}
-
 /* ---------- 响应式数据 ---------- */
-const users       = ref<UserDTO[]>([]);
-const loading     = ref<boolean>(true);
-const error       = ref<string | null>(null);
-const onlyDisabled = ref<boolean>(false);        // 筛选开关
+const users        = ref([]);
+const loading      = ref(true); // 列表加载状态
+const error        = ref(null);
+const onlyDisabled = ref(false);
+
+// 新增响应式数据
+const refreshStatus = ref('default');
+const showMessage = ref(false);
+const message = ref('');
+const messageOpacity = ref(0);
+const sqlLoading = ref(false); // **新增：SQL 刷新加载状态**
 
 /* ---------- 显示列表（过滤后） ---------- */
 const displayUsers = computed(() =>
@@ -130,7 +137,7 @@ const displayUsers = computed(() =>
 );
 
 /* ---------- 通用请求封装 ---------- */
-const call = (endpoint: string, userName: string) =>
+const call = (endpoint, userName) =>
   fetch(`http://${ip}${endpoint}?pname=${encodeURIComponent(userName)}`, {
     method: 'PUT',
     headers: { Authorization: `Bearer ${token()}` },
@@ -143,10 +150,47 @@ const call = (endpoint: string, userName: string) =>
     .catch((e) => alert(e.message || '网络错误'));
 
 /* ---------- 四个按钮 ---------- */
-const upgrade   = (u: UserDTO) => call('/user/promote', u.userName);
-const downgrade = (u: UserDTO) => call('/user/demote', u.userName);
-const enable    = (u: UserDTO) => call('/user/activate', u.userName);
-const disable   = (u: UserDTO) => call('/user/deactivate', u.userName);
+const upgrade   = (u) => call('/user/promote', u.userName);
+const downgrade = (u) => call('/user/demote', u.userName);
+const enable    = (u) => call('/user/activate', u.userName);
+const disable   = (u) => call('/user/deactivate', u.userName);
+
+/* ---------- 新增的刷新 SQL 方法 ---------- */
+const refreshSql = async () => {
+  sqlLoading.value = true; // **修改：使用新的加载状态**
+  try {
+    const tk = token();
+    const res = await fetch(`http://${ip}/sys/refresh/sql`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${tk}` },
+    });
+    const json = await res.json();
+
+    if (json.status === 0) {
+      refreshStatus.value = 'success';
+      message.value = json.data || '缓存刷新成功';
+      showMessage.value = true;
+      messageOpacity.value = 1;
+
+      setTimeout(() => {
+        messageOpacity.value = 0;
+        setTimeout(() => {
+          showMessage.value = false;
+          refreshStatus.value = 'default';
+        }, 1000);
+      }, 3000);
+
+    } else {
+      throw new Error(json.error || '刷新失败');
+    }
+  } catch (e) {
+    alert(e.message);
+    refreshStatus.value = 'default';
+  } finally {
+    sqlLoading.value = false; // **修改：使用新的加载状态**
+  }
+};
+
 
 /* ---------- 拉取用户列表 ---------- */
 const fetchUsers = async () => {
@@ -163,7 +207,7 @@ const fetchUsers = async () => {
     const json = await res.json();
     if (![0, 1].includes(json.status))
       throw new Error(json.error || '拉取用户列表失败');
-    let list: UserDTO[] = json.data ?? [];
+    let list = json.data ?? [];
 
     /* 2. 管理员额外拉 manager 列表 */
     if (role.value === 'ROOT' || role.value === 'MANAGER') {
@@ -180,15 +224,16 @@ const fetchUsers = async () => {
     }
 
     /* 3. 按用户名去重 */
-    const map = new Map<string, UserDTO>();
+    const map = new Map();
     list.forEach((u) => map.set(u.userName, u));
     users.value = Array.from(map.values());
-  } catch (e: any) {
+  } catch (e) {
     error.value = e.message || '网络错误';
   } finally {
     loading.value = false;
   }
 };
+
 
 /* ---------- 挂载 ---------- */
 onMounted(() => {
@@ -274,5 +319,61 @@ h2 {
   position: sticky;
   top: 0;
   z-index: 1;
+}
+
+/* --- 新增的样式 --- */
+.refresh-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.btn-refresh {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #ef4444; /* 初始红色 */
+  color: #fff;
+  transition: background-color 0.5s ease;
+}
+
+.btn-refresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-refresh-success {
+  background-color: #22c55e; /* 成功绿色 */
+}
+
+.message-bubble {
+  position: absolute;
+  bottom: 100%; /* 气泡位于按钮上方 */
+  margin-bottom: 10px; /* 与按钮保持 10px 间距 */
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #22c55e;
+  color: #fff;
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: opacity 1s ease;
+  z-index: 999; /* 确保图层最高 */
+}
+
+/* 气泡小三角 */
+.message-bubble::before {
+  content: '';
+  position: absolute;
+  top: 100%; /* 小三角位于气泡底部 */
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #22c55e transparent transparent transparent; /* 小三角朝下 */
 }
 </style>

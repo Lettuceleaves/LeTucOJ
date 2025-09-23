@@ -1,8 +1,8 @@
 package com.LetucOJ.sys.service;
 
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.sys.client.RunClient;
 import com.LetucOJ.sys.client.RunClientFactory;
-import com.LetucOJ.sys.model.ResultVO;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ContainerPool {
 

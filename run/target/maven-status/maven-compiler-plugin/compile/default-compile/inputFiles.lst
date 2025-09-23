@@ -1,9 +1,8 @@
 E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\tool\RunPath.java
+E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\controller\RunController.java
 E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\service\Handler.java
 E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\service\impl\handler\CompileHandler.java
-E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\model\vo\ResultVO.java
-E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\service\impl\handler\ExcuteHandler.java
-E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\config\inputCoMapCacheConfig.java
+E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\service\impl\handler\ExecuteHandler.java
 E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\service\impl\RunServiceImpl.java
 E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\service\impl\handler\FileWriteHandler.java
 E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\service\impl\ThreadForSingleCase.java
@@ -12,4 +11,3 @@ E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\model\dto\UserCodeDTO.java
 E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\runApplication.java
 E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\tool\K8sConfig.java
 E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\service\RunService.java
-E:\projects\LeTucOJ\run\src\main\java\com\LetucOJ\run\controller\RunCtrller.java

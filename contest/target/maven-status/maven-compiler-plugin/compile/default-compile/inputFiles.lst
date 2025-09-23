@@ -1,7 +1,5 @@
-E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\repos\impl\RedisRepositoryImpl.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\client\RunClient.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\method\CheckDTO.java
-E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\repos\MinioRepos.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\controller\ContestController.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\controller\ListController.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\db\BoardDTO.java
@@ -14,10 +12,6 @@ E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\net\ContestP
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\db\FullInfoDTO.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\controller\SubmitController.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\service\impl\PracticeServiceImpl.java
-E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\repos\impl\MinioReposImpl.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\service\impl\DBServiceImpl.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\repos\MybatisRepos.java
-E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\minio\FileDTO.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\service\PracticeService.java
-E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\net\ResultVO.java
-E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\repos\RedisRepository.java

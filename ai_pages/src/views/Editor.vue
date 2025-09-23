@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick, getCurrentInstance } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, getCurrentInstance, provide, readonly } from 'vue'
 import { useRouter } from 'vue-router'
 
 import DoPage from './EditorPages/DoPage.vue'
@@ -51,6 +51,13 @@ const instance = getCurrentInstance()
 const ip = instance.appContext.config.globalProperties.$ip
 
 const doPageRef = ref(null)
+
+// 1. 创建响应式变量
+const selectedLanguage = ref('c')
+
+// 2. 提供“读”和“写”两个注入 key
+provide('lang', readonly(selectedLanguage))   // 只读，防止孙子直接改
+provide('setLang', (val) => { selectedLanguage.value = val })
 
 const goBack = () => {
   router.back()  // 或 router.go(-1)
@@ -115,7 +122,7 @@ const sendCode = async (code) => {
     const token = localStorage.getItem('jwt')
     const params = new URLSearchParams({
       qname: name,
-      lang: 'C'
+      language: selectedLanguage.value
     });
     const response = await fetch(`http://${ip}/practice/submit?${params}`, {
       method: 'POST',

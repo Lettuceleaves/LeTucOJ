@@ -1,6 +1,6 @@
 package com.LetucOJ.sys.service;
 
-import com.LetucOJ.sys.model.ResultVO;
+import com.LetucOJ.common.result.ResultVO;
 import org.springframework.stereotype.Service;
 
 @Service

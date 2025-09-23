@@ -1,0 +1,11 @@
+# 使用官方镜像作为基底
+FROM nginx:1.25-alpine
+
+# 1. 把 Vue 静态资源拷进去
+COPY dist/ /usr/share/nginx/html/
+
+# 2. 把反向代理配置拷进去
+COPY conf.d/ /etc/nginx/conf.d/
+
+# 3. 确保目录权限全开（nginx 用 uid 101 跑）
+RUN chmod -R 755 /usr/share/nginx/html

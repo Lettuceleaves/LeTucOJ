@@ -1,13 +1,12 @@
 package com.LetucOJ.contest.service.impl;
 
+import com.LetucOJ.common.oss.MinioRepos;
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.contest.client.RunClient;
 import com.LetucOJ.contest.model.db.BoardDTO;
 import com.LetucOJ.contest.model.db.ContestInfoDTO;
 import com.LetucOJ.contest.model.db.ProblemStatusDTO;
 import com.LetucOJ.contest.model.method.CheckDTO;
-import com.LetucOJ.contest.model.minio.FileDTO;
-import com.LetucOJ.contest.model.net.ResultVO;
-import com.LetucOJ.contest.repos.MinioRepos;
 import com.LetucOJ.contest.repos.MybatisRepos;
 import com.LetucOJ.contest.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,28 +75,22 @@ public class PracticeServiceImpl implements PracticeService {
                 return new ResultVO((byte) 5, null, "contest/submit: No test cases available for this problem");
             }
 
+            String bucketName = "letucoj";
             try {
-                FileDTO fileDTO = getFile(questionName, problemStatus.getCaseAmount(), FileDTO.fileType.INPUT);
-                if (fileDTO.getStatus() == 1) {
-                    return new ResultVO((byte) 5, null, "contest/submit: TestCase Not Found");
-                } else if (fileDTO.getStatus() == 2) {
-                    return new ResultVO((byte) 5, null, fileDTO.getFile()[0]);
-                } else {
-                    inputFiles = fileDTO.getFile();
+                for (int i = 1; i <= problemStatus.getCaseAmount(); i++) {
+                    String fileName = "problems/" + questionName + "/input/" + i + ".txt";
+                    byte[] inputFile = minioRepos.getFile(bucketName, fileName);
+                    inputs.add(new String(inputFile));
                 }
             } catch (RuntimeException e) {
                 return new ResultVO((byte) 5, null, "contest/submit: Error retrieving input files: " + e.getMessage());
             }
-            inputs.addAll(Arrays.asList(inputFiles));
-            String[] expectedOutputs;
+            String[] expectedOutputs = new String[problemStatus.getCaseAmount() + 1];
             try {
-                FileDTO outputFileDTO = getFile(questionName, problemStatus.getCaseAmount(), FileDTO.fileType.OUTPUT);
-                if (outputFileDTO.getStatus() == 1) {
-                    return new ResultVO((byte) 5, null, "contest/submit: Output files not found");
-                } else if (outputFileDTO.getStatus() == 2) {
-                    return new ResultVO((byte) 5, null, outputFileDTO.getFile()[0]);
-                } else {
-                    expectedOutputs = outputFileDTO.getFile();
+                for (int i = 1; i <= problemStatus.getCaseAmount(); i++) {
+                    String fileName = "problems/" + questionName + "/output/" + i + ".txt";
+                    byte[] outputFile = minioRepos.getFile(bucketName, fileName);
+                    expectedOutputs[i] = new String(outputFile).trim();
                 }
             } catch (RuntimeException e) {
                 return new ResultVO((byte) 5, null, "contest/submit: Error retrieving output files: " + e.getMessage());
@@ -163,35 +156,4 @@ public class PracticeServiceImpl implements PracticeService {
         }
         return new CheckDTO(0, expected.length, "contest/checkAnswer: Correct answer");
     }
-
-    private FileDTO getFile(String problemId, int count, FileDTO.fileType fileType) {
-
-        FileDTO fileDTO = new FileDTO();
-
-        String[] files = new String[count];
-
-        for (int i = 1; i <= count; i++) {
-            String file;
-            try {
-                if (fileType == FileDTO.fileType.OUTPUT) {
-                    file = minioRepos.getFile(problemId, i, FileDTO.fileType.OUTPUT);
-                } else {
-                    file = minioRepos.getFile(problemId, i, FileDTO.fileType.INPUT);
-                }
-                if (file == null) {
-                    fileDTO.setStatus((byte) 1);
-                    fileDTO.setFile(new String[] {"contest/getFile: File " + i + " not found"});
-                    return fileDTO;
-                }
-            } catch (Exception e) {
-                fileDTO.setStatus((byte) 2);
-                fileDTO.setFile(new String[] {"contest/getFile: Error retrieving file " + i + ": " + e.getMessage()});
-                return fileDTO;
-            }
-            files[i - 1] = file;
-        }
-        fileDTO.setFile(files);
-        return fileDTO;
-    }
-
 }

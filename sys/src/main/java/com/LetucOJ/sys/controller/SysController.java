@@ -1,6 +1,6 @@
 package com.LetucOJ.sys.controller;
 
-import com.LetucOJ.sys.model.ResultVO;
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.sys.service.Monitor;
 import com.LetucOJ.sys.service.SysService;
 import org.springframework.beans.factory.annotation.Autowired;

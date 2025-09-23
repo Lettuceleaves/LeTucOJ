@@ -1,7 +1,7 @@
 package com.LetucOJ.sys.service;
 
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.sys.model.RegisterRequestDTO;
-import com.LetucOJ.sys.model.ResultVO;
 import org.springframework.stereotype.Service;
 
 @Service

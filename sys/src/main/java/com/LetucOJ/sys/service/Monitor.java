@@ -1,8 +1,8 @@
 package com.LetucOJ.sys.service;
 
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.sys.client.RunClientFactory;
 import com.LetucOJ.sys.model.ConfigDTO;
-import com.LetucOJ.sys.model.ResultVO;
 import com.LetucOJ.sys.repos.SysMybatisRepos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -31,7 +31,6 @@ public class Monitor implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws UnknownHostException {
-        ResultVO resultVO = monitorInit();
     }
 
     private ResultVO monitorInit() throws UnknownHostException {

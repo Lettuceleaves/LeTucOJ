@@ -1,8 +1,8 @@
 package com.LetucOJ.contest.controller;
 
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.contest.model.db.ContestInfoDTO;
 import com.LetucOJ.contest.model.net.ContestProblemDTO;
-import com.LetucOJ.contest.model.net.ResultVO;
 import com.LetucOJ.contest.service.DBService;
 import com.LetucOJ.contest.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;

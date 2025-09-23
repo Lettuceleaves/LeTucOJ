@@ -6,7 +6,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 import java.net.UnknownHostException;
 
-@SpringBootApplication
+@SpringBootApplication(
+        scanBasePackages = {"com.LetucOJ.sys", "com.LetucOJ.common"}
+)
 @EnableFeignClients(basePackages = "com.LetucOJ")
 public class SysApplication {
     public static void main(String[] args) {

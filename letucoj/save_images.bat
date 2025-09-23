@@ -41,5 +41,29 @@ echo Saved contest image...
 docker save -o images/nginx_latest.tar nginx:latest
 echo Saved nginx image...
 
+:: 保存 run 镜像
+docker save -o images/run_latest.tar run:latest
+echo Saved run image...
+
+:: 保存 run_c 镜像
+docker save -o images/run_c_latest.tar run_c:latest
+echo Saved run_c image...
+
+:: 保存 run_cpp 镜像
+docker save -o images/run_cpp_latest.tar run_cpp:latest
+echo Saved run_cpp image...
+
+:: 保存 run_js 镜像
+docker save -o images/run_js_latest.tar run_js:latest
+echo Saved run_js image...
+
+:: 保存 run_py 镜像
+docker save -o images/run_py_latest.tar run_py:latest
+echo Saved run_py image...
+
+:: 保存 run_java 镜像
+docker save -o images/run_java_latest.tar run_java:latest
+echo Saved run_java image...
+
 echo Docker images saved successfully.
 pause

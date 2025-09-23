@@ -1,6 +1,6 @@
 package com.LetucOJ.sys.client;
 
-import com.LetucOJ.sys.model.ResultVO;
+import com.LetucOJ.common.result.ResultVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

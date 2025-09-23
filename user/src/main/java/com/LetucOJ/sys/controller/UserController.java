@@ -1,7 +1,7 @@
 package com.LetucOJ.sys.controller;
 
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.sys.model.RegisterRequestDTO;
-import com.LetucOJ.sys.model.ResultVO;
 import com.LetucOJ.sys.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

@@ -1,5 +1,4 @@
 com\LetucOJ\gateway\tool\JwtUtil.class
-com\LetucOJ\gateway\model\ResultVO.class
 com\LetucOJ\gateway\tool\JwtFilter.class
 com\LetucOJ\gateway\GateWayApplication.class
 com\LetucOJ\gateway\tool\CustomResponseRewriteFilter.class

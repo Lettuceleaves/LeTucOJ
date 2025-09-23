@@ -27,24 +27,28 @@
         class="title-item"
         :class="{ active: activeTab === 'user' }"
         @click="switchTab('user')"
-      >用户</div>
+      >管理</div>
 
       <!-- 中间圆角状态框 -->
       <div
+        v-if="isStatusVisible"
         class="nav-status"
         :class="{
           'status-loading': loadStatus === 'loading',
           'status-success': loadStatus === 'success',
           'status-error': loadStatus === 'error'
         }"
-        @click="navStatusClick"
+        @click="hideStatus"
         title="编辑器加载状态（失败可点击重试）"
       >
-        <span v-if="loadStatus === 'loading'">
-          编辑器组件加载中，请加载完毕后再点击列表项
+        <!-- 3. 关键：让 span 不响应鼠标 -->
+        <span style="pointer-events:none;">
+          <template v-if="loadStatus === 'loading'">
+            编辑器组件加载中，请加载完毕后再点击列表项
+          </template>
+          <template v-else-if="loadStatus === 'success'">加载成功</template>
+          <template v-else>加载失败</template>
         </span>
-        <span v-else-if="loadStatus === 'success'">加载成功</span>
-        <span v-else>加载失败</span>
       </div>
 
       <div class="spacer"></div>
@@ -151,6 +155,8 @@ const goBack = () => router.push('/')
 /* ---------- 8. Monaco 预加载 ---------- */
 const loadStatus = ref('loading')
 const editorReady = computed(() => loadStatus.value === 'success')
+const isStatusVisible = ref(true) // ✨ 新增状态变量 ✨
+
 async function preloadMonaco() {
   try {
     await import('monaco-editor')
@@ -160,13 +166,50 @@ async function preloadMonaco() {
     loadStatus.value = 'error'
   }
 }
-function navStatusClick() {
-  if (loadStatus.value === 'error') {
-    loadStatus.value = 'loading'
-    preloadMonaco()
-  } else if (loadStatus.value === 'loading') {
-    alert('Monaco 正在加载，请稍候')
+
+/* 把原来的 hideStatus 换成带粒子动画的版本即可 */
+function hideStatus() {
+  if (loadStatus.value === 'success') {
+    // 成功 → 碎裂消失
+    shatterAndDisappear()
+  } else if (loadStatus.value === 'error') {
+    // 失败 → 重试
+    retryLoading()
   }
+}
+
+function shatterAndDisappear() {
+  const box = document.querySelector('.nav-status')
+  if (!box) return
+  const rect = box.getBoundingClientRect()
+  if (rect.width === 0 || rect.height === 0) return
+
+  const N = 30
+  for (let i = 0; i < N; i++) {
+    const p = document.createElement('div')
+    p.className = 'particle'
+    p.style.left = rect.left + Math.random() * rect.width + 'px'
+    p.style.top  = rect.top  + Math.random() * rect.height + 'px'
+    const s = Math.random() * 8 + 4
+    p.style.width = p.style.height = s + 'px'
+    p.style.backgroundColor = getComputedStyle(box).backgroundColor
+    document.body.appendChild(p)
+
+    requestAnimationFrame(() => {
+      p.style.transform = `translate(${(Math.random() - .5) * 500}px,${(Math.random() - .5) * 500 + 200}px) rotate(${Math.random() * 720}deg)`
+      p.style.opacity = 0
+    })
+    setTimeout(() => p.remove(), 1200)
+  }
+
+  setTimeout(() => { isStatusVisible.value = false }, 100)
+}
+
+
+// ✨ 将原来的 navStatusClick 逻辑抽取到这个方法中 ✨
+function retryLoading() {
+  loadStatus.value = 'loading';
+  preloadMonaco();
 }
 
 /* ---------- 9. 空闲预拉取其它 chunk ---------- */

@@ -15,6 +15,13 @@
 
     <dependencies>
 
+        <!-- common -->
+        <dependency>
+            <groupId>org.oms</groupId>
+            <artifactId>common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
         <!-- spring-webflux-starter -->
 
         <dependency>

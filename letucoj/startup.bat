@@ -21,6 +21,31 @@ cd run
 docker build -t run:latest .
 cd ..
 
+:: 构建 run_c 镜像
+cd run_c
+docker build -t run_c:latest .
+cd ..
+
+:: 构建 run_cpp 镜像
+cd run_cpp
+docker build -t run_cpp:latest .
+cd ..
+
+:: 构建 run_js 镜像
+cd run_js
+docker build -t run_js:latest .
+cd ..
+
+:: 构建 run_java 镜像
+cd run_java
+docker build -t run_java:latest .
+cd ..
+
+:: 构建 run_py 镜像
+cd run_py
+docker build -t run_py:latest .
+cd ..
+
 :: 构建 advice 镜像
 cd advice
 docker build -t advice:latest .

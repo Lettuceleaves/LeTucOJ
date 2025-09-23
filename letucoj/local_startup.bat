@@ -24,10 +24,6 @@ docker load -i run_latest.tar
 echo Loading minio image...
 docker load -i minio_minio_latest.tar
 
-:: 加载 mysql 镜像
-echo Loading mysql image...
-docker load -i mysql_latest.tar
-
 :: 加载 advice 镜像
 echo Loading advice image...
 docker load -i advice_latest.tar

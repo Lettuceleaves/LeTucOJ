@@ -38,7 +38,6 @@
             </label>
           </div>
         </div>
-        <button class="btn" @click="applyFilters">更新</button>
       </div>
 
       <!-- 中：分页 -->

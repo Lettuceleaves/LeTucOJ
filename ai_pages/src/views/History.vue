@@ -10,6 +10,12 @@
       <button class="home-btn red" @click="goHome">返回主页</button>
     </div>
 
+    <div class="pagination-bar">
+      <button :disabled="start === 0" @click="prevPage">上一页</button>
+      <div class="page-info">第 {{ start / limit + 1 }} 页 / 共 {{ Math.ceil(total / limit) }} 页 (总数: {{ total }})</div>
+      <button :disabled="start + limit >= total" @click="nextPage">下一页</button>
+    </div>
+
     <ul class="records">
       <li v-for="r in sortedRecords" :key="r.submitTime" class="record">
         <!-- 基本信息 -->
@@ -43,13 +49,20 @@ const ip = instance.appContext.config.globalProperties.$ip
 
 /* 路由跳转 */
 const router = useRouter()
-
-const goHome = () => router.push('/main')   // 根据你的路由表调整路径
+const goHome = () => router.push('/main')
 
 /* --------------- 数据 --------------- */
 const records = ref([])
-const role   = ref('')
-const name   = ref('')        // 当前登录用户名
+const role = ref('')
+const name = ref('')        // 当前登录用户名
+
+const start = ref(0)
+const limit = 20
+const total = ref(0)
+
+// 新增状态变量，用于管理查询模式
+const currentSearchMode = ref('self') // 'self' or 'all'
+const currentSearchUser = ref('')     // The user being queried
 
 /* --------------- 计算属性 --------------- */
 const sortedRecords = computed(() =>
@@ -83,24 +96,35 @@ const parseRole = () => {
   try {
     const payload = parseJwt(token)
     role.value = payload.role || ''
-    name.value = payload.sub  || ''
+    name.value = payload.sub || ''
   } catch {
     alert('解析角色失败')
   }
 }
 
-const fetchRecords = async (userName = '') => {
+// 通用的数据获取函数，根据参数决定查询所有或特定用户
+const fetchData = async (userName = '', isAll = false) => {
   const token = localStorage.getItem('jwt')
-  const params = new URLSearchParams(userName ? { pname: userName } : {})
+  const params = new URLSearchParams({
+    start: start.value,
+    limit: limit
+  })
+  
+  const apiUrl = isAll ? `/practice/recordList/all` : `/practice/recordList/any`
+
+  if (userName && !isAll) {
+    params.append('pname', userName)
+  }
+
   try {
-    const res = await fetch(`http://${ip}/practice/recordList/any?${params}`, {
+    const res = await fetch(`http://${ip}${apiUrl}?${params}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     })
     const json = await res.json()
     if (json.status === 0) {
-      // 给每条记录加一个 _showCode 用于折叠
-      records.value = (json.data ?? []).map(r => ({ ...r, _showCode: false }))
+      records.value = (json.data.records ?? []).map(r => ({ ...r, _showCode: false }))
+      total.value = json.data?.amount || 0
     } else {
       alert(json.error || '拉取记录失败')
     }
@@ -109,36 +133,60 @@ const fetchRecords = async (userName = '') => {
   }
 }
 
+/* --------------- 按钮回调 --------------- */
+const searchByUser = () => {
+  const u = prompt('请输入用户名：', name.value)
+  if (u !== null) {
+    // 设置模式和用户名，重置页码
+    currentSearchMode.value = 'self'
+    currentSearchUser.value = u
+    start.value = 0
+    // 调用通用函数
+    fetchData(currentSearchUser.value, false)
+  }
+}
+
+const searchAll = () => {
+  // 设置模式，重置页码
+  currentSearchMode.value = 'all'
+  currentSearchUser.value = ''
+  start.value = 0
+  // 调用通用函数
+  fetchData('', true)
+}
+
+const prevPage = () => {
+  if (start.value > 0) {
+    start.value -= limit
+    // 根据当前模式调用通用函数
+    if (currentSearchMode.value === 'self') {
+      fetchData(currentSearchUser.value, false)
+    } else {
+      fetchData('', true)
+    }
+  }
+}
+
+const nextPage = () => {
+  if (start.value + limit < total.value) {
+    start.value += limit
+    // 根据当前模式调用通用函数
+    if (currentSearchMode.value === 'self') {
+      fetchData(currentSearchUser.value, false)
+    } else {
+      fetchData('', true)
+    }
+  }
+}
+
 /* --------------- 生命周期 --------------- */
 onMounted(() => {
   parseRole()
-  fetchRecords(name.value)
+  // 页面加载时默认查询当前用户
+  currentSearchMode.value = 'self'
+  currentSearchUser.value = name.value
+  fetchData(currentSearchUser.value, false)
 })
-
-/* 按钮回调（由你补充） */
-const searchByUser = () => {
-  const u = prompt('请输入用户名：', name.value)
-  if (u !== null) fetchRecords(u)
-}
-
-const searchAll = async () => {
-  const token = localStorage.getItem('jwt')
-  try {
-    const res = await fetch(`http://${ip}/practice/recordList/all?`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const json = await res.json()
-    if (json.status === 0) {
-      // 给每条记录加一个 _showCode 用于折叠
-      records.value = (json.data ?? []).map(r => ({ ...r, _showCode: false }))
-    } else {
-      alert(json.error || '拉取记录失败')
-    }
-  } catch (e) {b
-    alert('网络错误：' + e.message)
-  }
-}
 </script>
 
 <style scoped>
@@ -249,6 +297,37 @@ button.red {
 }
 button.red:hover {
   background: #dc2626;        /* Tailwind red-600 */
+}
+
+/* Pagination bar styling */
+.pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 0;
+}
+.pagination-bar button {
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background 0.2s;
+}
+.pagination-bar button:hover:not([disabled]) {
+  background: #1d4ed8;
+}
+.pagination-bar button:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+.page-info {
+  font-size: 1em;
+  color: #6b7280;
+  white-space: nowrap;
 }
 
 </style>

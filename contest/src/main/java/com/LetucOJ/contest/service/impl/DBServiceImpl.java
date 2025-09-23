@@ -1,18 +1,18 @@
 package com.LetucOJ.contest.service.impl;
 
+import com.LetucOJ.common.oss.MinioRepos;
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.contest.client.RunClient;
 import com.LetucOJ.contest.model.db.BoardDTO;
 import com.LetucOJ.contest.model.db.ContestInfoDTO;
 import com.LetucOJ.contest.model.db.FullInfoDTO;
 import com.LetucOJ.contest.model.db.ProblemStatusDTO;
 import com.LetucOJ.contest.model.net.*;
-import com.LetucOJ.contest.repos.MinioRepos;
 import com.LetucOJ.contest.repos.MybatisRepos;
 import com.LetucOJ.contest.service.DBService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,12 +22,6 @@ public class DBServiceImpl implements DBService {
 
     @Autowired
     private MybatisRepos mybatisRepos;
-
-    @Autowired
-    private MinioRepos minioRepos;
-
-    @Autowired
-    private RunClient runClient;
 
     @Override
     public ResultVO getContestList() {

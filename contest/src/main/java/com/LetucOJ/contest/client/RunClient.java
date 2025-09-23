@@ -1,6 +1,6 @@
 package com.LetucOJ.contest.client;
 
-import com.LetucOJ.contest.model.net.ResultVO;
+import com.LetucOJ.common.result.ResultVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@FeignClient(name = "sys", url = "sys:2121")
+@FeignClient(name = "sandbox", url = "sys:8778")
 @RestController
 public interface RunClient {
 
-    @PostMapping("/sys/run")
+    @PostMapping("/sandbox/run")
     ResultVO run(@RequestBody List<String> files, @RequestParam String lang);
 }

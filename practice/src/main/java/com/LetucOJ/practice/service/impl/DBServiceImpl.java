@@ -1,9 +1,10 @@
 package com.LetucOJ.practice.service.impl;
 
+import com.LetucOJ.common.oss.MinioRepos;
+import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.client.RunClient;
 import com.LetucOJ.practice.model.*;
 import com.LetucOJ.practice.repos.MybatisRepos;
-import com.LetucOJ.practice.repos.MinioRepos;
 import com.LetucOJ.practice.service.DBService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -247,7 +248,7 @@ public class DBServiceImpl implements DBService {
         List<String> inputs = new ArrayList<>();
         inputs.add(caseInputDTO.getCode());
         inputs.add(caseInputDTO.getInput());
-        return runClient.run(inputs, "C");
+        return runClient.run(inputs, "c");
     }
 
     @Transactional
@@ -268,10 +269,11 @@ public class DBServiceImpl implements DBService {
             if (problemStatus == null) {
                 return new ResultVO((byte) 5, null, "practice/submitCase: Problem status not found for " + name);
             }
-            String inputFile = minioRepos.addFilePair(name, problemStatus.getCaseAmount(), input, output);
-            if (inputFile != null) {
-                return new ResultVO((byte) 5, null, "practice/submitCase: Error adding file pair" + inputFile);
-            }
+            String bucketName = "letucoj";
+            String inputFileName = "problems" + "/" + name + "/input/" + problemStatus.getCaseAmount() + 1 + ".txt";
+            String outputFileName = "problems" + "/" + name + "/output/" + problemStatus.getCaseAmount() + 1 + ".txt";
+            minioRepos.addFile(bucketName, inputFileName, input.getBytes());
+            minioRepos.addFile(bucketName, outputFileName, output.getBytes());
             return new ResultVO((byte) 0, null, null);
         } catch (Exception e) {
             return new ResultVO((byte) 5, null, "practice/submitCase: Error submitting test case: " + e.getMessage());
@@ -279,26 +281,38 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
-    public ResultVO recordListByName(String pname) {
+    public ResultVO recordListByName(String pname, int start, int limit) {
         try {
-            List<RecordDTO> records = mybatisRepos.getRecordsByName(pname);
+            List<RecordDTO> records = mybatisRepos.getRecordsByName(pname, start, limit);
+            Integer amount = mybatisRepos.getRecordsByNameCount(pname);
             if (records == null || records.isEmpty()) {
                 return new ResultVO((byte)1, null, "practice/recordListByName: No records found for user " + pname);
+            } else if (amount == null || amount < 0) {
+                return new ResultVO((byte)5, null, "practice/recordListAll: Amount is null or <0 in Mybatis");
             }
-            return new ResultVO((byte)0, records, null);
+            return new ResultVO((byte)0, Map.of(
+                    "records",   records,
+                    "amount", amount
+            ), null);
         } catch (Exception e) {
             return new ResultVO((byte)5, null, "practice/recordListByName: Error retrieving records: " + e.getMessage());
         }
     }
 
     @Override
-    public ResultVO recordListAll() {
+    public ResultVO recordListAll(int start, int limit) {
         try {
-            List<RecordDTO> records = mybatisRepos.getAllRecords();
+            List<RecordDTO> records = mybatisRepos.getAllRecords(start, limit);
+            Integer amount = mybatisRepos.getAllRecordsCount();
             if (records == null || records.isEmpty()) {
                 return new ResultVO((byte)1, null, "practice/recordListAll: No records found");
+            } else if (amount == null || amount < 0) {
+                return new ResultVO((byte)5, null, "practice/recordListAll: Amount is null or <0 in Mybatis");
             }
-            return new ResultVO((byte)0, records, null);
+            return new ResultVO((byte)0, Map.of(
+                    "records",   records,
+                    "amount", amount
+            ), null);
         } catch (Exception e) {
             return new ResultVO((byte)5, null, "practice/recordListAll: Error retrieving all records: " + e.getMessage());
         }

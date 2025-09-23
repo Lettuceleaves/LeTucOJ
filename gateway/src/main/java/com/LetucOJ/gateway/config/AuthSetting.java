@@ -10,8 +10,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "auth.service")
 public class AuthSetting {
-    // Getters and Setters
     private String url;
     private boolean on;
-
 }

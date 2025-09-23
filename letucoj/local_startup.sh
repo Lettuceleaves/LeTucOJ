@@ -25,10 +25,6 @@ docker load -i run_latest.tar
 echo "Loading minio image..."
 docker load -i minio_minio_latest.tar
 
-# 加载 mysql 镜像
-echo "Loading mysql image..."
-docker load -i mysql_latest.tar
-
 # 加载 advice 镜像
 echo "Loading advice image..."
 docker load -i advice_latest.tar
@@ -37,9 +33,17 @@ docker load -i advice_latest.tar
 echo "Loading sys image..."
 docker load -i sys_latest.tar
 
+# 加载 nginx 镜像
+echo "Loading nginx image..."
+docker load -i nginx_latest.tar
+
 # 加载 contest 镜像
 echo "Loading contest image..."
 docker load -i contest_latest.tar
+
+# 加载 run 镜像
+echo "Loading run image..."
+docker load -i run_latest.tar
 
 # 退出 images 文件夹
 cd ..
