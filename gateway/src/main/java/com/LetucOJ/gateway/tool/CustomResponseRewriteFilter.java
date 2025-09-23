@@ -2,6 +2,7 @@ package com.LetucOJ.gateway.tool;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -23,8 +24,9 @@ public class CustomResponseRewriteFilter implements WebFilter {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final DefaultDataBufferFactory bufferFactory = new DefaultDataBufferFactory();
 
+    @NotNull
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+    public Mono<Void> filter(ServerWebExchange exchange, @NotNull WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
         if (!"/user/login".equals(path)) {
@@ -34,11 +36,10 @@ public class CustomResponseRewriteFilter implements WebFilter {
         ServerHttpResponse originalResponse = exchange.getResponse();
 
         ServerHttpResponseDecorator decoratedResponse = new ServerHttpResponseDecorator(originalResponse) {
+            @NotNull
             @Override
-            @SuppressWarnings("unchecked")
-            public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-                if (body instanceof Flux) {
-                    Flux<? extends DataBuffer> fluxBody = (Flux<? extends DataBuffer>) body;
+            public Mono<Void> writeWith(@NotNull Publisher<? extends DataBuffer> body) {
+                if (body instanceof Flux<? extends DataBuffer> fluxBody) {
 
                     return super.writeWith(
                             fluxBody

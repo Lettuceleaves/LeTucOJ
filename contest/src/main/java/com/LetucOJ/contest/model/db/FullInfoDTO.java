@@ -3,11 +3,15 @@ package com.LetucOJ.contest.model.db;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.sql.Date;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class FullInfoDTO {
     private String name;
     private String cnname;
@@ -22,40 +26,6 @@ public class FullInfoDTO {
     private Boolean ispublic;
     private String solution;
     private Boolean showsolution;
-
-    public FullInfoDTO() {
-        this.name = null;
-        this.cnname = null;
-        this.caseAmount = null;
-        this.difficulty = null;
-        this.tags = null;
-        this.authors = null;
-        this.createtime = null;
-        this.updateat = null;
-        this.content = null;
-        this.freq = null;
-        this.solution = null;
-        this.ispublic = null;
-        this.showsolution = null;
-    }
-
-    public FullInfoDTO(String name, String cnname, int caseAmount, int difficulty, String tags, String authors,
-                       Date createtime, Date updateat, String content, Float freq, Boolean ispublic,
-                       String solution, Boolean showsolution) {
-        this.name = name;
-        this.cnname = cnname;
-        this.caseAmount = caseAmount;
-        this.difficulty = difficulty;
-        this.tags = tags;
-        this.authors = authors;
-        this.createtime = createtime;
-        this.updateat = updateat;
-        this.content = content;
-        this.freq = freq;
-        this.ispublic = ispublic;
-        this.solution = solution;
-        this.showsolution = showsolution;
-    }
 
     // JSON 序列化/反序列化
     private static final ObjectMapper MAPPER = new ObjectMapper()

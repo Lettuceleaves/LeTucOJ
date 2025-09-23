@@ -33,9 +33,7 @@ public class UserServiceImpl implements UserService {
         String cnname = dto.getCnname();
         String rawPwd = dto.getPassword();
         String encodedPwd = PasswordUtil.encrypt(rawPwd);
-        UserDTO userDTO = new UserDTO(username, encodedPwd, cnname);
-        userDTO.setRole("USER");
-        userDTO.setEnabled(false);
+        UserDTO userDTO = new UserDTO(username, cnname, encodedPwd, "USER", false);
         try {
             Integer result = userMybatisRepos.saveUserInfo(userDTO);
             if (!result.equals(1)) {

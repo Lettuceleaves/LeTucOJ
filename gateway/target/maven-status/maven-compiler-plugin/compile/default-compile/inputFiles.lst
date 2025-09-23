@@ -3,7 +3,6 @@ E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\config\WebClientCo
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\tool\SecurityConfig.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\tool\CustomResponseRewriteFilter.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\config\AuthSetting.java
-E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\model\JwtInfoVO.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\tool\JwtFilter.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\service\impl\JwtBlacklistServiceImpl.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\tool\JwtUtil.java

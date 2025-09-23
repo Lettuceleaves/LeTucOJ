@@ -1,4 +1,3 @@
-com\LetucOJ\run\model\dto\UserCodeDTO.class
 com\LetucOJ\run\service\impl\RunServiceImpl.class
 com\LetucOJ\run\runApplication.class
 com\LetucOJ\run\service\Handler.class

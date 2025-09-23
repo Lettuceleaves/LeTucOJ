@@ -13,7 +13,5 @@ com\LetucOJ\practice\model\ListServiceDTO.class
 com\LetucOJ\practice\service\impl\DBServiceImpl.class
 com\LetucOJ\practice\service\PracticeService.class
 com\LetucOJ\practice\service\DBService.class
-com\LetucOJ\practice\model\CheckDTO.class
-com\LetucOJ\practice\config\MinioConfig.class
 com\LetucOJ\practice\PracticeApplication.class
 com\LetucOJ\practice\model\RecordDTO.class

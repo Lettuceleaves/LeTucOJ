@@ -14,7 +14,6 @@ public class ResultVO {
     private Object data;
     private String error;
 
-
     public String toString() {
         return "resultVO{" +
                 "status=" + status +

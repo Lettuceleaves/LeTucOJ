@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PracticeServiceImpl implements PracticeService {
@@ -29,33 +30,31 @@ public class PracticeServiceImpl implements PracticeService {
         try {
             List<String> inputs = new ArrayList<>();
             inputs.add(code);
-            String[] inputFiles;
 
             ProblemStatusDTO problemStatus = mybatisRepos.getStatus(qname);
             System.out.println(problemStatus);
             if (problemStatus == null) {
-                return new ResultVO((byte) 5, null, "practice/submit: Problem not found or not available");
+                return new ResultVO( 5, null, "practice/submit: Problem not found or not available");
             } else if (problemStatus.getCaseAmount() <= 0) {
-                return new ResultVO((byte) 5, null, "practice/submit: No test cases available for this problem: " + qname + " " + problemStatus.getCaseAmount());
+                return new ResultVO( 5, null, "practice/submit: No test cases available for this problem: " + qname + " " + problemStatus.getCaseAmount());
             } else if (!problemStatus.isPublicProblem() && !root) {
-                return new ResultVO((byte) 5, null, "practice/submit: Problem is not available for practice");
+                return new ResultVO( 5, null, "practice/submit: Problem is not available for practice");
             }
             byte[][] inputBytesArrays;
             try {
                 inputBytesArrays = getCases(qname, problemStatus.getCaseAmount(), 0);
             } catch (RuntimeException e) {
-                return new ResultVO((byte) 5, null, "practice/submit: Error retrieving input files: " + e.getMessage());
+                return new ResultVO( 5, null, "practice/submit: Error retrieving input files: " + e.getMessage());
             }
             for (byte[] inputBytes : inputBytesArrays) {
                 inputs.add(new String(inputBytes));
             }
-            List<String> outputs = new ArrayList<>();
             String[] expectedOutputs;
             byte[][] outputBytesArray;
             try {
                 outputBytesArray = getCases(qname, problemStatus.getCaseAmount(), 1);
             } catch (RuntimeException e) {
-                return new ResultVO((byte) 5, null, "practice/submit: Error retrieving output files: " + e.getMessage());
+                return new ResultVO( 5, null, "practice/submit: Error retrieving output files: " + e.getMessage());
             }
             ResultVO runResult = runClient.run(inputs, language);
             System.out.println(runResult.getStatus());
@@ -63,37 +62,51 @@ public class PracticeServiceImpl implements PracticeService {
                 return runResult;
             }
             expectedOutputs = Arrays.toString(outputBytesArray).split("\n");
-            CheckDTO checkResult = checkAnswer(expectedOutputs, ((List<String>)runResult.getData()).toArray(new String[expectedOutputs.length]));
-            if (checkResult.getStatus() == 0) {
-                System.out.println("Accepted");
-                Integer check = mybatisRepos.checkCorrect(pname, qname);
-                if (check == null || check == 0) {
-                    Integer res = mybatisRepos.insertCorrect(pname, qname);
-                    if (res == null || res == 0) {
-                        return new ResultVO((byte) 5, null, "practice/submit: Error recording correct submission");
+            ResultVO checkVO = checkAnswer(expectedOutputs, ((List<String>)runResult.getData()).toArray(new String[expectedOutputs.length]));
+            switch (checkVO.getStatus()) {
+                case 0 -> {
+                    Integer check = mybatisRepos.checkCorrect(pname, qname);
+                    if (check == null || check == 0) {
+                        Integer res = mybatisRepos.insertCorrect(pname, qname);
+                        if (res == null || res == 0) {
+                            return new ResultVO( 5, null, "practice/submit: Error recording correct submission");
+                        }
                     }
+                    return new ResultVO( 0, null, null);
                 }
-                return new ResultVO((byte) 0, null, null);
-            } else if (checkResult.getStatus() == 1) {
-                return new ResultVO((byte) 1, null, checkResult.getMessage());
-            } else {
-                return new ResultVO((byte) 5, null, checkResult.getMessage());
+                case 1 -> {
+                    if (!problemStatus.isShowsolution()) {
+                        Map<String, Object> data = (Map<String, Object>) checkVO.getData();
+                        if (data != null) {
+                            data.put("expected", null);
+                            data.put("actual", null);
+                        }
+                    }
+                    return new ResultVO( 1, checkVO.getData(), null);
+                }
+                default -> {
+                    return new ResultVO( 5, null, "practice/submit: " + checkVO.getError());
+                }
             }
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/submit: " + e.getMessage());
+            return new ResultVO( 5, null, "practice/submit: " + e.getMessage());
         }
     }
 
-    private CheckDTO checkAnswer(String[] expected, String[] actual) {
+    private ResultVO checkAnswer(String[] expected, String[] actual) {
         if (expected.length != actual.length) {
-            return new CheckDTO((byte) 2, "practice/checkAnswer: Test case count mismatch: expected " + expected.length + ", got " + actual.length);
+            return new ResultVO(5, null, "practice/submit: Wrong number of answers");
         }
         for (int i = 0; i < expected.length; i++) {
             if (!expected[i].equals(actual[i])) {
-                return new CheckDTO((byte) 1, "practice/checkAnswer: Test case " + (i + 1) + " failed: expected '" + expected[i] + "', got '" + actual[i] + "'");
+                return new ResultVO(1, Map.of(
+                        "index", i + 1,
+                        "expected", expected[i],
+                        "actual", actual[i]
+                ), "Wrong Answer on case " + (i + 1));
             }
         }
-        return new CheckDTO((byte) 0, null);
+        return new ResultVO(0, null, null);
     }
 
     private byte[][] getCases(String problemId, int amount, int type) { // 0: Input 1: Output 3: Config

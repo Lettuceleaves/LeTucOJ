@@ -1,8 +1,6 @@
 package com.LetucOJ.contest.service.impl;
 
-import com.LetucOJ.common.oss.MinioRepos;
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.contest.client.RunClient;
 import com.LetucOJ.contest.model.db.BoardDTO;
 import com.LetucOJ.contest.model.db.ContestInfoDTO;
 import com.LetucOJ.contest.model.db.FullInfoDTO;
