@@ -22,6 +22,31 @@ cd run || { echo "run folder not found"; exit 1; }
 docker build -t run:latest .
 cd ..
 
+# 构建 run_c 镜像
+cd run_c || { echo "run_c folder not found"; exit 1; }
+docker build -t run_c:latest .
+cd ..
+
+# 构建 run_js 镜像
+cd run_js || { echo "run_js folder not found"; exit 1; }
+docker build -t run_js:latest .
+cd ..
+
+# 构建 run_java 镜像
+cd run_java || { echo "run_java folder not found"; exit 1; }
+docker build -t run_java:latest .
+cd ..
+
+# 构建 run_cpp 镜像
+cd run_cpp || { echo "run_cpp folder not found"; exit 1; }
+docker build -t run_cpp:latest .
+cd ..
+
+# 构建 run_py 镜像
+cd run_py || { echo "run_py folder not found"; exit 1; }
+docker build -t run_py:latest .
+cd ..
+
 # 构建 advice 镜像
 cd advice || { echo "advice folder not found"; exit 1; }
 docker build -t advice:latest .
@@ -35,6 +60,11 @@ cd ..
 # 构建 contest 镜像
 cd contest || { echo "contest folder not found"; exit 1; }
 docker build -t contest:latest .
+cd ..
+
+# 构建 nginx 镜像
+cd nginx || { echo "nginx folder not found"; exit 1; }
+docker build -t nginx:latest .
 cd ..
 
 echo "Building Docker Compose..."

@@ -20,6 +20,7 @@
         <set>
           <option value="cnname" />
           <option value="contestName" />
+          <option value="X-New-Token" />
         </set>
       </option>
     </inspection_tool>

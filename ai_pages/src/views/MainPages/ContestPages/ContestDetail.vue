@@ -95,12 +95,13 @@
 
             <!-- 添加按钮（作为最后一项） -->
             <li
-              v-if="canAddProblem && !isAddingProblem"
+              v-if="userInfo && (userInfo === 'ROOT' || userInfo === 'MANAGER') && !isAddingProblem"
               class="problem-item add-button-row"
               @click="startAddProblem"
             >
               <button class="add-problem-btn">+ 添加题目</button>
             </li>
+
           </ul>
         </template>
       </section>
@@ -184,7 +185,6 @@ import { useRoute, useRouter } from 'vue-router'
 
 const instance = getCurrentInstance()
 const ip = instance.appContext.config.globalProperties.$ip
-
 const route = useRoute()
 const router = useRouter()
 const ctname = route.query.ctname
@@ -255,6 +255,32 @@ const uniqueProblems = computed(() => {
   return Array.from(set)
 })
 
+const userInfo = ref(null)
+
+const loadUserInfo = () => {
+  const token = localStorage.getItem('jwt')
+  if (!token) return
+  const parsed = parseJwt(token)
+  userInfo.value = parsed.role ?? null
+}
+
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
+
+
 const colCount = computed(() => uniqueProblems.value.length + 3)
 
 const groupedByUser = computed(() => {
@@ -293,17 +319,16 @@ async function fetchLeaderboard() {
     })
     const text = await res.text()
     if (!res.ok) {
-      console.warn('获取榜单失败：HTTP', res.status)
+      console.warn('获取榜单失败：HTTP', res.code)
       return
     }
     const json = JSON.parse(text)
-    if ((json.status === 0) && Array.isArray(json.data)) {
+    if ((json.code === '0') && Array.isArray(json.data)) {
       leaderboardData.value = json.data
-    } else if (json.status === 1) {
+    } else if (json.code === 'B020009') {
       leaderboardData.value = []
-      alert('榜单数据为空或未开始竞赛')
     } else {
-      alert('获取榜单失败：' + (json.error || '未知错误'))
+      alert('获取榜单失败：' + (json.message || '未知错误'))
     }
 
   } catch (e) {
@@ -327,11 +352,11 @@ async function confirmDeleteProblem() {
       })
     })
     const json = await res.json()
-    if (json.status === 1 || json.status === 0) {
+    if (json.code === '0') {
       await fetchProblemList()
       closeDeleteConfirm()
     } else {
-      alert(`删除失败：${json.error || '未知错误'}`)
+      alert(`删除失败：${json.message || '未知错误'}`)
     }
   } catch (e) {
     alert(`删除失败：${e.message}`)
@@ -339,6 +364,7 @@ async function confirmDeleteProblem() {
 }
 
 const canAddProblem = computed(() => {
+  alert(userRole.value)
   return ['ROOT', 'MANAGER'].includes(userRole.value)
 })
 
@@ -374,15 +400,15 @@ async function confirmAddProblem() {
       })
     })
     const json = await res.json()
-    if (json.status === 0) {
+    if (json.code === '0') {
       // 成功
       await fetchProblemList()
       cancelAddProblem()
-    } else if (json.status === 1) {
+    } else if (json.code === 'B010002') {
       // 题目不存在，可继续新增
       alert(json.message || '题目未在题库中，请先在题库创建后再添加')
     } else {
-      alert(json.error || '添加失败')
+      alert(json.message || '添加失败')
     }
   } catch (e) {
     alert(`添加失败：${e.message}`)
@@ -447,7 +473,7 @@ async function fetchFullContest() {
     })
     const text = await res.text()
     if (!res.ok) {
-      error.value = `获取详情失败：HTTP ${res.status}`
+      error.value = `获取详情失败：HTTP ${res.code}`
       console.warn('getContest 非 2xx 返回：', text)
       return
     }
@@ -457,10 +483,10 @@ async function fetchFullContest() {
       return
     }
     const json = JSON.parse(text)
-    if ((json.status === 1 || json.status === 0) && json.data) {
+    if ((json.code === '0') && json.data) {
       fullContest.value = json.data
     } else {
-      error.value = json.error || '详情接口返回异常'
+      error.value = json.message || '详情接口返回异常'
     }
   } catch (e) {
     error.value = e.message || '获取详情失败'
@@ -486,7 +512,7 @@ async function fetchProblemList() {
     })
     const text = await res.text()
     if (!res.ok) {
-      problemsError.value = `获取题目失败：HTTP ${res.status}`
+      problemsError.value = `获取题目失败：HTTP ${res.code}`
       console.warn('getProblemList 非 2xx 返回：', text)
       return
     }
@@ -496,10 +522,12 @@ async function fetchProblemList() {
       return
     }
     const json = JSON.parse(text)
-    if ((json.status === 1 || json.status === 0) && Array.isArray(json.data)) {
+    if ((json.code === '0') && Array.isArray(json.data)) {
       problemList.value = json.data
+    } else if (json.code === 'B020007') {
+      problemList.value = []
     } else {
-      problemsError.value = json.error || '题目列表数据异常'
+      problemsError.value = json.message || '题目列表数据异常'
     }
   } catch (e) {
     problemsError.value = e.message || '获取题目失败'
@@ -552,7 +580,7 @@ async function handleAttend() {
     const text = await res.text()
     if (!res.ok) {
       console.warn('attendContest 非 2xx 返回：', text)
-      alert(`参加失败：HTTP ${res.status}`)
+      alert(`参加失败：HTTP ${res.code}`)
       return
     }
     if (text.trim().startsWith('<')) {
@@ -561,10 +589,10 @@ async function handleAttend() {
       return
     }
     const json = JSON.parse(text)
-    if (json.status === 1 || json.status === 0) {
+    if (json.code === '0') {
       attended.value = true
     } else {
-      alert(`参加失败：${json.error || '未知'}`)
+      alert(`参加失败：${json.message || '未知'}`)
     }
   } catch (e) {
     console.error('参加出错', e)
@@ -581,12 +609,12 @@ async function fetchAttendStatus() {
       headers: { Authorization: `Bearer ${token}` }
     })
     const json = await res.json()
-    if (json.status === 0) {
+    if (json.code === '0') {
       attended.value = json.data
-    } else if (json.status === 1) {
+    } else if (json.code === 'B020008') {
       attended.value = false
     } else {
-      console.error('获取参加状态失败', json.error)
+      console.error('获取参加状态失败', json.message)
     }
   } catch (e) {
     console.error('获取参加状态失败', e)
@@ -631,13 +659,7 @@ const problemMaxMap = computed(() => {
 function maxScoreOf(problemName) {
   return problemMaxMap.value[problemName] ?? 0
 }
-/**
- * 计算每题格子的背景：
- * - 0 或无满分 -> 白色
- * - 0 < 分数 < 满分 -> 绿色按比例填充
- * - 分数 >= 满分 -> 金色
- * 文本统一黑色
- */
+
 function scoreBgStyle(score, problemName) {
   const max = maxScoreOf(problemName)
   const s = Number(score) || 0
@@ -661,6 +683,7 @@ function scoreBgStyle(score, problemName) {
 
 /* lifecycle */
 onMounted(async () => {
+  loadUserInfo()
   parseRoleFromJWT()
   fetchFullContest()
   fetchProblemList()

@@ -1,7 +1,6 @@
 package com.LetucOJ.contest.repos;
 
-import com.LetucOJ.contest.model.db.*;
-import com.LetucOJ.contest.model.net.ContestProblemDTO;
+import com.LetucOJ.contest.model.*;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 

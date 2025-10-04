@@ -1,7 +1,9 @@
 package com.LetucOJ.sys.service.impl;
 
 import com.LetucOJ.common.oss.MinioRepos;
+import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.sys.service.SysService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,11 +33,11 @@ public class SysServiceImpl implements SysService {
     public ResultVO getDoc() {
         try {
             String bucketName = "letucoj";
-            String fileName = "doc.md";
-            byte[] file = minioRepos.getFile(bucketName, fileName);
-            return new ResultVO(0, file, "OK");
+            String objectName = "doc.md";
+            byte[] file = minioRepos.getFile(bucketName, objectName);
+            return Result.success(file);
         } catch (Exception e) {
-            return new ResultVO(5, null, "sys/getDoc: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
@@ -43,11 +45,11 @@ public class SysServiceImpl implements SysService {
     public ResultVO updateDoc(byte[] doc) {
         try {
             String bucketName = "letucoj";
-            String fileName = "doc.md";
-            minioRepos.addFile(bucketName, fileName, doc);
-            return new ResultVO(0, null, "OK");
+            String objectName = "doc.md";
+            minioRepos.addFile(bucketName, objectName, doc);
+            return Result.success();
         } catch (Exception e) {
-            return new ResultVO(5, null, "sys/updateDoc: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
@@ -79,23 +81,21 @@ public class SysServiceImpl implements SysService {
             if (exitCode != 0) {
                 try (InputStream in = proc.getInputStream()) {
                     String err = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-                    return new ResultVO(5, null, "mysqldump failed: " + err);
+                    return Result.failure(BaseErrorCode.SERVICE_ERROR);
                 }
             }
 
             // 4. 上传到 MinIO
             byte[] data = Files.readAllBytes(temp);
             String bucketName = "mysql";
-            // 获取当前时间字符串
-            String fileName = new Date().toString() + ".sql";
             minioRepos.addFile(bucketName, objectName, data);
 
             // 5. 清理临时文件
             Files.deleteIfExists(temp);
 
-            return new ResultVO(0, objectName, "OK");
+            return Result.success(objectName);
         } catch (Exception e) {
-            return new ResultVO(5, null, "sys/refreshSql: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 }

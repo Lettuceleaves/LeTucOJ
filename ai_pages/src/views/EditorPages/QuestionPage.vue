@@ -43,7 +43,7 @@ let ed = null
 let dis = null
 
 const getCode = () => ed?.getValue() || ''
-const setCode = (code) => ed?.setValue(code)
+const setCode = (userCode) => ed?.setValue(userCode)
 defineExpose({ getCode, setCode })
 
 function create() {

@@ -1,6 +1,25 @@
 # 使用一个包含 GCC 的基础镜像
 FROM gcc:12
 
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 替换为腾讯云镜像源，并安装 CA 证书
+RUN set -eux; \
+    # 替换 APT 源为腾讯云镜像源
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
+      [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends ca-certificates; \
+    update-ca-certificates; \
+    # 切回 https 源，保持安全
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
+      [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
+    apt-get update; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
+
 # 将前面编写的脚本复制到镜像中
 COPY run.sh /usr/local/bin/run.sh
 
@@ -10,6 +29,5 @@ RUN chmod +x /usr/local/bin/run.sh
 # 将 run.sh 设置为容器的主可执行文件
 ENTRYPOINT ["/usr/local/bin/run.sh"]
 
-# 为 ENTRYPOINT 提供默认参数
-# 在你这里，可以不提供默认参数，让用户在 docker run 时手动传入
+# 默认参数为空，用户可在 docker run 时传入
 CMD []

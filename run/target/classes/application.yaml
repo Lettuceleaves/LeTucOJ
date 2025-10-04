@@ -4,6 +4,8 @@ server:
     connection-timeout: 60000
 
 spring:
+  config:
+    import: "optional:classpath:default.yaml"
   application:
     name: run
   servlet:

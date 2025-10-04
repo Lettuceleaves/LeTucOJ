@@ -1,17 +1,39 @@
 FROM debian:bookworm-slim
 
-# 仅用稳定源安装 Java 17
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 使用腾讯云 APT 镜像：先用 http 引导安装 CA，再切回 https
 RUN set -eux; \
+    for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
+      [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
-        openjdk-17-jre-headless; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-           /usr/share/doc/* /usr/share/man/* /usr/share/info/*
+    apt-get install -y --no-install-recommends ca-certificates; \
+    update-ca-certificates; \
+    # 切回 https
+    for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
+      [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
+    apt-get update; \
+    # 安装 OpenJDK 17
+    apt-get install -y --no-install-recommends openjdk-17-jre-headless; \
+    # 清理缓存和文档，缩小镜像体积
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; \
+    rm -rf /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 
 WORKDIR /app
 COPY advice.jar /app/
-RUN chmod +x /app/advice.jar
+
+# 使用非 root 账户运行
+RUN set -eux; \
+    groupadd -r app && useradd -r -g app app; \
+    chown -R app:app /app; \
+    chmod 0644 /app/advice.jar
+
+USER app
 
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+
 EXPOSE 9999
+
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/advice.jar"]

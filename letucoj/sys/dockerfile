@@ -1,19 +1,47 @@
 # -------------- 基础：官方已瘦身 JRE --------------
 FROM openjdk:17-slim
 
-# 安装 docker-cli 与 mysqldump
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 使用腾讯云镜像源：
 RUN set -eux; \
+    # 替换为腾讯云镜像
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
+      [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
-        docker.io \
-        default-mysql-client; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-           /usr/share/doc/* /usr/share/man/* /usr/share/info/*
+    apt-get install -y --no-install-recommends ca-certificates; \
+    update-ca-certificates; \
+    # 切回 https 源
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
+      [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
+    apt-get update; \
+    # 安装 docker-cli 和 mysql 客户端
+    apt-get install -y --no-install-recommends docker.io default-mysql-client; \
+    # 清理不必要的文件，减小镜像体积
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
+
+# 创建非 root 用户，提升安全性
+RUN set -eux; \
+    groupadd -r app && useradd -r -g app app; \
+    mkdir -p /app && chown -R app:app /app
 
 WORKDIR /app
+
+# 将 sys.jar 复制到容器中
 COPY sys.jar /app/
-RUN chmod +x /app/sys.jar
+
+# 设置正确的权限，确保脚本可执行
+RUN chmod 0644 /app/sys.jar
+
+# 以非 root 用户运行容器
+USER app
 
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+
 EXPOSE 2121
+
+# 启动时执行 Java 程序
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/sys.jar"]

@@ -24,7 +24,13 @@ cd /submission || { echo "5" > status.txt; exit 1; }
 echo "start" > status.txt
 
 # 1. 编译用户程序
-g++ prog.cpp -o a.out -O2 -Wall -lm -std=c++17 -fsanitize=address 2> compile.txt
+g++ prog.cpp -o a.out \
+  -O2 -g3 -fno-omit-frame-pointer -Wall -Wextra -std=c++17 -lm \
+  -fsanitize=address,undefined,integer-divide-by-zero \
+  -fno-sanitize-recover=all \
+  -fsanitize-undefined-trap-on-error \
+  2>compile.txt
+
 
 # 检查编译是否成功
 if [ $? -ne 0 ]; then

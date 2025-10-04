@@ -24,7 +24,13 @@ cd /submission || { echo "5" > status.txt; exit 1; }
 echo "start" > status.txt
 
 # 1. 编译用户程序
-gcc prog.c -o a.out -O2 -Wall -lm -std=c99 -fsanitize=address 2> compile.txt
+gcc prog.c -o a.out \
+  -O2 -g3 -fno-omit-frame-pointer -Wall -Wextra -std=c11 -lm \
+  -fsanitize=address,undefined,leak,shift,integer-divide-by-zero,unreachable,return,vla-bound,null,signed-integer-overflow,pointer-overflow,bounds \
+  -fno-sanitize-recover=all \
+  -fsanitize-undefined-trap-on-error \
+  2>compile.txt
+
 
 # 检查编译是否成功
 if [ $? -ne 0 ]; then

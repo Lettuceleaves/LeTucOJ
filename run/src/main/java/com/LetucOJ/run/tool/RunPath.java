@@ -1,6 +1,5 @@
 package com.LetucOJ.run.tool;
 
-import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -8,11 +7,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class RunPath {
     public static String work_dir = "/app/user/";
-    public static String script_dir = work_dir + "run_isolated.sh";
-
     private static final int MAX_BOX = 1000; // 上限，开区间
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
-
     private static final ThreadLocal<Integer> BOX_HOLDER = new ThreadLocal<>();
 
     public static String getBoxDir(int boxId) {

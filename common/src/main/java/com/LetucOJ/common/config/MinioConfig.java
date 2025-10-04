@@ -5,6 +5,7 @@ import lombok.Data;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+// TODO 统一配置改成yaml文件读取
 @Data
 @Configuration
 public class MinioConfig {

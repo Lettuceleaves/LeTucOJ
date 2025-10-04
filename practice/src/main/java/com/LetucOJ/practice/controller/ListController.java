@@ -15,9 +15,6 @@ import java.nio.charset.StandardCharsets;
 public class ListController {
 
     @Autowired
-    private PracticeService practiceService;
-
-    @Autowired
     private DBService dbService;
 
     @GetMapping("/list")

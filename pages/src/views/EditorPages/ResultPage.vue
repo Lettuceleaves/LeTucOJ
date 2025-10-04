@@ -23,13 +23,13 @@ const resultStatusClass = computed(() => {
     case 1:
       return 'result-fail' // wrong
     case 2:
-      return 'result-compile-error'
+      return 'result-compile-message'
     case 3:
-      return 'result-runtime-error'
+      return 'result-runtime-message'
     case 4:
       return 'result-timeout'
     case 5:
-      return 'result-server-error'
+      return 'result-server-message'
     default:
       return 'result-unknown'
   }

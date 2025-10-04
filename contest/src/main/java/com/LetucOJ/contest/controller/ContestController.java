@@ -1,8 +1,8 @@
 package com.LetucOJ.contest.controller;
 
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.contest.model.db.ContestInfoDTO;
-import com.LetucOJ.contest.model.net.ContestProblemDTO;
+import com.LetucOJ.contest.model.ContestInfoDTO;
+import com.LetucOJ.contest.model.ContestProblemDTO;
 import com.LetucOJ.contest.service.DBService;
 import com.LetucOJ.contest.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,11 +46,6 @@ public class ContestController {
     @PutMapping("/updateContest")
     public ResultVO updateContest(@RequestBody ContestInfoDTO dto) throws Exception {
         return dbService.updateContest(dto);
-    }
-
-    @DeleteMapping("/deleteContest")
-    public ResultVO deleteContest(@RequestParam("ctname") String ctname) throws Exception {
-        return dbService.deleteContest(ctname);
     }
 
     @PostMapping("/insertProblem")

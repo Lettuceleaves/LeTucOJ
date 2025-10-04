@@ -49,7 +49,7 @@
 //        try {
 //            resultVO = runService.run(inputFiles, true);
 //        } catch (Exception e) {
-//            log.error("e: ", e);
+//            log.message("e: ", e);
 //        }
 //
 //        String testFilePath = "E:\\projects\\OMS2.0\\test\\testSpace";

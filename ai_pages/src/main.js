@@ -15,3 +15,28 @@ app.config.globalProperties.$dialog = Dialog
 
 app.mount('#app')
 app.config.globalProperties.$ip = "localhost"
+
+/* ---------- 全局 fetch 拦截 ---------- */
+;(function () {
+  const _originFetch = window.fetch
+  window.fetch = async function (...args) {
+
+    const res = await _originFetch(...args)
+
+
+    const cloned = res.clone()
+    
+    const data = await cloned.json();
+
+    if (data.code === "A010003") {
+      localStorage.removeItem("jwt")
+      router.push("/login")
+    }
+
+    if (data.token) {
+      localStorage.setItem('jwt', data.token);
+    }
+
+    return res
+  }
+})()

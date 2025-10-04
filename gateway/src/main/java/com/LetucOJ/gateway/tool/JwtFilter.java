@@ -1,12 +1,21 @@
 package com.LetucOJ.gateway.tool;
 
+import com.LetucOJ.common.cache.Redis;
+import com.LetucOJ.common.result.Result;
+import com.LetucOJ.common.result.errorcode.BaseErrorCode;
+import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -97,69 +106,64 @@ public class JwtFilter implements WebFilter {
         try {
             claims = JwtUtil.parseToken(token);
         } catch (JwtException ex) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            byte[] bytes = "无效的 Token".getBytes(StandardCharsets.UTF_8);
-            return exchange.getResponse().writeWith(
-                    Mono.just(exchange.getResponse().bufferFactory().wrap(bytes))
+            /* 1. 返回 200，但 code=401 */
+            String body = Result.failure(BaseErrorCode.NEED_LOGIN).toJsonString();
+            byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+
+            /* 2. 重写响应头 */
+            ServerHttpResponse resp = exchange.getResponse();
+
+            resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+            resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET,POST,PUT,DELETE,OPTIONS");
+            resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "Authorization,Content-Type");
+            resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+
+            resp.setStatusCode(HttpStatus.OK);          // 200
+            resp.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            resp.getHeaders().setContentLength(bytes.length);
+
+            return resp.writeWith(
+                    Mono.just(resp.bufferFactory().wrap(bytes))
             );
         }
 
-        // 检查黑名单
-        return redisTemplate.hasKey(BLACKLIST_PREFIX + token)
-                .flatMap(isBlacklisted -> {
-                    if (Boolean.TRUE.equals(isBlacklisted)) {
-                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                        byte[] bytes = "Token 已失效，请重新登录".getBytes(StandardCharsets.UTF_8);
-                        return exchange.getResponse().writeWith(
-                                Mono.just(exchange.getResponse().bufferFactory().wrap(bytes))
-                        );
-                    }
+        if (Redis.mapGet("black:" + claims.getSubject()) != null) {
+            return JwtUtil.writeErrorResponse(exchange, GatewayErrorCode.USER_BLOCKED);
+        }
+        /* ---------- 黑名单未命中，继续走业务 ---------- */
 
-                    // 注入参数（ttl, sub, cnname）
+        // 注入参数（同你原来逻辑）
+        ServerWebExchange mutated = exchange;
+        URI originalUri = exchange.getRequest().getURI();
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(originalUri);
 
-                    ServerWebExchange mutated = exchange;
-                    URI originalUri = exchange.getRequest().getURI();
-                    UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(originalUri);
+        String pname = claims.getSubject();
+        if (NAME_REQUIRED.contains(path)) {
+            uriBuilder.replaceQueryParam("pname", pname);
+        }
+        exchange.getAttributes().put("username", pname);
 
-                    // 计算剩余 TTL（秒）
-                    long ttlSeconds = (claims.getExpiration().getTime() - System.currentTimeMillis()) / 1000;
-                    if (ttlSeconds < 0) {
-                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                        byte[] expired = "Token 已过期".getBytes(StandardCharsets.UTF_8);
-                        return exchange.getResponse().writeWith(
-                                Mono.just(exchange.getResponse().bufferFactory().wrap(expired))
-                        );
-                    }
-                    if (TTL_REQUIRED.contains(path)) {
-                        uriBuilder.replaceQueryParam("ttl", ttlSeconds);
-                    }
+        String cnname = claims.get("cnname", String.class);
+        if (CNNAME_REQUIRED.contains(path)) {
+            uriBuilder.replaceQueryParam("cnname", cnname);
+        }
 
-                    String pname = claims.get("sub", String.class);
-                    if (NAME_REQUIRED.contains(path)) {
-                        uriBuilder.replaceQueryParam("pname", pname);
-                    }
+        if (TTL_REQUIRED.contains(path) || NAME_REQUIRED.contains(path) || CNNAME_REQUIRED.contains(path)) {
+            URI updatedUri = uriBuilder.build().encode().toUri();
+            mutated = exchange.mutate()
+                    .request(r -> r.uri(updatedUri))
+                    .build();
+        }
 
-                    String cnname = claims.get("cnname", String.class);
-                    if (CNNAME_REQUIRED.contains(path)) {
-                        uriBuilder.replaceQueryParam("cnname", cnname);
-                    }
+        // 设置认证上下文
+        String role = claims.get("role", String.class);
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                claims.getSubject(), null,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role)));
 
-                    if (TTL_REQUIRED.contains(path) || NAME_REQUIRED.contains(path) || CNNAME_REQUIRED.contains(path)) {
-                        URI updatedUri = uriBuilder.build().encode().toUri();
+        // 正常放行
+        return chain.filter(mutated)
+                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
 
-                        var mutatedRequest = exchange.getRequest().mutate()
-                                .uri(updatedUri).build();
-                        mutated = exchange.mutate().request(mutatedRequest).build();
-                    }
-
-                    // 设置认证上下文
-                    String role = claims.get("role", String.class);
-                    Authentication auth = new UsernamePasswordAuthenticationToken(
-                            claims.getSubject(), null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
-                    );
-                    return chain.filter(mutated)
-                            .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
-                });
     }
 }

@@ -20,7 +20,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResultVO login(@RequestBody RegisterRequestDTO dto) {
-        return userService.authenticate(dto);
+        return userService.login(dto);
     }
 
     @PutMapping("/activate")
@@ -38,13 +38,6 @@ public class UserController {
                            @RequestParam("ttl") long ttl) {
         String token = authHeader.replace("Bearer ", "");
         return userService.logout(token, ttl);
-    }
-
-    @PutMapping("/change-password")
-    public ResultVO changePassword(@RequestParam("pname") String pname,
-                                   @RequestParam String oldPassword,
-                                   @RequestParam String newPassword) {
-        return userService.changePassword(pname, oldPassword, newPassword);
     }
 
     @GetMapping("/users")
@@ -70,5 +63,10 @@ public class UserController {
     @GetMapping("/rank")
     public ResultVO getRankings() {
         return userService.getUserRankings();
+    }
+
+    @GetMapping("/refresh")
+    public ResultVO refreshToken(@RequestParam("pname") String pname) {
+        return userService.refreshToken(pname);
     }
 }

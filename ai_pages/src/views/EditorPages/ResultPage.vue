@@ -3,8 +3,8 @@
     <h3 class="title">运行结果</h3>
     <div :class="['result-box', resultStatusClass]">
       <p><strong>状态：</strong>{{ resultStatusText }}</p>
-      <p><strong>输出信息：</strong>{{ result.dataAsString || result.data || '无输出' }}</p>
-      <p v-if="result.error"><strong>错误信息：</strong>{{ result.error }}</p>
+      <p><strong>输出信息：</strong>{{result.data || '无输出' }}</p>
+      <p v-if="result.error"><strong>错误信息：</strong>{{ result.message }}</p>
     </div>
   </div>
 </template>
@@ -17,33 +17,31 @@ const props = defineProps({
 })
 
 const statusTextMap = {
-  0: '通过',
-  1: '答案错误',
-  2: '编译错误',
-  3: '运行时错误',
-  4: '超时',
-  5: '服务器错误',
+  "0": '通过',
+  'B010005': '答案错误',
+  'B010006': '编译错误',
+  'B010007': '运行时错误',
+  'B010008': '超时',
+  '5': '服务器错误',
   '-1': '未知状态',
 }
 
 const resultStatusText = computed(() => {
-  return statusTextMap[props.result.status] ?? '未知状态'
+  return statusTextMap[props.result.code] ?? '未知状态'
 })
 
 const resultStatusClass = computed(() => {
-  switch (props.result.status) {
-    case 0:
+  switch (props.result.code) {
+    case "0":
       return 'result-success'
-    case 1:
+    case 'B010005':
       return 'result-fail'
-    case 2:
+    case 'B010006':
       return 'result-compile-error'
-    case 3:
-      return 'result-runtime-error'
-    case 4:
+    case 'B010007':
+      return 'result-runtime-message'
+    case 'B010008':
       return 'result-timeout'
-    case 5:
-      return 'result-server-error'
     default:
       return 'result-unknown'
   }
@@ -67,14 +65,14 @@ const resultStatusClass = computed(() => {
   border: 1px solid #facc15;
 }
 
-.result-runtime-error {
+.result-runtime-message {
   background-color: #fde2e1;
   border: 1px solid #f97316;
 }
 
 .result-timeout {
-  background-color: #fef9c3;
-  border: 1px solid #eab308;
+  background-color: #d8f2d8;
+  border: 1px solid #6f9877;
 }
 
 .result-server-error {

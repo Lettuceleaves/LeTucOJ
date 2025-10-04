@@ -1,17 +1,38 @@
 FROM debian:bookworm-slim
 
-# 仅用稳定源安装 Java 17
+ENV DEBIAN_FRONTEND=noninteractive
 RUN set -eux; \
+    for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
+      if [ -f "$f" ]; then \
+        sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
+      fi; \
+    done; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
-        openjdk-17-jre-headless; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-           /usr/share/doc/* /usr/share/man/* /usr/share/info/*
+    apt-get install -y --no-install-recommends ca-certificates; \
+    update-ca-certificates; \
+    for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
+      if [ -f "$f" ]; then \
+        sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
+      fi; \
+    done; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends openjdk-17-jre-headless; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; \
+    rm -rf /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 
 WORKDIR /app
 COPY practice.jar /app/
-RUN chmod +x /app/practice.jar
+
+# 推荐使用非 root 账户运行
+RUN set -eux; \
+    groupadd -r app && useradd -r -g app app; \
+    chown -R app:app /app; \
+    chmod 0644 /app/practice.jar
+
+USER app
 
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+
 EXPOSE 2222
+
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/practice.jar"]

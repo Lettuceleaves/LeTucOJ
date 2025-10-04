@@ -1,17 +1,49 @@
+# 使用 debian:bookworm-slim 作为基础镜像
 FROM debian:bookworm-slim
 
-# 仅用稳定源安装 Java 17
+# 环境变量，避免 apt-get 提示交互
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 使用腾讯云镜像源并安装 Java 17
 RUN set -eux; \
+    # 替换 APT 源为腾讯云镜像
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
+      [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
-        openjdk-17-jre-headless; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-           /usr/share/doc/* /usr/share/man/* /usr/share/info/*
+    apt-get install -y --no-install-recommends ca-certificates; \
+    update-ca-certificates; \
+    # 切回 https 源，保持安全
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
+      [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
+    apt-get update; \
+    # 安装 Java 17
+    apt-get install -y --no-install-recommends openjdk-17-jre-headless; \
+    # 清理缓存，减小镜像体积
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
+
+# 创建非 root 用户，增强容器安全性
+RUN set -eux; \
+    groupadd -r app && useradd -r -g app app; \
+    mkdir -p /app && chown -R app:app /app
 
 WORKDIR /app
-COPY user.jar /app/
-RUN chmod +x /app/user.jar
 
+# 将 user.jar 复制到容器中
+COPY user.jar /app/
+
+# 设置文件权限
+RUN chmod 0644 /app/user.jar
+
+# 使用非 root 用户运行容器
+USER app
+
+# 设置 Java 运行时参数
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+
 EXPOSE 5555
+
+# 启动 Java 程序
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/user.jar"]

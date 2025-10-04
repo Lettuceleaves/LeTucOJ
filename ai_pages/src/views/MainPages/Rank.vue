@@ -38,7 +38,6 @@
 
 <script setup>
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
-import axios from 'axios'
 
 /* ---------- 基础响应式数据 ---------- */
 const instance = getCurrentInstance()
@@ -64,20 +63,27 @@ const medalClass = idx =>
 /* ---------- 获取数据 ---------- */
 async function fetchRankData() {
   try {
-    const token = localStorage.getItem('jwt')
-    const { data: res } = await axios.get(`http://${ip}/user/rank`, {
+    const token = localStorage.getItem('jwt');
+    const res = await fetch(`http://${ip}/user/rank`, {
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
-    })
-    if (res.status === 0) rankData.value = res.data || []
-    else throw new Error(res.error || '获取数据失败')
+    });
+    const { code, data, error } = await res.json(); // 一次性解构
+
+    if (code === '0') {
+      rankData.value = data || [];
+    } else {
+      throw new Error(error || '获取数据失败');
+    }
   } catch (err) {
-    error.value = err.message || '网络错误'
+    error.value = err.message || '网络错误';
   } finally {
-    loading.value = false
+    loading.value = false;
   }
+
 }
 
 onMounted(() => {

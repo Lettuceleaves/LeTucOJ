@@ -69,7 +69,7 @@ const router = createRouter({
     {
       path: '/user',
       name: 'user',
-      component: () => import('../views/UserPage.vue'),
+      component: () => import('../views/ManagePage.vue'),
     },
   ],
 });

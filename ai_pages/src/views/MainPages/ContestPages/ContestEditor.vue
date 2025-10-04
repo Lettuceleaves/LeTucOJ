@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick, getCurrentInstance } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, getCurrentInstance, provide, readonly } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import DescriptionPage from './EditorPages/DescriptionPage.vue'
@@ -67,22 +67,26 @@ const instance = getCurrentInstance()
 const ip = instance.appContext.config.globalProperties.$ip
 
 const questionPageRef = ref(null)
-const resultData = computed(() => result.value || { status: -1 })
+const resultData = computed(() => result.value || { code: '-1' })
+
+const selectedLanguage = ref('c')
+
+provide('lang', readonly(selectedLanguage))
+provide('setLang', (val) => { selectedLanguage.value = val })
 
 const sendCode = async (code) => {
   activeTab.value = 'result'
   result.value = {
-    status: -1,
+    code: '-1',
     data: "正在提交，请等待"
   }
   try {
     const token = localStorage.getItem('jwt')
     const params = new URLSearchParams({
-      qname: problem.value,      // ✅ 使用 route.query
-      ctname: contest.value,     // ✅ 使用 route.query
-      lang: 'C'
+      qname: problem.value,
+      ctname: contest.value,
+      lang: selectedLanguage.value
     })
-    console.log('提交参数', params.toString())
 
     const response = await fetch(`http://${ip}/contest/submit?${params}`, {
       method: 'POST',
@@ -94,13 +98,13 @@ const sendCode = async (code) => {
     })
     const data = await response.json()
     result.value = {
-      status: data.status,
+      code: data.code,
       data: data.data,
       dataAsString: data.dataAsString,
       error: data.error || null
     }
   } catch (error) {
-    result.value = { status: -1, error: error.message || '未知错误' }
+    result.value = { code: '-1', error: error.message || '未知错误' }
   }
 }
 
@@ -136,7 +140,7 @@ const fetchDataOnRefresh = async () => {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     })
-    if (!response.ok) throw new Error(`请求失败，状态码：${response.status}`)
+    if (!response.ok) throw new Error(`请求失败，状态码：${response.code}`)
     const data = await response.json()
     problemData.value = data.data || {}
   } catch (error) {

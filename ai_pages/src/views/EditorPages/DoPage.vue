@@ -26,7 +26,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import DescriptionPage from './DescriptionPage.vue'
 import QuestionPage from './QuestionPage.vue'
 
-defineProps({
+const props = defineProps({
   editorReady: Boolean,
   problemData: Object
 })
@@ -35,7 +35,13 @@ defineEmits(['exit','submit','check'])
 const qRef = ref()
 defineExpose({
   getCode: () => qRef.value?.getCode?.(),
-  setCode: c => qRef.value?.setCode?.(c)
+  setCode: c => qRef.value?.setCode?.(c),
+  // 新增：获取 AI 聊天所需的完整上下文
+  getAIContext: () => ({
+    problem: {description: props.problemData?.content}, 
+    language: qRef.value?.selectedLanguage?.value, // 从 QuestionPage 获取语言
+    code: qRef.value?.getCode?.() // 从 QuestionPage 获取代码
+  })
 })
 
 // 左侧宽度百分比

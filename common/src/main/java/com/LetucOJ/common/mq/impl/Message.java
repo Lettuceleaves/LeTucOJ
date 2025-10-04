@@ -13,10 +13,10 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class Message implements Serializable {
     private String topic;          // 主题
-    private String tag;            // 标签（RocketMQ 专用）
+    private String tag;            // 标签
     private String key;            // 业务主键
     private String body;           // 消息体（JSON 字符串）
+    private String timestamp;        // 消息时间戳
     private Integer delayLevel;    // 延迟等级（RocketMQ）
-    private Long timestamp;        // 消息时间戳
 }
 

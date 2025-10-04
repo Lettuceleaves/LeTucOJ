@@ -1,4 +1,19 @@
 services:
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ../mysql/letucoj.sql:/docker-entrypoint-initdb.d/letucoj.sql
+      - ../mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: '430103535'
+      MYSQL_DATABASE: letucoj
+    mem_limit: 2g
+    mem_reservation: 1g
+
   redis:
     image: redis:7.2-alpine
     container_name: redis
@@ -7,6 +22,33 @@ services:
       - "6379:6379"
     mem_limit: 256m
     mem_reservation: 128m
+    
+  
+  namesrv:
+    image: apache/rocketmq:5.3.3
+    container_name: rocketmq-namesrv
+    ports:
+      - "9876:9876"
+    mem_limit: 512m
+    mem_reservation: 256m
+    command: sh mqnamesrv
+    restart: always
+
+  broker:
+      image: apache/rocketmq:5.3.3
+      container_name: rocketmq-broker
+      ports:
+        - "10911:10911"
+        - "10909:10909"
+      volumes:
+        - ./broker.conf:/home/rocketmq/rocketmq-5.3.3/conf/broker.conf
+      environment:
+        - NAMESRV_ADDR=namesrv:9876
+        - JAVA_OPT=-Xms512m -Xmx512m
+      command: sh mqbroker -c /home/rocketmq/rocketmq-5.3.3/conf/broker.conf
+      restart: always
+      depends_on:
+        - namesrv
 
   minio:
     image: minio/minio
@@ -88,6 +130,7 @@ services:
     volumes:
       - ./user:/app/user
       - /var/run/docker.sock:/var/run/docker.sock
+    user: "0:0"
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
       - HOST_DIR=${HOST_DIR}
@@ -101,20 +144,6 @@ services:
     mem_reservation: 256m
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
-
-  mysql:
-    image: mysql:latest
-    container_name: mysql
-    ports:
-      - "3306:3306"
-    volumes:
-      - ../mysql/letucoj.sql:/docker-entrypoint-initdb.d/letucoj.sql
-      - ../mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
-    environment:
-      MYSQL_ROOT_PASSWORD: '430103535'
-      MYSQL_DATABASE: letucoj
-    mem_limit: 2g
-    mem_reservation: 1g
 
   nginx:
     image: nginx:latest

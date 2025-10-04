@@ -70,12 +70,8 @@
             <artifactId>mybatis-plus</artifactId>
         </dependency>
 
-        <!-- redis -->
+        <!-- common -->
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.oms</groupId>
             <artifactId>common</artifactId>

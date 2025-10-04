@@ -1,7 +1,10 @@
 package com.LetucOJ.practice.service.impl;
 
 import com.LetucOJ.common.oss.MinioRepos;
+import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.common.result.errorcode.BaseErrorCode;
+import com.LetucOJ.common.result.errorcode.PracticeErrorCode;
 import com.LetucOJ.practice.client.RunClient;
 import com.LetucOJ.practice.model.*;
 import com.LetucOJ.practice.repos.MybatisRepos;
@@ -9,10 +12,8 @@ import com.LetucOJ.practice.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 @Service
 public class PracticeServiceImpl implements PracticeService {
@@ -32,19 +33,19 @@ public class PracticeServiceImpl implements PracticeService {
             inputs.add(code);
 
             ProblemStatusDTO problemStatus = mybatisRepos.getStatus(qname);
-            System.out.println(problemStatus);
+
             if (problemStatus == null) {
-                return new ResultVO( 5, null, "practice/submit: Problem not found or not available");
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
             } else if (problemStatus.getCaseAmount() <= 0) {
-                return new ResultVO( 5, null, "practice/submit: No test cases available for this problem: " + qname + " " + problemStatus.getCaseAmount());
+                return Result.failure(BaseErrorCode.NO_CASE_EXIST);
             } else if (!problemStatus.isPublicProblem() && !root) {
-                return new ResultVO( 5, null, "practice/submit: Problem is not available for practice");
+                return Result.failure(PracticeErrorCode.NOT_PUBLIC);
             }
             byte[][] inputBytesArrays;
             try {
                 inputBytesArrays = getCases(qname, problemStatus.getCaseAmount(), 0);
             } catch (RuntimeException e) {
-                return new ResultVO( 5, null, "practice/submit: Error retrieving input files: " + e.getMessage());
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
             for (byte[] inputBytes : inputBytesArrays) {
                 inputs.add(new String(inputBytes));
@@ -54,62 +55,57 @@ public class PracticeServiceImpl implements PracticeService {
             try {
                 outputBytesArray = getCases(qname, problemStatus.getCaseAmount(), 1);
             } catch (RuntimeException e) {
-                return new ResultVO( 5, null, "practice/submit: Error retrieving output files: " + e.getMessage());
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
             ResultVO runResult = runClient.run(inputs, language);
-            System.out.println(runResult.getStatus());
-            if (runResult.getStatus() != 0) {
+            if (!runResult.getCode().equals("0")) {
                 return runResult;
             }
-            expectedOutputs = Arrays.toString(outputBytesArray).split("\n");
-            ResultVO checkVO = checkAnswer(expectedOutputs, ((List<String>)runResult.getData()).toArray(new String[expectedOutputs.length]));
-            switch (checkVO.getStatus()) {
-                case 0 -> {
-                    Integer check = mybatisRepos.checkCorrect(pname, qname);
-                    if (check == null || check == 0) {
-                        Integer res = mybatisRepos.insertCorrect(pname, qname);
-                        if (res == null || res == 0) {
-                            return new ResultVO( 5, null, "practice/submit: Error recording correct submission");
-                        }
+            expectedOutputs = getExpectedOutputs(outputBytesArray);
+            ResultVO resultVO = checkAnswer(expectedOutputs, ((List<String>)runResult.getData()).toArray(new String[expectedOutputs.length]));
+            if (resultVO.getCode().equals("0")) {
+                Integer check = mybatisRepos.checkCorrect(pname, qname);
+                if (check == null || check == 0) {
+                    Integer res = mybatisRepos.insertCorrect(pname, qname);
+                    if (res == null || res == 0) {
+                        return Result.failure(BaseErrorCode.SERVICE_ERROR);
                     }
-                    return new ResultVO( 0, null, null);
                 }
-                case 1 -> {
-                    if (!problemStatus.isShowsolution()) {
-                        Map<String, Object> data = (Map<String, Object>) checkVO.getData();
-                        if (data != null) {
-                            data.put("expected", null);
-                            data.put("actual", null);
-                        }
-                    }
-                    return new ResultVO( 1, checkVO.getData(), null);
-                }
-                default -> {
-                    return new ResultVO( 5, null, "practice/submit: " + checkVO.getError());
-                }
+                return Result.success();
             }
+            System.out.println(resultVO.getCode());
+            return resultVO;
         } catch (Exception e) {
-            return new ResultVO( 5, null, "practice/submit: " + e.getMessage());
+            System.out.println(e);
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
+    }
+
+    private String[] getExpectedOutputs(byte[][] outputBytesArray) {
+        return Arrays.stream(outputBytesArray)          // byte[][]
+                .map(bytes -> new String(bytes, StandardCharsets.UTF_8)) // byte[] -> String
+                .flatMap(s -> Arrays.stream(s.split("\\R"))) // 按行拆分
+                .toArray(String[]::new);
     }
 
     private ResultVO checkAnswer(String[] expected, String[] actual) {
         if (expected.length != actual.length) {
-            return new ResultVO(5, null, "practice/submit: Wrong number of answers");
+            System.out.println(expected.length + " != " + actual.length);
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
         for (int i = 0; i < expected.length; i++) {
+            System.out.println(expected[i] + " == " + actual[i]);
             if (!expected[i].equals(actual[i])) {
-                return new ResultVO(1, Map.of(
-                        "index", i + 1,
-                        "expected", expected[i],
-                        "actual", actual[i]
-                ), "Wrong Answer on case " + (i + 1));
+                String msg = "expect: " + expected[i].substring(0, Math.min(500, expected[i].length())) + " but actual: " + actual[i].substring(0, Math.min(500, actual[i].length())) + " at case " + (i + 1);
+                System.out.println(msg);
+                return Result.failure(BaseErrorCode.WRONG_ANSWER, msg);
             }
         }
-        return new ResultVO(0, null, null);
+        System.out.println("check success");
+        return Result.success();
     }
 
-    private byte[][] getCases(String problemId, int amount, int type) { // 0: Input 1: Output 3: Config
+    private byte[][] getCases(String problemId, int amount, int type) {
 
         byte[][] cases = new byte[amount][];
         for (int i = 1; i <= amount; i++) {
@@ -117,11 +113,11 @@ public class PracticeServiceImpl implements PracticeService {
             String bucketName = "letucoj";
             try {
                 if (type == 1) {
-                    String fileName = "problems/" + problemId + "/output/" + i + ".txt";
-                    file = minioRepos.getFile(bucketName, fileName);
+                    String objectName = "problems/" + problemId + "/output/" + i + ".txt";
+                    file = minioRepos.getFile(bucketName, objectName);
                 } else {
-                    String fileName = "problems/" + problemId + "/input/" + i + ".txt";
-                    file = minioRepos.getFile(bucketName, fileName);
+                    String objectName = "problems/" + problemId + "/input/" + i + ".txt";
+                    file = minioRepos.getFile(bucketName, objectName);
                 }
                 if (file == null) {
                     throw new Exception("practice/getCases: File " + i + " not found");

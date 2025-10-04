@@ -20,7 +20,6 @@
 
 <script setup>
 import { ref, getCurrentInstance  } from 'vue';
-import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const username = ref('');
@@ -34,35 +33,31 @@ const ip = instance.appContext.config.globalProperties.$ip
 
 const login = async () => {
   try {
-    const response = await axios.post(`http://${ip}/user/login`, {
-      username: username.value,
-      password: password.value,
+    const res = await fetch(`http://${ip}/user/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: username.value,
+        password: password.value
+      })
     });
 
-    if (response.data.status === 0) {
-    } else if (response.data.status === 1) {
-      alert('账号未激活，请联系管理员');
+    // 先把响应体一次性读出来
+    const data = await res.json();
+
+    if (data.code === '0') {
+      router.push('/main');
+      return;
+    } else if (data.status === 'B070004') {
+      alert(data.message);
       router.push('/');
       return;
     } else {
-      alert(JSON.stringify(response));
+      alert('网页错误，请联系开发者');
       return;
     }
-
-    if (response.data && response.data.data.token) {
-      // 存储 token
-      localStorage.setItem('jwt', response.data.data.token);
-      // 角色等信息如果后端没返回，可以省略
-      router.push('/main');
-    } else {
-      alert('登录失败：后端未返回 token');
-    }
-  } catch (error) {
-    if (error.response && error.response.data) {
-      alert('登录失败：' + (error.response.data.error || '未知错误'));
-    } else {
-      alert('登录失败：网络错误或服务器未响应');
-    }
+  } catch (err) {
+    alert('登录失败：网络错误或服务器未响应');
   }
 };
 

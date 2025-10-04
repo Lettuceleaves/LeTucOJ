@@ -1,7 +1,10 @@
 package com.LetucOJ.practice.service.impl;
 
 import com.LetucOJ.common.oss.MinioRepos;
+import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.common.result.errorcode.BaseErrorCode;
+import com.LetucOJ.common.result.errorcode.PracticeErrorCode;
 import com.LetucOJ.practice.client.RunClient;
 import com.LetucOJ.practice.model.*;
 import com.LetucOJ.practice.repos.MybatisRepos;
@@ -30,7 +33,7 @@ public class DBServiceImpl implements DBService {
         try {
 
             if (dto.getStart() == null || dto.getLimit() == null) {
-                return new ResultVO(5, null, "practice/getList: Start or limit is null");
+                return Result.failure(BaseErrorCode.CLIENT_ERROR);
             }
 
             Integer amount = mybatisRepos.getAmount(dto);
@@ -38,9 +41,9 @@ public class DBServiceImpl implements DBService {
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte) 1, null, "practice/getList: No problems found in Mybatis");
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
             } else if (amount == null || amount < 0) {
-                return new ResultVO((byte) 5, null, "practice/getList: Amount is null or <0 in Mybatis");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
 
             for (ListDTO item : list) {
@@ -49,13 +52,12 @@ public class DBServiceImpl implements DBService {
                 }
             }
 
-            return new ResultVO((byte) 0,
-                    Map.of(
-                            "list",   list,
-                            "amount", amount
-                    ), null);
+            return Result.success(Map.of(
+                "list",   list,
+                "amount", amount
+            ));
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/getList: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
@@ -64,7 +66,7 @@ public class DBServiceImpl implements DBService {
         try {
 
             if (dto.getStart() == null || dto.getLimit() == null) {
-                return new ResultVO((byte) 5, null, "practice/getListInRoot: Start or limit is null");
+                return Result.failure(BaseErrorCode.CLIENT_ERROR);
             }
 
             Integer amount = mybatisRepos.getAmountInRoot(dto);
@@ -72,9 +74,9 @@ public class DBServiceImpl implements DBService {
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte) 1, null, "practice/getListInRoot: No problems found in Mybatis");
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
             } else if (amount == null || amount < 0) {
-                return new ResultVO((byte) 5, null, "practice/getListInRoot: Amount is null or <0 in Mybatis");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
 
             for (ListDTO item : list) {
@@ -83,13 +85,13 @@ public class DBServiceImpl implements DBService {
                 }
             }
 
-            return new ResultVO((byte) 0,
+            return Result.success(
                     Map.of(
                             "list",   list,
                             "amount", amount
-                    ), null);
+                    ));
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/getListInRoot: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
@@ -97,7 +99,7 @@ public class DBServiceImpl implements DBService {
     public ResultVO searchList(ListServiceDTO dto, String name) {
         try {
             if (dto.getStart() == null || dto.getLimit() == null) {
-                return new ResultVO((byte) 5, null, "practice/searchList: Start or limit is null");
+                return Result.failure(BaseErrorCode.CLIENT_ERROR);
             }
 
             if (dto.getOrder() == null || dto.getOrder().isEmpty()) {
@@ -113,9 +115,9 @@ public class DBServiceImpl implements DBService {
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte) 1, null, "practice/searchList: No problems found in Mybatis");
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
             } else if (amount == null || amount < 0) {
-                return new ResultVO((byte) 5, null, "practice/searchList: Amount is null or <0 in Mybatis");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
 
             for (ListDTO item : list) {
@@ -124,13 +126,13 @@ public class DBServiceImpl implements DBService {
                 }
             }
 
-            return new ResultVO((byte) 0,
+            return Result.success(
                     Map.of(
                             "list",   list,
                             "amount", amount
-                    ), null);
+                    ));
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/searchList: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
@@ -138,7 +140,7 @@ public class DBServiceImpl implements DBService {
     public ResultVO searchListInRoot(ListServiceDTO dto, String name) {
         try {
             if (dto.getStart() == null || dto.getLimit() == null) {
-                return new ResultVO((byte) 5, null, "practice/searchListInRoot: Start or limit is null");
+                return Result.failure(BaseErrorCode.CLIENT_ERROR);
             }
 
             if (dto.getOrder() == null || dto.getOrder().isEmpty()) {
@@ -154,9 +156,9 @@ public class DBServiceImpl implements DBService {
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
-                return new ResultVO((byte) 1, null, "practice/searchListInRoot: No problems found in Mybatis");
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
             } else if (amount == null || amount < 0) {
-                return new ResultVO((byte) 5, null, "practice/searchListInRoot: Amount is null or <0 in Mybatis");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
 
             for (ListDTO item : list) {
@@ -165,13 +167,13 @@ public class DBServiceImpl implements DBService {
                 }
             }
 
-            return new ResultVO((byte) 0,
+            return Result.success(
                     Map.of(
                             "list",   list,
                             "amount", amount
-                    ), null);
+                    ));
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/searchListInRoot: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
@@ -182,15 +184,15 @@ public class DBServiceImpl implements DBService {
             FullInfoDTO dbDto = mybatisRepos.getProblem(name);
 
             if (dbDto == null) {
-                return new ResultVO((byte) 5, null, "practice/getProblem: Problem not found in Mybatis");
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
             } else if (dbDto.getShowsolution() == true) {
-                return new ResultVO((byte) 0, dbDto, null);
+                return Result.success(dbDto);
             } else {
                 dbDto.setSolution("题解已隐藏");
-                return new ResultVO((byte) 0, dbDto, null);
+                return Result.success(dbDto);
             }
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/getProblem: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
@@ -201,12 +203,12 @@ public class DBServiceImpl implements DBService {
             FullInfoDTO dbDto = mybatisRepos.getProblemInRoot(name);
 
             if (dbDto == null) {
-                return new ResultVO((byte) 5, null, "practice/getProblemInRoot: Problem not found in Mybatis");
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
             } else {
-                return new ResultVO((byte) 0, dbDto, null);
+                return Result.success(dbDto);
             }
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/getProblemInRoot: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
     public ResultVO insertProblem(FullInfoDTO dto) {
@@ -215,33 +217,31 @@ public class DBServiceImpl implements DBService {
         try {
             Integer rows = mybatisRepos.insertProblem(dto);
             if (rows != null && rows > 0) {
-                return new ResultVO(0, null, null);
+                return Result.success();
             } else {
-                return new ResultVO(5, null, "practice/insertProblem: Mybatis return not >=0 or is null");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
         } catch (Exception e) {
-            return new ResultVO(5, null, "practice/insertProblem: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
     public ResultVO updateProblem(FullInfoDTO dto) {
-        ResultVO response;
         try {
             Integer rows = mybatisRepos.updateProblem(dto);
 
             if (rows != null && rows > 0) {
-                response = new ResultVO((byte)0, null, null);
+                return Result.success();
             } else {
-                response = new ResultVO((byte)5, null, "practice/updateProblem: Mybatis return not >=0 or is null");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
         } catch (Exception e) {
-            return new ResultVO((byte)5, null, "practice/updateProblem: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
-        return response;
     }
 
     public ResultVO deleteProblem(String name) {
-        return new ResultVO((byte)5, null, "practice/deleteProblem: Delete operation is not supported yet");
+        return Result.failure(BaseErrorCode.SERVICE_ERROR);
     }
 
     public ResultVO getCase(CaseInputDTO caseInputDTO) {
@@ -259,24 +259,24 @@ public class DBServiceImpl implements DBService {
         try {
             // 检查输入输出是否存在
             if (input == null || output == null) {
-                return new ResultVO((byte) 5, null, "practice/submitCase: Input or output cannot be null");
+                return Result.failure(BaseErrorCode.CLIENT_ERROR);
             }
             Integer result = mybatisRepos.incrementCaseAmount(name);
             if (result == null || result <= 0) {
-                return new ResultVO((byte) 5, null, "practice/submitCase: Error incrementing case amount");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
             ProblemStatusDTO problemStatus = mybatisRepos.getStatus(name);
             if (problemStatus == null) {
-                return new ResultVO((byte) 5, null, "practice/submitCase: Problem status not found for " + name);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
             String bucketName = "letucoj";
-            String inputFileName = "problems" + "/" + name + "/input/" + problemStatus.getCaseAmount() + 1 + ".txt";
-            String outputFileName = "problems" + "/" + name + "/output/" + problemStatus.getCaseAmount() + 1 + ".txt";
-            minioRepos.addFile(bucketName, inputFileName, input.getBytes());
-            minioRepos.addFile(bucketName, outputFileName, output.getBytes());
-            return new ResultVO((byte) 0, null, null);
+            String inputObjectName = "problems" + "/" + name + "/input/" + problemStatus.getCaseAmount() + 1 + ".txt";
+            String outputObjectName = "problems" + "/" + name + "/output/" + problemStatus.getCaseAmount() + 1 + ".txt";
+            minioRepos.addFile(bucketName, inputObjectName, input.getBytes());
+            minioRepos.addFile(bucketName, outputObjectName, output.getBytes());
+            return Result.success();
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/submitCase: Error submitting test case: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
@@ -286,16 +286,16 @@ public class DBServiceImpl implements DBService {
             List<RecordDTO> records = mybatisRepos.getRecordsByName(pname, start, limit);
             Integer amount = mybatisRepos.getRecordsByNameCount(pname);
             if (records == null || records.isEmpty()) {
-                return new ResultVO((byte)1, null, "practice/recordListByName: No records found for user " + pname);
+                return Result.failure(PracticeErrorCode.NO_RECORD_FOUND);
             } else if (amount == null || amount < 0) {
-                return new ResultVO((byte)5, null, "practice/recordListAll: Amount is null or <0 in Mybatis");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
-            return new ResultVO((byte)0, Map.of(
+            return Result.success(Map.of(
                     "records",   records,
                     "amount", amount
-            ), null);
+            ));
         } catch (Exception e) {
-            return new ResultVO((byte)5, null, "practice/recordListByName: Error retrieving records: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
@@ -305,16 +305,17 @@ public class DBServiceImpl implements DBService {
             List<RecordDTO> records = mybatisRepos.getAllRecords(start, limit);
             Integer amount = mybatisRepos.getAllRecordsCount();
             if (records == null || records.isEmpty()) {
-                return new ResultVO((byte)1, null, "practice/recordListAll: No records found");
+                return Result.failure(PracticeErrorCode.NO_RECORD_FOUND);
             } else if (amount == null || amount < 0) {
-                return new ResultVO((byte)5, null, "practice/recordListAll: Amount is null or <0 in Mybatis");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
-            return new ResultVO((byte)0, Map.of(
+            return Result.success(
+                    Map.of(
                     "records",   records,
                     "amount", amount
-            ), null);
+                    ));
         } catch (Exception e) {
-            return new ResultVO((byte)5, null, "practice/recordListAll: Error retrieving all records: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 }

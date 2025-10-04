@@ -47,7 +47,6 @@
         <spring-cloud.version>2023.0.1</spring-cloud.version>
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
-
         <nacos.version>2023.0.1.2</nacos.version>
         <mysql.version>8.0.33</mysql.version>
         <mybatis-starter.version>3.0.4</mybatis-starter.version>
@@ -59,6 +58,7 @@
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
         <jwt.version>0.12.6</jwt.version>
         <openfeign.version>4.1.1</openfeign.version>
+        <rocketmq.version>2.3.0</rocketmq.version>
     </properties>
 
     <dependencyManagement>
@@ -208,6 +208,14 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-openfeign</artifactId>
                 <version>${openfeign.version}</version>
+            </dependency>
+
+            <!-- rocketmq -->
+
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${rocketmq.version}</version>
             </dependency>
 
         </dependencies>

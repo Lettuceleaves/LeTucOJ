@@ -1,5 +1,6 @@
 com\LetucOJ\practice\repos\MybatisRepos.class
 com\LetucOJ\practice\model\FullInfoDTO.class
+com\LetucOJ\practice\repos\RocketMQConsumer.class
 com\LetucOJ\practice\controller\ProblemController.class
 com\LetucOJ\practice\controller\SubmitController.class
 com\LetucOJ\practice\model\ProblemStatusDTO.class

@@ -242,7 +242,7 @@ async function addProblem() {
       },
       body: JSON.stringify(form.value),
     }).then((r) => r.json())
-    if (res.status === 0) {
+    if (res.code === "0") {
       alert('添加成功')
       router.replace({ query: { name: form.value.name } })
     } else {
@@ -264,7 +264,7 @@ async function updateProblem() {
       },
       body: JSON.stringify(form.value),
     }).then((r) => r.json())
-    if (res.status === 0) {
+    if (res.code === "0") {
       alert('更新成功')
     } else {
       alert('更新失败: ' + JSON.stringify(res))
@@ -315,7 +315,7 @@ async function submitCase(index) {
         output: inputOutputSections.value[index].output,
       }),
     }).then((r) => r.json())
-    if (res.status === 0) {
+    if (res.code === "0") {
       inputOutputSections.value[index].output = '已提交'
       await nextTick()
       adjustHeightForOutput(index)
@@ -352,13 +352,13 @@ async function getOutput(index) {
         name: form.value.name
       }),
     }).then((r) => r.json())
-    if (res.status === 0) {
+    if (res.code === "0") {
       const out = Array.isArray(res.data) ? res.data[0] : res.data
       inputOutputSections.value[index].output = out
       await nextTick()
       adjustHeightForOutput(index)
     } else {
-      alert('获取输出失败: ' + res.error)
+      alert('获取输出失败: ' + res.message)
     }
   } catch (e) {
     alert('获取输出出错: ' + e.message)

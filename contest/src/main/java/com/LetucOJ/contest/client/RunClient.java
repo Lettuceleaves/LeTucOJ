@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@FeignClient(name = "sandbox", url = "sys:8778")
+@FeignClient(name = "run", url = "run:1001")
 @RestController
 public interface RunClient {
 
-    @PostMapping("/sandbox/run")
-    ResultVO run(@RequestBody List<String> files, @RequestParam String lang);
+    @PostMapping("/run")
+    ResultVO run(@RequestBody List<String> files, @RequestParam String language);
 }

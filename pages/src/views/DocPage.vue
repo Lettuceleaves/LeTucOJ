@@ -70,38 +70,38 @@ async function parseMarkdown(markdown) {
   try {
     // 1. 渲染Markdown为HTML
     const html = marked(markdown)
-    
+
     // 2. 使用DOMPurify消毒HTML内容
     const cleanHtml = DOMPurify.sanitize(html, {
       ADD_ATTR: ['target']  // 允许target属性（用于链接）
     })
     renderedHtml.value = cleanHtml
-    
+
     // 3. 等待DOM更新完成后提取标题
     await nextTick()
     extractHeadingsFromDOM()
-    
+
   } catch (err) {
     console.error('❌ Markdown解析错误:', err)
     renderError.value = err.message
-    renderedHtml.value = '<div class="error">渲染出错: ' + err.message + '</div>'
+    renderedHtml.value = '<div class="message">渲染出错: ' + err.message + '</div>'
   }
 }
 
 function extractHeadingsFromDOM() {
   const newHeadings = []
   if (!previewRef.value) return
-  
+
   // 从实际渲染的DOM中提取标题
   const headingElements = previewRef.value.querySelectorAll('h1, h2, h3, h4, h5, h6')
-  
+
   headingElements.forEach(el => {
     newHeadings.push({
       text: el.textContent || '',
       level: parseInt(el.tagName.substring(1))
     })
   })
-  
+
   headings.value = newHeadings
 }
 
@@ -125,10 +125,10 @@ function helloWorld() {
   console.log('Hello, Markdown!');
 }
 \`\`\``
-    
+
     rawContent.value = mockContent
     await parseMarkdown(mockContent)
-    
+
   } catch (err) {
     console.error('❌ 加载出错:', err)
     rawContent.value = '# 加载失败\n\n' + err.message
@@ -166,12 +166,12 @@ function scrollToHeading(index) {
   const headingEls = previewEl.querySelectorAll('h1, h2, h3, h4, h5, h6')
   const el = headingEls[index]
   if (el) {
-    el.scrollIntoView({ 
-      behavior: 'smooth', 
+    el.scrollIntoView({
+      behavior: 'smooth',
       block: 'start',
       inline: 'nearest'
     })
-    
+
     // 添加高亮效果
     el.classList.add('highlighted')
     setTimeout(() => el.classList.remove('highlighted'), 2000)
@@ -286,11 +286,11 @@ function scrollToHeading(index) {
 
 <style>
 /* 全局样式修复 */
-.markdown-body h1, 
-.markdown-body h2, 
-.markdown-body h3, 
-.markdown-body h4, 
-.markdown-body h5, 
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
 .markdown-body h6 {
   margin-top: 24px;
   margin-bottom: 16px;
@@ -302,7 +302,7 @@ function scrollToHeading(index) {
   margin-bottom: 16px;
 }
 
-.markdown-body ul, 
+.markdown-body ul,
 .markdown-body ol {
   padding-left: 2em;
   margin-bottom: 16px;

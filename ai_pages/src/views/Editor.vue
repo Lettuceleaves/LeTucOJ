@@ -46,11 +46,20 @@ const solutionContent = ref('')
 const problemData = ref({})
 const aiChatRef = ref(null)
 
-const resultData = computed(() => result.value || { status: -1 })
+const resultData = computed(() => result.value || { code: '-1' })
 const instance = getCurrentInstance()
 const ip = instance.appContext.config.globalProperties.$ip
 
 const doPageRef = ref(null)
+
+const aiContext = computed(() => {
+    const context = doPageRef.value?.getAIContext?.()
+    return {
+        problem: context?.problem || {},
+        language: context?.language || selectedLanguage.value || 'unknown',
+        code: context?.code || ''
+    }
+})
 
 // 1. 创建响应式变量
 const selectedLanguage = ref('c')
@@ -66,41 +75,54 @@ const goBack = () => {
 
 // 统一的提交处理函数
 const handleSubmit = () => {
-  const code = doPageRef.value?.getCode?.()
-  if (!code) {
+  const userCode = doPageRef.value?.getCode?.()
+  if (!userCode) {
     alert('无法获取代码内容')
     return
   }
-  
+
   console.log('开始处理提交')
-  
+
   // 1. 执行原来的提交操作
-  submitCode(code)
-  
+  submitCode(userCode)
+
+  console.log('代码已提交，准备发送给AI')
+
   // 2. 同时发送给AI分析
-  sendToAI(code)
+  sendToAI()
 }
 
 // 发送给AI分析
-const sendToAI = (code) => {
-  console.log('准备发送给AI:', code ? '代码存在' : '代码不存在')
-  
+const sendToAI = () => {
+
   // 确保AI聊天组件已经渲染
   nextTick(() => {
     if (aiChatRef.value) {
       console.log('AI组件引用存在')
+
+      // 收集完整的 AI 上下文
+      const contextData = aiContext.value;
       
-      // 添加提示词让AI分析代码
-      const prompt = `请分析以下的C语言代码，发给出建议：${code}\n\`\`\`\n`
-      console.log('发送给AI的提示:', prompt)
+      // *** 用户的修改逻辑：序列化 aiContext 并加入提示词 ***
+      const serializedContext = JSON.stringify(contextData, null, 2);
       
+      // 基础提示词
+      const basePrompt = `请分析我刚刚提交的代码，并给出优化建议。`;
+      
+      // 将序列化后的上下文附加到提示词后面
+      const fullPrompt = `${basePrompt}\n\n--- 上下文数据 ---\n\`\`\`json\n${serializedContext}\n\`\`\``;
+      // *** 用户的修改逻辑结束 ***
+
+      console.log('发送给AI的完整提示:', fullPrompt)
+
       try {
-        // 调用AI聊天组件的发送消息方法
-        aiChatRef.value.sendMessage(prompt)
-        console.log('AI消息发送成功')
-        
-        // 切换到结果标签页
-        activeTab.value = 'result'
+        // 调用AI聊天组件的发送消息方法，仅传递包含所有信息的 fullPrompt
+        // AiChat.vue 的 sendMessage 只需要接受这个完整的文本即可
+        aiChatRef.value.sendMessage(fullPrompt)
+        console.log('AI分析请求发送成功，已将上下文附加到提示词中。')
+
+        // 切换到 AI 标签页
+        activeTab.value = 'ai' 
       } catch (e) {
         console.error('调用AI组件方法失败:', e)
       }
@@ -110,12 +132,12 @@ const sendToAI = (code) => {
   })
 }
 
-const sendCode = async (code) => {
-  console.log('发送代码到后端:', code ? '代码存在' : '代码不存在')
+const sendCode = async (userCode) => {
+  console.log('发送代码到后端:', userCode ? '代码存在' : '代码不存在')
   activeTab.value = 'result'
 
   result.value = {
-    status: -1,
+    code: '-1',
     data: "正在提交，请等待"
   }
   try {
@@ -126,17 +148,16 @@ const sendCode = async (code) => {
     });
     const response = await fetch(`http://${ip}/practice/submit?${params}`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: code
+      body: userCode
     })
     const data = await response.json()
-    console.log('后端响应数据:', data)
-    
+
     result.value = {
-      status: data.status,
+      code: data.code,
       data: data.data,
       dataAsString: data.dataAsString,
       error: data.error || null,
@@ -144,47 +165,21 @@ const sendCode = async (code) => {
   } catch (error) {
     console.error('发送代码出错:', error)
     result.value = {
-      status: -1,
+      code: '-1',
       data: null,
       dataAsString: null,
       error: error.message || '未知错误',
     }
   }
-
-  /*
-  
-    try {
-    const token = localStorage.getItem('jwt')
-    const params = new URLSearchParams({
-      qname: name
-    });
-    const response = await fetch(`http://${ip}/practice/full/get?${params}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-    if (!response.ok) throw new Error(`请求失败，状态码：${response.status}`)
-
-    const data = await response.json()
-    problemData.value = data.data || {}
-    solutionContent.value = problemData.value.solution || '暂无题解'
-  } catch (error) {
-    alert(`获取失败：${error.message}`)
-    solutionContent.value = '加载题解失败'
-  }
-}
-  
-  */
 }
 
 // 修改为接收代码参数的函数
-const submitCode = (code) => sendCode(code)
+const submitCode = (userCode) => sendCode(userCode)
 
 const checkCode = () => {
-  const code = doPageRef.value?.getCode?.()
-  if (code) {
-    sendCode(code)
+  const userCode = doPageRef.value?.getCode?.()
+  if (userCode) {
+    sendCode(userCode)
   } else {
     alert('无法获取代码内容')
   }
@@ -204,7 +199,7 @@ const fetchDataOnRefresh = async () => {
         'Authorization': `Bearer ${token}`
       }
     })
-    if (!response.ok) throw new Error(`请求失败，状态码：${response.status}`)
+    if (!response.ok) throw new Error(`请求失败，状态码：${response.code}`)
 
     const data = await response.json()
     problemData.value = data.data || {}

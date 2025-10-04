@@ -2,6 +2,8 @@ server:
   port: 7777
 
 spring:
+  config:
+    import: "optional:classpath:default.yaml"
   application:
     name: gateway
   cloud:
@@ -37,10 +39,6 @@ spring:
             allowCredentials: true
       default-filters:
         - DedupeResponseHeader=Vary Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
-  data:
-    redis:
-      host: redis
-      port: 6379
 
 logging:
   level:

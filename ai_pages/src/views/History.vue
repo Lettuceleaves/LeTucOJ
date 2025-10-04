@@ -122,7 +122,7 @@ const fetchData = async (userName = '', isAll = false) => {
       headers: { Authorization: `Bearer ${token}` }
     })
     const json = await res.json()
-    if (json.status === 0) {
+    if (json.code === "0") {
       records.value = (json.data.records ?? []).map(r => ({ ...r, _showCode: false }))
       total.value = json.data?.amount || 0
     } else {

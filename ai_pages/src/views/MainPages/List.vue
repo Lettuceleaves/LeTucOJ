@@ -167,18 +167,17 @@ const fetchProblems = async () => {
     })
 
     const json = await res.json()
-    if (json.status === 0 && Array.isArray(json.data.list)) {
+    if (json.code === "0" && Array.isArray(json.data.list)) {
       allProblems.value = json.data.list
       hasMore.value = json.data.amount > currentPage.value * pageSize
     } else {
       allProblems.value = []
       hasMore.value = false
-      alert(json.message || '加载失败')
     }
   } catch (e) {
     allProblems.value = []
     hasMore.value = false
-    alert('网络错误：' + (e?.message || e))
+    alert('无法连接到服务器')
   }
 }
 
@@ -202,12 +201,6 @@ function clickOutside(e) {
 }
 
 /** ------------ 搜索 / 排序 / 分页 ------------ **/
-const applyFilters = () => {
-  currentPage.value = 1
-  order.value = sortField.value || ''
-  like.value = searchKeyword.value.trim()
-  fetchProblems()
-}
 
 const handleSearch = () => {
   const kw = searchKeyword.value.trim()

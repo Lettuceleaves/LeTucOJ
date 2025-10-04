@@ -3,8 +3,9 @@ server:
   tomcat:
     connection-timeout: 60000
 
-
 spring:
+  config:
+    import: "optional:classpath:default.yaml"
   application:
     name: practice
   datasource:
@@ -14,7 +15,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
   servlet:
     multipart:

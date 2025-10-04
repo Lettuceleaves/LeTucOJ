@@ -1,6 +1,8 @@
 package com.LetucOJ.run.service.impl.handler;
 
+import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.run.service.Handler;
 import com.LetucOJ.run.tool.RunPath;
 import lombok.Data;
@@ -65,20 +67,18 @@ public class ExecuteHandler implements Handler {
                 } catch (Exception e) {
                     System.err.println("[ExecuteHandler] Failed to kill container: " + e.getMessage());
                 }
-                finalResult = new ResultVO((byte) 4, null, "Runtime error: 运行超时 (超过 " + EXECUTION_TIMEOUT_SECONDS + " 秒)");
-                return finalResult;
+                return Result.failure(BaseErrorCode.OUT_OF_TIME);
             }
 
             // 3. 读取脚本的退出状态码
             Path statusFile = Path.of(RunPath.getStatusPath(boxid));
             if (!Files.exists(statusFile)) {
-                System.err.println("[ExecuteHandler] status.txt file not found after execution.");
-                finalResult = new ResultVO((byte) 5, null, "Unknown error: 状态文件丢失");
-                return finalResult;
+                System.err.println("[ExecuteHandler] code.txt file not found after execution.");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
             String status = Files.readString(statusFile).trim();
 
-            int exitCodeFromScript = 5; // Default to unknown error
+            int exitCodeFromScript = 5; // Default to unknown message
             try {
                 if (!status.isEmpty()) {
                     exitCodeFromScript = Integer.parseInt(status);
@@ -98,49 +98,45 @@ public class ExecuteHandler implements Handler {
                         Path outTxt = Path.of(RunPath.getOutputPath(boxid, i));
                         String answer = Files.exists(outTxt)
                                 ? Files.readString(outTxt).trim()
-                                : "error: output file missing";
+                                : "message: output file missing";
                         results.add(answer);
                     }
                     System.out.println("[ExecuteHandler] Execution successful for boxid " + boxid);
-                    finalResult = new ResultVO((byte) 0, results, "Execution successful");
+                    return Result.success(results);
                 }
                 case 1 -> { // 脚本内部的错误
-                    finalResult = new ResultVO((byte) 5, null, "Internal Script Error");
+                    return Result.failure(BaseErrorCode.SERVICE_ERROR);
                 }
                 case 2 -> { // 编译错误
                     Path compileErr = Path.of(RunPath.getCompilePath(boxid));
                     String errMsg = Files.exists(compileErr)
                             ? Files.readString(compileErr)
-                            : "Compilation error, but compile.txt missing";
+                            : "Compilation message, but compile.txt missing";
                     System.out.println("[ExecuteHandler] Compile Error: " + errMsg);
-                    finalResult = new ResultVO((byte) 2, null, "Compile error: " + errMsg);
+                    return Result.failure(BaseErrorCode.COMPILE_ERROR, errMsg.substring(0, Math.min(1000, errMsg.length())));
                 }
                 case 3 -> { // 运行时错误
                     Path errTxt = Path.of(RunPath.getErrorPath(boxid));
                     String errMsg = Files.exists(errTxt)
                             ? Files.readString(errTxt)
-                            : "Runtime error, but err.txt missing";
-                    System.out.println("[ExecuteHandler] Runtime Error: " + errMsg);
-                    finalResult = new ResultVO((byte) 3, null, "Runtime error: " + errMsg);
+                            : "Runtime message, but err.txt missing";
+                    return Result.failure(BaseErrorCode.RUNTIME_ERROR, errMsg.substring(0, Math.min(1000, errMsg.length())));
                 }
                 case 4 -> { // 脚本内部的超时
                     System.out.println("[ExecuteHandler] Runtime timeout (exit 4) from script.");
-                    finalResult = new ResultVO((byte) 4, null, "Runtime error: 运行超时（超过 5 秒）");
+                    String errMsg = "Execution exceeded time limit";
+                    return Result.failure(BaseErrorCode.OUT_OF_TIME, errMsg);
                 }
                 case 5 -> { // 脚本内部的异常
-                    finalResult = new ResultVO((byte) 5, null, "Execution failed: " + Files.readString(Path.of(RunPath.getErrorPath(boxid))));
+                    return Result.failure(BaseErrorCode.SERVICE_ERROR);
                 }
                 default -> {
-                    finalResult = new ResultVO((byte) 5, null, "Unknown error from script.");
+                    return Result.failure(BaseErrorCode.SERVICE_ERROR);
                 }
             }
-
-            return finalResult;
-
         } catch (Exception e) {
             e.printStackTrace();
-            finalResult = new ResultVO((byte) 5, null, "Unexpected error: " + e.getMessage());
-            return finalResult;
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         } finally {
             // 在 finally 块中调用清理方法，确保目录被删除
             forceCleanup(boxid);

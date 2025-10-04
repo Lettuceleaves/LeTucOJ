@@ -138,11 +138,11 @@ async function fetchList() {
       return
     }
     const json = JSON.parse(text)
-    if (json.status === 0 || json.status === 1) {
+    if (json.code === "0" || json.code === "B020005") {
       contests.value = json.data || []
       contests.value.forEach(c => beforeStart(c) && startCountdown(c))
     } else {
-      error.value = json.error || '未知错误'
+      error.value = json.message || '未知错误'
     }
   } catch (e) {
     error.value = e.message || '请求失败'

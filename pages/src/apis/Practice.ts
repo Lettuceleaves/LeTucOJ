@@ -96,5 +96,5 @@ export class SubmitPracticeRequest extends Request<SubmitPracticeResponse> {
   }
 }
 
-// 0: accepted, 1: wrong answer, 2: compile error, 3: runtime error, 4: time limit exceeded, 5: server error
+// 0: accepted, 1: wrong answer, 2: compile message, 3: runtime message, 4: time limit exceeded, 5: server message
 export type SubmitPracticeResponse = Response<undefined>

@@ -1,6 +1,8 @@
 package com.LetucOJ.run.service.impl;
 
+import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.run.service.Handler;
 //import com.LetucOJ.run.service.impl.handler.CompileHandler;
 import com.LetucOJ.run.service.impl.handler.ExecuteHandler;
@@ -27,12 +29,10 @@ public class RunServiceImpl implements RunService {
             fileWriteHandler.setNextHandler(executeHandler);
             return fileWriteHandler.handle(inputFiles, boxId, language);
         } catch (Exception e) {
-            // 1. 控制台完整栈
             e.printStackTrace();
-            // 2. 返回给前端也带栈
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
-            return new ResultVO((byte) 5, null, sw.toString());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         } finally {
             RunPath.returnBoxId();
         }

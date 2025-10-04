@@ -1,17 +1,41 @@
 FROM debian:bookworm-slim
 
-# 仅用稳定源安装 Java 17
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 使用腾讯云 APT 镜像：
+# 1) 先把 deb/ security 的域名替换为 http://mirrors.cloud.tencent.com（避免 slim 镜像在没有 CA 时 https 失败）
+# 2) apt-get update -> 安装 ca-certificates -> 切回 https -> 再 apt-get update -> 安装 openjdk-17
 RUN set -eux; \
+    for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
+      [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
-        openjdk-17-jre-headless; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-           /usr/share/doc/* /usr/share/man/* /usr/share/info/*
+    apt-get install -y --no-install-recommends ca-certificates; \
+    update-ca-certificates; \
+    # 安装完 CA 后切回 https
+    for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
+      [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends openjdk-17-jre-headless; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 
 WORKDIR /app
 COPY gateway.jar /app/
-RUN chmod +x /app/gateway.jar
+
+# JAR 不需要执行位，设置为 0644 更合适
+RUN chmod 0644 /app/gateway.jar
+
+# 推荐使用非 root 用户运行，提高安全性
+RUN set -eux; \
+    groupadd -r app && useradd -r -g app app; \
+    chown -R app:app /app
+
+USER app
 
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+
 EXPOSE 7777
+
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/gateway.jar"]

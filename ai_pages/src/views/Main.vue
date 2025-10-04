@@ -126,7 +126,7 @@ const AsyncRank = defineAsyncComponent(() =>
   import(/* webpackChunkName: "tab-rank" */ './MainPages/Rank.vue')
 )
 const AsyncUser = defineAsyncComponent(() =>
-  import(/* webpackChunkName: "tab-user" */ '../views/UserPage.vue')
+  import(/* webpackChunkName: "tab-user" */ '../views/ManagePage.vue')
 )
 const compMap = { list: AsyncProblemList, contest: AsyncContest, rank: AsyncRank, user: AsyncUser }
 const currentComp = computed(() => compMap[activeTab.value])
@@ -155,7 +155,7 @@ const goBack = () => router.push('/')
 /* ---------- 8. Monaco 预加载 ---------- */
 const loadStatus = ref('loading')
 const editorReady = computed(() => loadStatus.value === 'success')
-const isStatusVisible = ref(true) // ✨ 新增状态变量 ✨
+const isStatusVisible = ref(true)
 
 async function preloadMonaco() {
   try {
@@ -167,49 +167,8 @@ async function preloadMonaco() {
   }
 }
 
-/* 把原来的 hideStatus 换成带粒子动画的版本即可 */
 function hideStatus() {
-  if (loadStatus.value === 'success') {
-    // 成功 → 碎裂消失
-    shatterAndDisappear()
-  } else if (loadStatus.value === 'error') {
-    // 失败 → 重试
-    retryLoading()
-  }
-}
-
-function shatterAndDisappear() {
-  const box = document.querySelector('.nav-status')
-  if (!box) return
-  const rect = box.getBoundingClientRect()
-  if (rect.width === 0 || rect.height === 0) return
-
-  const N = 30
-  for (let i = 0; i < N; i++) {
-    const p = document.createElement('div')
-    p.className = 'particle'
-    p.style.left = rect.left + Math.random() * rect.width + 'px'
-    p.style.top  = rect.top  + Math.random() * rect.height + 'px'
-    const s = Math.random() * 8 + 4
-    p.style.width = p.style.height = s + 'px'
-    p.style.backgroundColor = getComputedStyle(box).backgroundColor
-    document.body.appendChild(p)
-
-    requestAnimationFrame(() => {
-      p.style.transform = `translate(${(Math.random() - .5) * 500}px,${(Math.random() - .5) * 500 + 200}px) rotate(${Math.random() * 720}deg)`
-      p.style.opacity = 0
-    })
-    setTimeout(() => p.remove(), 1200)
-  }
-
-  setTimeout(() => { isStatusVisible.value = false }, 100)
-}
-
-
-// ✨ 将原来的 navStatusClick 逻辑抽取到这个方法中 ✨
-function retryLoading() {
-  loadStatus.value = 'loading';
-  preloadMonaco();
+  isStatusVisible.value = false
 }
 
 /* ---------- 9. 空闲预拉取其它 chunk ---------- */
@@ -237,7 +196,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 样式保持你原来的，无需改动 */
 .back-btn {
   background: #ef4444;
   color: #fff;
@@ -325,7 +283,6 @@ onMounted(async () => {
   contain-intrinsic-size: 800px;
   flex: 1;
   position: relative;
-  overflow: hidden;
   padding: 0;
 }
 .skeleton {
@@ -344,13 +301,9 @@ onMounted(async () => {
 .skeleton-line.w-80 { width: 80%; }
 .skeleton-line.w-85 { width: 85%; }
 .skeleton-line.w-90 { width: 90%; }
-@keyframes shine {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
 .tab-pane {
   height: 100%;
   width: 100%;
-  overflow: hidden;
+  overflow: auto;
 }
 </style>

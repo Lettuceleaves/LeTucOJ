@@ -1,21 +1,45 @@
 # -------------- 基础：官方已瘦身 JRE --------------
 FROM openjdk:17-slim
 
-# 安装 docker-cli
+# 使用腾讯云 APT 镜像：
+# 1) 先用 http 引导安装 CA，再切回 https
+# 2) 安装 docker-cli 之后清理缓存
 RUN set -eux; \
+    # 替换 apt 源为腾讯云镜像
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
+      [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
-        docker.io; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-            /usr/share/doc/* /usr/share/man/* /usr/share/info/*
+    apt-get install -y --no-install-recommends ca-certificates; \
+    update-ca-certificates; \
+    # 切回 https 安全源
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
+      [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
+    done; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends docker.io; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 
 WORKDIR /app
 
+# 创建目录和权限设置
 RUN mkdir -p user
-
 COPY run.jar /app/
-RUN chmod +x /app/run.jar
+
+# 设置 run.jar 文件为可读取的权限
+RUN chmod 0644 /app/run.jar
+
+# 安全运行：创建非 root 用户并更改文件归属
+RUN set -eux; \
+    groupadd -r app && useradd -r -g app app; \
+    chown -R app:app /app
+
+USER app
 
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+
 EXPOSE 1001
+
+# 使用 exec 来运行程序，保持进程树
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/run.jar"]

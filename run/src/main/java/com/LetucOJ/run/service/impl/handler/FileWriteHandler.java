@@ -1,6 +1,8 @@
 package com.LetucOJ.run.service.impl.handler;
 
+import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.run.service.Handler;
 import com.LetucOJ.run.tool.RunPath;
 import lombok.Data;
@@ -66,8 +68,7 @@ public class FileWriteHandler implements Handler {
                     StandardOpenOption.TRUNCATE_EXISTING);
 
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null,
-                    "Can not write file in run module: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
         return nextHandler.handle(inputFiles, boxid, language);
     }

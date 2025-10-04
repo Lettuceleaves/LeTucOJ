@@ -1,6 +1,8 @@
 package com.LetucOJ.practice.controller;
 
+import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.practice.model.RecordDTO;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.PracticeService;
@@ -20,9 +22,9 @@ public class SubmitController {
     @PostMapping("/submit")
     public ResultVO submit(@RequestParam("pname") String pname, @RequestParam("cnname") String cnname, @RequestParam("qname") String qname, @RequestParam("language") String language, @RequestBody String code) throws Exception {
         ResultVO result = practiceService.submit(pname, qname, code, language, false);
-        Integer res = mybatisRepos.insertRecord(new RecordDTO(pname, cnname, qname, language, code, result.getStatus() + " $ " + result.getError(), 0L, 0L, System.currentTimeMillis()));
+        Integer res = mybatisRepos.insertRecord(new RecordDTO(pname, cnname, qname, language, code, result.getCode() + " $ " + result.getMessage(), 0L, 0L, System.currentTimeMillis()));
         if (res == null || res <= 0) {
-            return new ResultVO((byte) 5, null, "practice/submit: Failed to insert record into database");
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
         return result;
     }
@@ -31,13 +33,13 @@ public class SubmitController {
     public ResultVO submitInRoot(@RequestParam("pname") String pname, @RequestParam("cnname") String cnname, @RequestParam("qname") String qname, @RequestParam("language") String language, @RequestBody String code) throws Exception {
         ResultVO result = practiceService.submit(pname, qname, code, language, true);
         try {
-            Integer res = mybatisRepos.insertRecord(new RecordDTO(pname, cnname, qname, language, code, result.getStatus() + " $ " + result.getError(), 0L, 0L, System.currentTimeMillis()));
+            Integer res = mybatisRepos.insertRecord(new RecordDTO(pname, cnname, qname, language, code, result.getCode() + " $ " + result.getMessage(), 0L, 0L, System.currentTimeMillis()));
             if (res == null || res <= 0) {
-                return new ResultVO((byte) 5, null, "practice/submitInRoot: Failed to insert record into database");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
             return result;
         } catch (Exception e) {
-            return new ResultVO((byte) 5, null, "practice/submitInRoot: " + e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 }

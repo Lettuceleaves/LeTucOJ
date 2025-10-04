@@ -2,6 +2,8 @@ server:
   port: 2121
 
 spring:
+  config:
+    import: "optional:classpath:default.yaml"
   application:
     name: sys
   datasource:

@@ -77,11 +77,11 @@ const register = async () => {
 
     const json = await data.json()
 
-    if (json.status === 0) {
+    if (json.code === '0') {
       alert('注册成功！')
       router.push('/login');
     } else {
-      alert('注册失败：' + (json.error || '未知错误'))
+      alert('注册失败：' + (json.message || '未知错误'))
     }
   } catch (e) {
     alert('请求失败：' + (e.response?.json?.error || e.message || '网络错误'))
