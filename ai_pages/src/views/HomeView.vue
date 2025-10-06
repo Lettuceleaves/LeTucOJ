@@ -10,6 +10,7 @@ const fetchLines = async () => {
   try {
     const response = await fetch('/code.txt')
     if (!response.ok) throw new Error('Failed to fetch data');
+    
     const text = await response.text();
     lines.value = text.split('\n');
     prefillLines(); // 新增：预先填充行

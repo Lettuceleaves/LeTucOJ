@@ -15,11 +15,10 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus; // 导入 HttpStatus
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -27,7 +26,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.Objects;
 
 @Component
@@ -45,7 +43,7 @@ public class CustomResponseRewriteFilter implements WebFilter {
 
         String path = exchange.getRequest().getURI().getPath();
 
-        if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod())) {
+        if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod()) || "/advice".equals(path)) {
             return chain.filter(exchange);
         }
 
@@ -131,8 +129,8 @@ public class CustomResponseRewriteFilter implements WebFilter {
 
                                                 // 4. 异步：校验通过，执行 Redis 清理和过期时间设置 (使用从响应体解析出的 username)
                                                 Redis.mapRemove("black:" + username);
-                                                // 持续时间设置这里仍使用 60 秒
-                                                Redis.mapPutDuration("exp:" + username, "0", 60);
+                                                // 持续时间设置1天
+                                                Redis.mapPutDuration("exp:" + username, "0", 24 * 60 * 60);
 
                                                 // 5. 生成 token (FIX: 传入 millis)
                                                 String token = JwtUtil.generateToken(username, cnname, role);

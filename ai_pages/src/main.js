@@ -17,12 +17,22 @@ app.mount('#app')
 app.config.globalProperties.$ip = "localhost"
 
 /* ---------- 全局 fetch 拦截 ---------- */
+const IGNORED_PATHNAMES = [
+    '/code.txt'
+];
+
 ;(function () {
   const _originFetch = window.fetch
   window.fetch = async function (...args) {
 
-    const res = await _originFetch(...args)
+    const input = args[0];
+    const requestUrl = (typeof input === 'string') ? input : input?.url || ''; 
+    const shouldIgnore = IGNORED_PATHNAMES.includes(requestUrl);
+    if (shouldIgnore) {
+      return await _originFetch(...args);
+    }
 
+    const res = await _originFetch(...args)
 
     const cloned = res.clone()
     

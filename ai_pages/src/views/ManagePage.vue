@@ -43,7 +43,7 @@
             <td>{{ u.userName }}</td>
             <td>{{ u.cnname || '-' }}</td>
             <td>{{ u.role }}</td>
-            <td>{{ u.enabled ? '启用' : '禁用' }}</td>
+            <td>{{ u.status === 1 ? '启用' : '禁用' }}</td>
 
             <td v-if="isAdmin">
               <button
@@ -57,7 +57,7 @@
                 class="btn-role"
               >降级</button>
               <button
-                v-if="u.enabled"
+                v-if="u.status"
                 @click="disable(u)"
                 class="btn-status"
               >禁用</button>
@@ -132,7 +132,7 @@ const sqlLoading = ref(false); // **新增：SQL 刷新加载状态**
 /* ---------- 显示列表（过滤后） ---------- */
 const displayUsers = computed(() =>
   onlyDisabled.value
-    ? users.value.filter((u) => !u.enabled)
+    ? users.value.filter((u) => !u.status)
     : users.value
 );
 

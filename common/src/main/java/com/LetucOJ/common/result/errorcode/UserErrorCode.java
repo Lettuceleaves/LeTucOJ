@@ -3,6 +3,8 @@ package com.LetucOJ.common.result.errorcode;
 public enum UserErrorCode implements ErrorCode {
     // ========== 模块错误码 客户端错误 ==========
     CLIENT_ERROR("A070001", "用户端错误"),
+    EMPTY_PARAMETER("A070002", "参数为空"),
+    FILE_TOO_LARGE("A070003", "文件过大"),
 
     // ========== 模块错误码 系统执行出错 ==========
     SERVICE_ERROR("B070001", "系统执行出错"),

@@ -36,7 +36,6 @@ public class RoleRedirectFilter implements WebFilter {
                 .flatMap(auth -> {
                     if (auth != null && auth.isAuthenticated()) {
                         String path = exchange.getRequest().getURI().getPath();
-                        // 根路径->ROOT 角色内部转发示例
                         if ("/practice/list".equals(path)
                                 && (hasRole(auth, ROLE_PREFIX + "ROOT")
                                 || hasRole(auth, ROLE_PREFIX + "MANAGER"))) {
@@ -93,10 +92,6 @@ public class RoleRedirectFilter implements WebFilter {
                 .anyMatch(a -> a.getAuthority().equals(role));
     }
 
-    /**
-     * 内部转发：修改请求路径后，直接往下游 chain 继续处理，
-     * 浏览器对客户端来说只有一次请求，不会触发 CORS。
-     */
     private Mono<Void> internalForward(ServerWebExchange exchange,
                                        String newPath,
                                        WebFilterChain chain) {

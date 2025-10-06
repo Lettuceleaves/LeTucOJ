@@ -21,6 +21,12 @@
         @click="switchTab('rank')"
       >排行榜</div>
 
+      <div
+        class="title-item"
+        :class="{ active: activeTab === 'profile' }"
+        @click="switchTab('profile')"
+      >个人</div>
+
       <!-- 仅管理员可见 -->
       <div
         v-if="showUserTab"
@@ -113,7 +119,7 @@ const showUserTab = computed(() => role.value === 'ROOT' || role.value === 'MANA
 
 /* ---------- 3. 标签页初始值 ---------- */
 const initialTab = (typeof route.query.tab === 'string' ? route.query.tab : 'list')
-const activeTab = ref(['list', 'contest', 'rank', 'user'].includes(initialTab) ? initialTab : 'list')
+const activeTab = ref(['list', 'contest', 'rank', 'user', 'profile'].includes(initialTab) ? initialTab : 'list')
 
 /* ---------- 4. 异步组件 ---------- */
 const AsyncProblemList = defineAsyncComponent(() =>
@@ -128,7 +134,10 @@ const AsyncRank = defineAsyncComponent(() =>
 const AsyncUser = defineAsyncComponent(() =>
   import(/* webpackChunkName: "tab-user" */ '../views/ManagePage.vue')
 )
-const compMap = { list: AsyncProblemList, contest: AsyncContest, rank: AsyncRank, user: AsyncUser }
+const AsyncProfile = defineAsyncComponent(() =>
+  import(/* webpackChunkName: "tab-profile" */ './MainPages/User.vue')
+)
+const compMap = { list: AsyncProblemList, contest: AsyncContest, rank: AsyncRank, user: AsyncUser, profile: AsyncProfile }
 const currentComp = computed(() => compMap[activeTab.value])
 
 /* ---------- 5. 切换标签 + URL 同步 ---------- */
@@ -176,6 +185,8 @@ function prefetchIdle() {
   const doPrefetch = () => {
     AsyncContest.__asyncLoader && AsyncContest.__asyncLoader()
     AsyncUser.__asyncLoader && AsyncUser.__asyncLoader()
+    AsyncRank.__asyncLoader && AsyncRank.__asyncLoader()
+    AsyncProfile.__asyncLoader && AsyncProfile.__asyncLoader()
   }
   if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
     window.requestIdleCallback(doPrefetch, { timeout: 2000 })

@@ -8,16 +8,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO {
-
+public class UserInfoDTO {
     @TableField("user_name")
     private String userName;
-
     private String cnname;
-
-    private String password;
-
-    private String role;
-
-    private boolean enabled;
+    private String email;
+    private String phone;
+    private String description;
 }

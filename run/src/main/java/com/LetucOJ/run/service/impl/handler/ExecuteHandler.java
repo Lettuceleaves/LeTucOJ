@@ -22,7 +22,7 @@ public class ExecuteHandler implements Handler {
     private Handler nextHandler;
     private static final long EXECUTION_TIMEOUT_SECONDS = 30; // 容器执行超时时间
     public static final String HOST_DIR = System.getenv("HOST_DIR"); // 占位符，表示宿主机目录
-    public static final String CONTAINER_PATH = "/submission"; // 占位符，表示宿主机目录
+    public static final String CONTAINER_PATH = "/submission";
 
     public ExecuteHandler() {}
 

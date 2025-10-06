@@ -120,9 +120,6 @@ const sendToAI = () => {
         // AiChat.vue 的 sendMessage 只需要接受这个完整的文本即可
         aiChatRef.value.sendMessage(fullPrompt)
         console.log('AI分析请求发送成功，已将上下文附加到提示词中。')
-
-        // 切换到 AI 标签页
-        activeTab.value = 'ai' 
       } catch (e) {
         console.error('调用AI组件方法失败:', e)
       }

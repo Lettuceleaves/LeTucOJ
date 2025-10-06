@@ -44,7 +44,7 @@ let dis = null
 
 const getCode = () => ed?.getValue() || ''
 const setCode = (userCode) => ed?.setValue(userCode)
-defineExpose({ getCode, setCode })
+defineExpose({ getCode, setCode, selectedLanguage })
 
 function create() {
   if (ed) return

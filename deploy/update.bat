@@ -4,7 +4,7 @@ REM Configuration: adjust these two paths as needed
 REM Note: do NOT include a trailing backslash
 REM ===========================================
 set "SRC_ROOT=E:\projects\LeTucOJ"
-set "DST_ROOT=E:\projects\LeTucOJ\letucoj"
+set "DST_ROOT=E:\projects\LeTucOJ\deploy"
 
 REM ===========================================
 REM Copy each module: delete old, copy new & rename
