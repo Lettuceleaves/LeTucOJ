@@ -5,6 +5,8 @@ public enum UserErrorCode implements ErrorCode {
     CLIENT_ERROR("A070001", "用户端错误"),
     EMPTY_PARAMETER("A070002", "参数为空"),
     FILE_TOO_LARGE("A070003", "文件过大"),
+    PARAM_FORMAT_ERROR("A070004", "参数格式错误"),
+    USERNAME_ALREADY_EXISTS("A070005", "用户名已存在"),
 
     // ========== 模块错误码 系统执行出错 ==========
     SERVICE_ERROR("B070001", "系统执行出错"),

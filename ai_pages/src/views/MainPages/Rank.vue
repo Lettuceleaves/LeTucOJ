@@ -1,6 +1,6 @@
 <template>
   <div class="rank-page">
-    <h2 class="title">排行榜</h2>
+    <h2 class="title">用户排行榜</h2>
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading">加载中...</div>
@@ -52,14 +52,13 @@ const router = useRouter()
 
 /* ---------- 跳转到用户详情页 ---------- */
 function goToProfile(userName) {
-    router.push({ 
-        // ⭐ 使用路由名称，它能避免 URL 路径被哈希模式影响
+    const route = router.resolve({ 
         name: 'othersProfile', 
-        // ⭐ 使用 params 来传递动态路径中的参数
         query: { 
             pname: userName 
         } 
     });
+    window.open(route.href, '_blank');
 }
 
 /* ---------- 排序：总分降序 -> 题数降序 -> 用户名升序 ---------- */

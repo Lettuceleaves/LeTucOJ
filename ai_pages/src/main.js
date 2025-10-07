@@ -16,6 +16,24 @@ app.config.globalProperties.$dialog = Dialog
 app.mount('#app')
 app.config.globalProperties.$ip = "localhost"
 
+document.title = 'LetucOJ';
+
+function setEmojiFavicon(emoji) {
+    // 使用 SVG 封装 Emoji
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">${emoji}</text></svg>`;
+    // 将 SVG 编码为 Data URI
+    const dataUri = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    
+    // 查找或创建 link 标签
+    let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+    link.type = 'image/svg+xml';
+    link.rel = 'icon';
+    link.href = dataUri;
+    document.getElementsByTagName('head')[0].appendChild(link);
+}
+
+setEmojiFavicon('😇');
+
 /* ---------- 全局 fetch 拦截 ---------- */
 const IGNORED_PATHNAMES = [
     '/code.txt'

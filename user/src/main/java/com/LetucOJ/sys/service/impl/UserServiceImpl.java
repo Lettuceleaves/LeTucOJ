@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,10 +35,33 @@ public class UserServiceImpl implements UserService {
         String username = dto.getUsername();
         String cnname = dto.getCnname();
         String rawPwd = dto.getPassword();
+
+        Pattern usernamePattern = Pattern.compile("^[A-Za-z]{2,10}\\d{12}$");
+        if (!usernamePattern.matcher(username).matches()) {
+            return Result.failure(UserErrorCode.PARAM_FORMAT_ERROR);
+        }
+
+        if (cnname == null || cnname.isEmpty() || cnname.length() > 20) {
+            return Result.failure(UserErrorCode.PARAM_FORMAT_ERROR);
+        }
+
+        Pattern passwordPattern = Pattern.compile("^[A-Za-z0-9]{6,20}$");
+        if (!passwordPattern.matcher(rawPwd).matches()) {
+            return Result.failure(UserErrorCode.PARAM_FORMAT_ERROR);
+        }
+
+        UserInfoDTO existingUser = userMybatisRepos.getUserFullInfo(username);
+
+        if (existingUser != null) {
+            return Result.failure(UserErrorCode.USERNAME_ALREADY_EXISTS);
+        }
+
         String encodedPwd = PasswordUtil.encrypt(rawPwd);
         UserManagerDTO userManagerDTO = new UserManagerDTO(username, cnname, encodedPwd, "USER", 0);
+
         try {
             Integer result = userMybatisRepos.saveUserInfo(userManagerDTO);
+
             if (!result.equals(1)) {
                 return Result.failure(UserErrorCode.REGISTER_FAILED);
             }
