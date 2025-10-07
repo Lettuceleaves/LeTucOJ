@@ -7,12 +7,12 @@ E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\controller\ListC
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\ListServiceDTO.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\CasePairDTO.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\service\DBService.java
-E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\repos\RocketMQConsumer.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\controller\SubmitController.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\client\RunClient.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\FullInfoDTO.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\RecordDTO.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\repos\MybatisRepos.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\service\impl\DBServiceImpl.java
+E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\repos\RocketMQSubmissionConsumer.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\service\impl\PracticeServiceImpl.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\ListDTO.java

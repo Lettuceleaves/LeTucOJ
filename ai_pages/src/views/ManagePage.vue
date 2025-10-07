@@ -1,383 +1,128 @@
 <template>
-  <div class="user-page">
-    <h2>用户列表</h2>
+  <div class="admin-dashboard">
+    <h2>管理中心</h2>
 
-    <div class="filter-bar">
-      <label>
-        <input type="checkbox" v-model="onlyDisabled" />
-        仅显示未启用用户
-      </label>
-    </div>
-
-    <div class="refresh-container">
-      <button
-        @click="refreshSql"
-        :class="['btn-refresh', { 'btn-refresh-success': refreshStatus === 'success' }]"
-        :disabled="loading"
-      >
-        DB一键备份
-      </button>
-      <div v-if="showMessage" class="message-bubble" :style="{ opacity: messageOpacity }">
-        {{ message }}
+    <div class="card-grid">
+      <div class="admin-card user-management" @click="goToPage('/admin/users')">
+        <div class="card-icon">👥</div>
+        <h3>用户列表与权限管理</h3>
+        <p>查看所有用户、修改角色、启用/禁用账号。</p>
       </div>
-    </div>
 
-    <div v-if="loading" class="tip">加载中，请稍候…</div>
-    <div v-else-if="error" class="tip error">{{ error }}</div>
-    <div v-else-if="displayUsers.length === 0" class="tip">暂无用户</div>
+      <div class="admin-card db-refresh" @click="goToPage('/admin/db')">
+        <div class="card-icon">💾</div>
+        <h3>数据备份</h3>
+        <p>执行数据库快照备份</p>
+      </div>
 
-    <div v-else class="table-wrapper">
-      <table class="user-table">
-        <thead>
-          <tr>
-            <th>用户名</th>
-            <th>中文名</th>
-            <th>角色</th>
-            <th>启用状态</th>
-            <th v-if="isAdmin">操作</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr v-for="u in displayUsers" :key="u.userName">
-            <td>{{ u.userName }}</td>
-            <td>{{ u.cnname || '-' }}</td>
-            <td>{{ u.role }}</td>
-            <td>{{ u.status === 1 ? '启用' : '禁用' }}</td>
-
-            <td v-if="isAdmin">
-              <button
-                v-if="u.role === 'USER'"
-                @click="upgrade(u)"
-                class="btn-role"
-              >升级</button>
-              <button
-                v-if="u.role === 'MANAGER'"
-                @click="downgrade(u)"
-                class="btn-role"
-              >降级</button>
-              <button
-                v-if="u.status"
-                @click="disable(u)"
-                class="btn-status"
-              >禁用</button>
-              <button
-                v-else
-                @click="enable(u)"
-                class="btn-status"
-              >启用</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="admin-card history-log" @click="goToPage('/admin/history')">
+        <div class="card-icon">📜</div>
+        <h3>系统日志</h3>
+        <p>查看全部提交记录、指定用户的提交记录</p>
+      </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, getCurrentInstance } from 'vue';
-
-/* ---------- 全局配置 ---------- */
-const instance = getCurrentInstance();
-const ip = instance.appContext.config.globalProperties.$ip;
-
-const role = ref('');
-const name = ref('');       // 当前登录用户名
-const token = () => localStorage.getItem('jwt') || '';
-
-/* ---------- 角色解析 ---------- */
-const parseJwt = (tk) => {
-  try {
-    const base64Url = tk.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  } catch {
-    return {};
-  }
-};
-
-const parseRole = () => {
-  const tk = token();
-  if (!tk) return;
-  const payload = parseJwt(tk);
-  role.value = payload.role || '';
-  name.value = payload.sub || '';
-};
-
-/* ---------- 管理员判定 ---------- */
-const isAdmin = computed(() => {
-  const r = role.value;
-  return r === 'ROOT' || r === 'MANAGER';
-});
-
-/* ---------- 响应式数据 ---------- */
-const users        = ref([]);
-const loading      = ref(true); // 列表加载状态
-const error        = ref(null);
-const onlyDisabled = ref(false);
-
-// 新增响应式数据
-const refreshStatus = ref('default');
-const showMessage = ref(false);
-const message = ref('');
-const messageOpacity = ref(0);
-const sqlLoading = ref(false); // **新增：SQL 刷新加载状态**
-
-/* ---------- 显示列表（过滤后） ---------- */
-const displayUsers = computed(() =>
-  onlyDisabled.value
-    ? users.value.filter((u) => !u.status)
-    : users.value
-);
-
-/* ---------- 通用请求封装 ---------- */
-const call = (endpoint, userName) =>
-  fetch(`http://${ip}${endpoint}?pname=${encodeURIComponent(userName)}`, {
-    method: 'PUT',
-    headers: { Authorization: `Bearer ${token()}` },
-  })
-    .then((r) => r.json())
-    .then((j) => {
-      if (j.code !== '0') throw new Error(j.message || '操作失败');
-      return fetchUsers();   // 刷新列表
-    })
-    .catch((e) => alert(e.message || '网络错误'));
-
-/* ---------- 四个按钮 ---------- */
-const upgrade   = (u) => call('/user/promote', u.userName);
-const downgrade = (u) => call('/user/demote', u.userName);
-const enable    = (u) => call('/user/activate', u.userName);
-const disable   = (u) => call('/user/deactivate', u.userName);
-
-/* ---------- 新增的刷新 SQL 方法 ---------- */
-const refreshSql = async () => {
-  sqlLoading.value = true; // **修改：使用新的加载状态**
-  try {
-    const tk = token();
-    const res = await fetch(`http://${ip}/sys/refresh/sql`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${tk}` },
-    });
-    const json = await res.json();
-
-    if (json.code === '0') {
-      refreshStatus.value = 'success';
-      message.value = json.data || '缓存刷新成功';
-      showMessage.value = true;
-      messageOpacity.value = 1;
-
-      setTimeout(() => {
-        messageOpacity.value = 0;
-        setTimeout(() => {
-          showMessage.value = false;
-          refreshStatus.value = 'default';
-        }, 1000);
-      }, 3000);
-
-    } else {
-      throw new Error(json.message || '刷新失败');
-    }
-  } catch (e) {
-    alert(e.message);
-    refreshStatus.value = 'default';
-  } finally {
-    sqlLoading.value = false; // **修改：使用新的加载状态**
-  }
-};
-
-
-/* ---------- 拉取用户列表 ---------- */
-const fetchUsers = async () => {
-  loading.value = true;
-  error.value   = null;
-  const tk = token();
-
-  try {
-    /* 1. 普通用户列表（code 0 或 1 都算成功） */
-    const res = await fetch(`http://${ip}/user/users`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${tk}` },
-    });
-    const json = await res.json();
-    if (!['0', 'B070005'].includes(json.code))
-      throw new Error(json.message || '拉取用户列表失败');
-    let list = json.data ?? [];
-
-    /* 2. 管理员额外拉 manager 列表 */
-    if (role.value === 'ROOT' || role.value === 'MANAGER') {
-      const mgrRes = await fetch(`http://${ip}/user/managers`, {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${tk}` },
-      });
-      const mgrJson = await mgrRes.json();
-      if (['0', 'B070006'].includes(mgrJson.code) && Array.isArray(mgrJson.data)) {
-        list = [...list, ...mgrJson.data];
+<script>
+// 假设这是一个 Vue 3 组件 (使用 <script setup> 更简洁，这里用 Options API 示例)
+export default {
+  name: 'AdminDashboard',
+  methods: {
+    /**
+     * 跳转到指定的路由路径
+     * @param {string} path 要跳转的路由路径
+     */
+    goToPage(path) {
+      // 使用 Vue Router 实例进行导航
+      // 确保你的 Vue 实例已经安装并使用了 Vue Router
+      if (this.$router) {
+        this.$router.push(path).catch(err => {
+          // 捕获并处理可能的导航错误（例如，跳转到当前路径）
+          if (err.name !== 'NavigationDuplicated') {
+            console.error('路由跳转失败:', err);
+          }
+        });
       } else {
-        throw new Error(mgrJson.message || '拉取 manager 列表失败');
+        console.error('Vue Router 实例 ($router) 未找到。请确保组件已正确配置路由。');
       }
     }
-
-    if (['B070005', 'B070006'].includes(json.code)) {
-      throw new Error('当前无用户');
-    }
-
-    /* 3. 按用户名去重 */
-    const map = new Map();
-    list.forEach((u) => map.set(u.userName, u));
-    users.value = Array.from(map.values());
-  } catch (e) {
-    error.value = e.message || '网络错误';
-  } finally {
-    loading.value = false;
   }
 };
-
-
-/* ---------- 挂载 ---------- */
-onMounted(() => {
-  parseRole();
-  fetchUsers();
-});
 </script>
 
 <style scoped>
-/* ---------- 筛选栏 ---------- */
-.filter-bar {
-  margin: 8px 0 16px;
-  font-size: 14px;
-  color: #374151;
-}
-.filter-bar input {
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-/* ---------- 按钮 ---------- */
-.btn-role,
-.btn-status {
-  padding: 4px 8px;
-  margin-right: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  border: none;
-  border-radius: 3px;
-}
-.btn-role {
-  background: #409eff;
-  color: #fff;
-}
-.btn-status {
-  background: #f56c6c;
-  color: #fff;
-}
-
-/* ---------- 页面 ---------- */
-.user-page {
-  max-width: 800px;
+.admin-dashboard {
+  max-width: 900px;
   margin: 40px auto;
   padding: 0 20px;
+  text-align: center;
 }
+
 h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 24px;
+  margin-bottom: 40px;
+  font-size: 28px;
+  color: #333;
 }
 
-/* ---------- 提示 ---------- */
-.tip {
-  text-align: center;
-  padding: 20px;
-  font-size: 16px;
-}
-.tip.error {
-  color: #b91c1c;
-}
-
-/* ---------- 表格 ---------- */
-.table-wrapper {
-  max-height: calc(100vh - 220px);
-  overflow-y: auto;
-  overflow-x: auto;
-  border: 0px solid #e5e7eb;
-  border-radius: 6px;
-}
-.user-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 600px;
-}
-.user-table th,
-.user-table td {
-  padding: 8px 12px;
-  border: 0px solid #e5e7eb;
-  text-align: left;
-}
-.user-table th {
-  background-color: #f9fafb;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-/* --- 新增的样式 --- */
-.refresh-container {
-  position: relative;
+.card-grid {
   display: flex;
+  /* 🌟 修改：允许卡片在必要时换行 */
+  flex-wrap: wrap;
   justify-content: center;
-  margin: 20px 0;
+  gap: 30px;
 }
 
-.btn-refresh {
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: bold;
+.admin-card {
+  /* 🌟 修改：使三个卡片能均匀分配宽度，大约 30% */
+  flex: 1 1 calc(33.33% - 20px);
+  min-width: 250px;
+  height: 220px;
+  padding: 25px;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  border: none;
-  border-radius: 5px;
-  background-color: #ef4444; /* 初始红色 */
-  color: #fff;
-  transition: background-color 0.5s ease;
+  transition: transform 0.3s, box-shadow 0.3s;
+  text-align: left;
+  border: 1px solid #e0e0e0;
 }
 
-.btn-refresh:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
+.admin-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.2);
 }
 
-.btn-refresh-success {
-  background-color: #22c55e; /* 成功绿色 */
+/* 模块特定的颜色 */
+.user-management {
+  border-left: 5px solid #1e88e5; /* 蓝色标识 */
 }
 
-.message-bubble {
-  position: absolute;
-  bottom: 100%; /* 气泡位于按钮上方 */
-  margin-bottom: 10px; /* 与按钮保持 10px 间距 */
-  padding: 8px 12px;
-  border-radius: 6px;
-  background-color: #22c55e;
-  color: #fff;
+.db-refresh {
+  border-left: 5px solid #4caf50; /* 绿色标识 */
+}
+
+/* 🌟 新增：历史记录模块的颜色标识 */
+.history-log {
+  border-left: 5px solid #ff9800; /* 橙色/黄色标识 */
+}
+
+.card-icon {
+  font-size: 40px;
+  margin-bottom: 15px;
+  line-height: 1;
+}
+
+h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+p {
+  color: #777;
   font-size: 14px;
-  white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: opacity 1s ease;
-  z-index: 999; /* 确保图层最高 */
-}
-
-/* 气泡小三角 */
-.message-bubble::before {
-  content: '';
-  position: absolute;
-  top: 100%; /* 小三角位于气泡底部 */
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: #22c55e transparent transparent transparent; /* 小三角朝下 */
+  line-height: 1.5;
 }
 </style>

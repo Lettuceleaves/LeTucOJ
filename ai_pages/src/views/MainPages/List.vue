@@ -56,7 +56,6 @@
         >
           创建题目
         </button>
-        <button class="btn" @click="navigateToHistory">历史记录</button>
       </div>
     </div>
 
@@ -93,7 +92,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const instance = getCurrentInstance()
-const ip = instance?.appContext.config.globalProperties.$ip || 'localhost:7777'
+const ip = instance?.appContext.config.globalProperties.$ip
 
 /** ------------ 响应式状态 ------------ **/
 const allProblems = ref([])
@@ -232,7 +231,6 @@ watch(sortField, () => {
 
 /** ------------ 路由 ------------ **/
 const navigateToCreateProblem = () => router.push('/form')
-const navigateToHistory = () => router.push('/history')
 
 /** ------------ 启动 ------------ **/
 onMounted(() => {

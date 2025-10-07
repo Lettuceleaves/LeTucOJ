@@ -1,6 +1,7 @@
 com\LetucOJ\practice\repos\MybatisRepos.class
 com\LetucOJ\practice\model\FullInfoDTO.class
-com\LetucOJ\practice\repos\RocketMQConsumer.class
+com\LetucOJ\practice\repos\RocketMQSubmissionConsumer$1.class
+com\LetucOJ\practice\repos\RocketMQSubmissionConsumer.class
 com\LetucOJ\practice\controller\ProblemController.class
 com\LetucOJ\practice\controller\SubmitController.class
 com\LetucOJ\practice\model\ProblemStatusDTO.class
@@ -14,5 +15,6 @@ com\LetucOJ\practice\model\ListServiceDTO.class
 com\LetucOJ\practice\service\impl\DBServiceImpl.class
 com\LetucOJ\practice\service\PracticeService.class
 com\LetucOJ\practice\service\DBService.class
+com\LetucOJ\practice\repos\RocketMQSubmissionConsumer$MonthData.class
 com\LetucOJ\practice\PracticeApplication.class
 com\LetucOJ\practice\model\RecordDTO.class

@@ -111,7 +111,7 @@ public class JwtFilter implements WebFilter {
             );
         }
 
-        if (Redis.mapGet("black:" + claims.getSubject()) != null) {
+        if (Redis.mapGet("black:" + claims.getSubject()) != null && !"/user/login".equals(path)) {
             return JwtUtil.writeErrorResponse(exchange, GatewayErrorCode.USER_BLOCKED);
         }
         /* ---------- 黑名单未命中，继续走业务 ---------- */

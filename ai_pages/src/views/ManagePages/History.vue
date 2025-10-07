@@ -1,11 +1,9 @@
 <template>
   <div class="record-list">
-    <!-- 仅 ROOT / MANAGER 可见 -->
     <div v-if="isPrivileged" class="action-bar">
       <button @click="searchByUser">查找特定用户记录</button>
-      <button @click="searchAll">查找全部用户记录</button>
     </div>
-    
+
     <div class="action-bar common-actions">
       <button class="home-btn red" @click="goHome">返回主页</button>
     </div>
@@ -18,7 +16,6 @@
 
     <ul class="records">
       <li v-for="r in sortedRecords" :key="r.submitTime" class="record">
-        <!-- 基本信息 -->
         <div class="row"><span class="label">用户：</span>{{ r.userName }}({{ r.cnname }})</div>
         <div class="row"><span class="label">题目：</span>{{ r.problemName }}</div>
         <div class="row"><span class="label">语言：</span>{{ r.language }}</div>
@@ -27,7 +24,6 @@
         <div class="row"><span class="label">内存：</span>{{ r.memoryUsed }} KB</div>
         <div class="row"><span class="label">提交时间：</span>{{ formatTime(r.submitTime) }}</div>
 
-        <!-- 代码区域：默认折叠 -->
         <div class="row code-area">
           <span class="label">代码：</span>
           <button class="toggle-btn" @click="toggleCode(r)">
@@ -54,15 +50,15 @@ const goHome = () => router.push('/main')
 /* --------------- 数据 --------------- */
 const records = ref([])
 const role = ref('')
-const name = ref('')        // 当前登录用户名
+const name = ref('') // 当前登录用户名，虽然不用于默认查询，但可能用于 prompt 默认值
 
 const start = ref(0)
 const limit = 20
 const total = ref(0)
 
-// 新增状态变量，用于管理查询模式
-const currentSearchMode = ref('self') // 'self' or 'all'
-const currentSearchUser = ref('')     // The user being queried
+// 默认查询模式改为 'all'
+const currentSearchMode = ref('all') // 'any' or 'all'
+const currentSearchUser = ref('')    // The user being queried
 
 /* --------------- 计算属性 --------------- */
 const sortedRecords = computed(() =>
@@ -96,7 +92,7 @@ const parseRole = () => {
   try {
     const payload = parseJwt(token)
     role.value = payload.role || ''
-    name.value = payload.sub || ''
+    name.value = payload.sub || '' // 仍解析用户名，用于搜索时的默认值
   } catch {
     alert('解析角色失败')
   }
@@ -109,9 +105,11 @@ const fetchData = async (userName = '', isAll = false) => {
     start: start.value,
     limit: limit
   })
-  
+
+  // 区分 API 路径
   const apiUrl = isAll ? `/practice/recordList/all` : `/practice/recordList/any`
 
+  // 只有在非查询全部模式且提供了用户名时，才添加 pname 参数
   if (userName && !isAll) {
     params.append('pname', userName)
   }
@@ -135,14 +133,17 @@ const fetchData = async (userName = '', isAll = false) => {
 
 /* --------------- 按钮回调 --------------- */
 const searchByUser = () => {
-  const u = prompt('请输入用户名：', name.value)
-  if (u !== null) {
+  // 弹出提示框，使用当前登录用户名作为默认值
+  const u = prompt('请输入要查找的用户名：', name.value || '')
+  if (u !== null && u.trim() !== '') {
     // 设置模式和用户名，重置页码
-    currentSearchMode.value = 'self'
-    currentSearchUser.value = u
+    currentSearchMode.value = 'any' // 更改为 'any' 表示搜索特定用户
+    currentSearchUser.value = u.trim()
     start.value = 0
-    // 调用通用函数
+    // 调用通用函数，查询特定用户
     fetchData(currentSearchUser.value, false)
+  } else if (u !== null && u.trim() === '') {
+      alert('用户名不能为空')
   }
 }
 
@@ -151,7 +152,7 @@ const searchAll = () => {
   currentSearchMode.value = 'all'
   currentSearchUser.value = ''
   start.value = 0
-  // 调用通用函数
+  // 调用通用函数，查询所有用户
   fetchData('', true)
 }
 
@@ -159,11 +160,7 @@ const prevPage = () => {
   if (start.value > 0) {
     start.value -= limit
     // 根据当前模式调用通用函数
-    if (currentSearchMode.value === 'self') {
-      fetchData(currentSearchUser.value, false)
-    } else {
-      fetchData('', true)
-    }
+    fetchData(currentSearchUser.value, currentSearchMode.value === 'all')
   }
 }
 
@@ -171,25 +168,22 @@ const nextPage = () => {
   if (start.value + limit < total.value) {
     start.value += limit
     // 根据当前模式调用通用函数
-    if (currentSearchMode.value === 'self') {
-      fetchData(currentSearchUser.value, false)
-    } else {
-      fetchData('', true)
-    }
+    fetchData(currentSearchUser.value, currentSearchMode.value === 'all')
   }
 }
 
 /* --------------- 生命周期 --------------- */
 onMounted(() => {
   parseRole()
-  // 页面加载时默认查询当前用户
-  currentSearchMode.value = 'self'
-  currentSearchUser.value = name.value
-  fetchData(currentSearchUser.value, false)
+  // 页面加载时默认查询所有用户记录 (符合管理员页面的新逻辑)
+  currentSearchMode.value = 'all'
+  currentSearchUser.value = ''
+  fetchData('', true)
 })
 </script>
 
 <style scoped>
+/* 样式代码保持不变，因为它已经符合要求 */
 .record-list {
   max-width: 960px;
   margin: 0 auto;
@@ -293,10 +287,10 @@ onMounted(() => {
 }
 /* 红色皮肤 */
 button.red {
-  background: #ef4444;        /* Tailwind red-500 */
+  background: #ef4444; /* Tailwind red-500 */
 }
 button.red:hover {
-  background: #dc2626;        /* Tailwind red-600 */
+  background: #dc2626; /* Tailwind red-600 */
 }
 
 /* Pagination bar styling */
@@ -329,6 +323,4 @@ button.red:hover {
   color: #6b7280;
   white-space: nowrap;
 }
-
 </style>
-

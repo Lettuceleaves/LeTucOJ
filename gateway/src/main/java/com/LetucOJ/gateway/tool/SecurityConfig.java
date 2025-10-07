@@ -39,7 +39,7 @@ public class SecurityConfig {
                         // 用户权限接口
                         .pathMatchers(
                                 "/practice/list", "/practice/searchList", "/practice/full/get", "/user/info/get", "/user/info/update",
-                                "/practice/submit", "/contest/full/getProblem", "/contest/full/getContest",
+                                "/practice/submit", "/contest/full/getProblem", "/contest/full/getContest", "/user/heatmap",
                                 "/contest/attend", "/contest/list/problem", "/contest/list/contest", "/contest/inContest",
                                 "/contest/list/board", "/contest/submit", "/user/logout", "/user/changePassword", "/advice", "/practice/count", "/recordList/self",
                                 "/user/rank", "/user/background/get", "/user/background/update", "/user/headPortrait/get", "/user/headPortrait/update"

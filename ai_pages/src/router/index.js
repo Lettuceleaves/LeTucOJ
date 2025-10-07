@@ -35,11 +35,6 @@ const router = createRouter({
       component: () => import('../views/DocPage.vue'),
     },
     {
-      path: '/history',
-      name: 'history',
-      component: () => import('../views/History.vue'),
-    },
-    {
       path: '/main',
       name: 'main',
       component: () => import('../views/Main.vue'),
@@ -71,6 +66,32 @@ const router = createRouter({
       name: 'user',
       component: () => import('../views/ManagePage.vue'),
     },
+    {
+      path: '/admin',
+      name: 'AdminDashboard',
+      component: () => import('../views/ManagePage.vue'),
+    },
+    {
+      path: '/admin/users',
+      name: 'UserList',
+      component: () => import('../views/ManagePages/UserList.vue'),
+    },
+    {
+      path: '/admin/db',
+      name: 'DBSQLRefresh',
+      component: () => import('../views/ManagePages/DBSQLRefresh.vue'),
+    },
+    {
+      path: '/admin/history',
+      name: 'history',
+      component: () => import('../views/ManagePages/History.vue'),
+    },
+    {
+      path: '/othsers/profile',
+      name: 'othersProfile',
+      component: () => import('../views/MainPages/User.vue'),
+      props: true
+    }
   ],
 });
 

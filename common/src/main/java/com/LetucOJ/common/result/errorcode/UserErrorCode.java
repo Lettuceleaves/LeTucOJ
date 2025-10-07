@@ -14,6 +14,9 @@ public enum UserErrorCode implements ErrorCode {
     NO_USER("B070005", "没有用户"),
     NO_MANAGER("B070006", "没有管理员"),
     NO_RANK("B070007", "暂无排名"),
+    NO_HEATMAP("B070008", "这个人很懒，今年一题没写"),
+    NO_HEADPORTRAIT("B070009", "没有头像"),
+    NO_BACKGROUND("B070010", "没有背景图"),
 
     // ========== 模块错误码 调用第三方服务出错 ==========
     REMOTE_ERROR("C070001", "调用第三方服务出错");

@@ -2,7 +2,6 @@ package com.LetucOJ.sys.service.impl;
 
 import com.LetucOJ.common.cache.Redis;
 import com.LetucOJ.common.oss.MinioRepos;
-import com.LetucOJ.common.oss.impl.MinioReposImpl;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
@@ -15,7 +14,6 @@ import com.LetucOJ.sys.repos.UserMybatisRepos;
 import com.LetucOJ.sys.service.UserService;
 import com.LetucOJ.sys.util.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -107,7 +105,8 @@ public class UserServiceImpl implements UserService {
     public ResultVO deactivateAccount(String userName) {
         try {
             Integer rows = userMybatisRepos.deactivateUser(userName);
-            if (rows != null && rows == 1) {
+            ResultVO res = logout(userName);
+            if (rows != null && rows == 1 && res.getCode().equals("0")) {
                 return Result.success();
             } else {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
@@ -178,7 +177,8 @@ public class UserServiceImpl implements UserService {
     public ResultVO demoteToUser(String userName) {
         try {
             Integer rows = userMybatisRepos.setManagerToUser(userName);
-            if (rows != null && rows == 1) {
+            ResultVO res = logout(userName);
+            if (rows != null && rows == 1 && res.getCode().equals("0")) {
                 return Result.success();
             } else {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
@@ -271,8 +271,12 @@ public class UserServiceImpl implements UserService {
     public ResultVO getBackground(String username) {
         String bucketName = "letucoj";
         String objectName = "user/" + username + "/background.txt";
-        byte[] data = minioRepos.getFile(bucketName, objectName);
-        return Result.success(data);
+        try {
+            byte[] data = minioRepos.getFile(bucketName, objectName);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.failure(UserErrorCode.NO_BACKGROUND);
+        }
     }
 
     @Override
@@ -303,8 +307,12 @@ public class UserServiceImpl implements UserService {
     public ResultVO getHeadPortrait(String username) {
         String bucketName = "letucoj";
         String objectName = "user/" + username + "/headPortrait.txt";
-        byte[] data = minioRepos.getFile(bucketName, objectName);
-        return Result.success(data);
+        try {
+            byte[] data = minioRepos.getFile(bucketName, objectName);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.failure(UserErrorCode.NO_HEADPORTRAIT);
+        }
     }
 
     @Override
@@ -317,6 +325,17 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
+    }
+
+    @Override
+    public ResultVO getHeatmap(String username, int year) {
+        String bucketName = "letucoj";
+        String objectName = "user/" + username + "/heatmap/" + year + ".json";
+        if (!minioRepos.isObjectExist(bucketName, objectName)) {
+            return Result.failure(UserErrorCode.NO_HEATMAP);
+        }
+        byte[] data = minioRepos.getFile(bucketName, objectName);
+        return Result.success(data);
     }
 
 }

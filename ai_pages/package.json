@@ -14,6 +14,7 @@
     "axios": "^1.10.0",
     "codemirror": "^5.65.19",
     "dompurify": "^3.2.6",
+    "echarts": "^6.0.0",
     "element-plus": "^2.10.4",
     "github-markdown-css": "^5.8.1",
     "highlight.js": "^11.11.1",

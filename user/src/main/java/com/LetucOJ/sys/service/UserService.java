@@ -24,4 +24,5 @@ public interface UserService {
     ResultVO updateBackground(String username, byte[] data);
     ResultVO getHeadPortrait(String username);
     ResultVO updateHeadPortrait(String username, byte[] data);
+    ResultVO getHeatmap(String username, int year);
 }

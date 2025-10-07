@@ -85,5 +85,6 @@ public class UserController {
     @PutMapping("/headPortrait/update")
     public ResultVO updateHeadPortrait(@RequestParam("pname") String pname, @RequestBody byte[] data) { return userService.updateHeadPortrait(pname, data); }
 
-
+    @GetMapping("/heatmap")
+    public ResultVO getHeatmap(@RequestParam("pname") String pname, @RequestParam("year") int year) { return userService.getHeatmap(pname, year); }
 }

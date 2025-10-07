@@ -23,8 +23,8 @@
         <tr
           v-for="(item, idx) in sortedData"
           :key="item.userName"
-          :class="medalClass(idx)"
-        >
+          :class="[medalClass(idx), 'clickable-row']"
+          @click="goToProfile(item.userName)"         >
           <td class="rank-number">{{ idx + 1 }}</td>
           <td>{{ item.cnname }}</td>
           <td>{{ item.userName }}</td>
@@ -38,14 +38,29 @@
 
 <script setup>
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
+import { useRouter } from 'vue-router'
 
 /* ---------- 基础响应式数据 ---------- */
 const instance = getCurrentInstance()
-const ip = instance?.appContext.config.globalProperties.$ip || 'localhost:7777'
+const ip = instance?.appContext.config.globalProperties.$ip
 
 const rankData = ref([])   // 原始数据
 const loading  = ref(true)
 const error    = ref(null)
+
+const router = useRouter()
+
+/* ---------- 跳转到用户详情页 ---------- */
+function goToProfile(userName) {
+    router.push({ 
+        // ⭐ 使用路由名称，它能避免 URL 路径被哈希模式影响
+        name: 'othersProfile', 
+        // ⭐ 使用 params 来传递动态路径中的参数
+        query: { 
+            pname: userName 
+        } 
+    });
+}
 
 /* ---------- 排序：总分降序 -> 题数降序 -> 用户名升序 ---------- */
 const sortedData = computed(() =>

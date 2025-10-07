@@ -465,7 +465,7 @@ async function fetchFullContest() {
   });
   try {
     const token = localStorage.getItem('jwt') || ''
-    const res = await fetch(`http://${ip}/contest/full/getContest?${params}`, { // 添加 http:// 和 ip
+    const res = await fetch(`http://${ip}/contest/full/getContest?${params}`, { // 添加  和 ip
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`
@@ -504,7 +504,7 @@ async function fetchProblemList() {
       ctname: ctname
     });
 
-    const res = await fetch(`http://${ip}/contest/list/problem?${params}`, { // 添加 http:// 和 ip
+    const res = await fetch(`http://${ip}/contest/list/problem?${params}`, { // 添加  和 ip
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`

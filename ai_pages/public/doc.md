@@ -175,7 +175,7 @@ mysqldump -u root -p --databases practice --result-file=init8.sql
 
 ## 模块： gateway
 
-### 路径：letucoj.cn:7777
+### 路径：letucoj.cn
 
 系统统一入口，所有请求都会经过此模块。
 
