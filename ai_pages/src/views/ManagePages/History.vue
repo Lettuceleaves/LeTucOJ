@@ -8,12 +8,6 @@
       <button class="home-btn red" @click="goHome">返回主页</button>
     </div>
 
-    <div class="pagination-bar">
-      <button :disabled="start === 0" @click="prevPage">上一页</button>
-      <div class="page-info">第 {{ start / limit + 1 }} 页 / 共 {{ Math.ceil(total / limit) }} 页 (总数: {{ total }})</div>
-      <button :disabled="start + limit >= total" @click="nextPage">下一页</button>
-    </div>
-
     <ul class="records">
       <li v-for="r in sortedRecords" :key="r.submitTime" class="record">
         <div class="row"><span class="label">用户：</span>{{ r.userName }}({{ r.cnname }})</div>
@@ -33,6 +27,12 @@
         </div>
       </li>
     </ul>
+
+    <div class="pagination-bar">
+      <button :disabled="start === 0" @click="prevPage">上一页</button>
+      <div class="page-info">第 {{ start / limit + 1 }} 页 / 共 {{ Math.ceil(total / limit) }} 页 (总数: {{ total }})</div>
+      <button :disabled="start + limit >= total" @click="nextPage">下一页</button>
+    </div>
   </div>
 </template>
 

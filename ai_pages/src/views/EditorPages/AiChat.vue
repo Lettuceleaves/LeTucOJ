@@ -13,7 +13,9 @@
         <div v-if="msg.role === 'user'" class="msg-content">
           {{ msg.content }}
         </div>
-        <div v-else class="msg-content markdown-body" v-html="msg.html"></div>
+        <div v-else class="msg-content">
+          <MarkdownRenderer :raw-content="msg.raw" />
+        </div>
       </div>
     </div>
     <div class="ai-input">
@@ -29,99 +31,103 @@
 
 <script setup>
 import { ref, nextTick, onUnmounted, getCurrentInstance } from 'vue'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
+import MarkdownRenderer from '../../components/MarkdownRenderer.vue'; // 确保路径正确
+
 
 defineExpose({
   sendMessage
 })
 
-// 配置marked - 修复标题渲染问题
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-  headerIds: false,
-  mangle: false,
-  // 确保标题正确解析
-  headerPrefix: '',
-  // 修复中文标题问题
-  langPrefix: 'language-',
-  // 自定义标题渲染
-  renderer: new marked.Renderer()
-})
-
-// 全局IP配置
 const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip || 'localhost'
+// 使用 ?. 避免在没有全局属性时出错
+const ip = instance?.appContext.config.globalProperties.$ip || 'localhost'
 
 const messages = ref([])
 const inputText = ref('')
 const aiWindow = ref(null)
 let eventSource = null
 
-// 安全渲染Markdown - 修复标题问题
-const renderMarkdown = (content) => {
-  if (!content) return ''
-  
-  // 修复标题格式：确保 # 后有空格
-  const fixedContent = content.replace(/(^|\n)(#+)([^#\s])/g, '$1$2 $3')
-  
-  try {
-    const rawHtml = marked(fixedContent)
-    return DOMPurify.sanitize(rawHtml)
-  } catch (error) {
-    console.error('Markdown渲染错误:', error)
-    return `<div class="error">渲染错误: ${error.message}</div>`
-  }
-}
 
-// 滚动到底部
-function scrollToBottom() {
-  nextTick(() => {
-    if (aiWindow.value) {
-      aiWindow.value.scrollTop = aiWindow.value.scrollHeight
-    }
-  })
-}
-
-async function sendMessage(text) {
+async function sendMessage(text, context = '') {
   const trimmed = text.trim()
   const token = localStorage.getItem('jwt') || ''
   if (!trimmed) return
 
   messages.value.push({ role: 'user', content: trimmed })
-  messages.value.push({ role: 'assistant', raw: '', html: '' })
+  // 仅初始化 raw 字段
+  messages.value.push({ role: 'assistant', raw: '' }) 
   const idx = messages.value.length - 1
   inputText.value = ''
   scrollToBottom()
 
   const res = await fetch(`http://${ip}/advice`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ userFile: trimmed })
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}` 
+    },
+    body: JSON.stringify({ userFile: trimmed + context })
   })
+
+  if (!res.body) {
+    // 简化错误处理，只设置 raw
+    messages.value[idx].raw = '错误：无法获取流响应体。'
+    return
+  }
 
   const reader = res.body
     .pipeThrough(new TextDecoderStream())
     .getReader()
 
+  
+  let currentRaw = ''; // 💡 修复 1: 在循环外初始化，用于累积所有数据块
+  let hasNewChunk = false; // 标记是否有新数据进来
+
   while (true) {
     const { done, value } = await reader.read()
-    if (done) break
-
-    // --- 新增：解析 SSE 格式 ---
-    const lines = value.split(/\r?\n/)
+    
+    if (done) {
+        // 最终清理
+        messages.value[idx].raw = currentRaw.trimEnd();
+        scrollToBottom()
+        break
+    }
+    
+    const lines = value ? value.split(/\r?\n/) : []
+    
     for (const line of lines) {
       if (line.startsWith('data:')) {
-        const chunk = line.slice(5)        // 去掉 "data:"
-        messages.value[idx].raw += chunk
+        let chunk = line.slice(5).trimStart()
+
+        if (chunk.includes('\\x0A') || chunk.includes('\\x0B')) {
+          chunk = chunk.replace(/\\x0A/g, '\n'); 
+          chunk = chunk.replace(/\\x0B/g, ' '); 
+        }
+        
+        if (chunk !== '') {
+          // 💡 修复 2: 将 chunk 累加到 currentRaw
+          currentRaw += chunk; 
+          hasNewChunk = true; // 💡 修复 3: 标记有新内容
+        }
       }
     }
-    // --- 解析完 ---
-
-    messages.value[idx].html = renderMarkdown(messages.value[idx].raw)
-    scrollToBottom()
+    
+    // 检查是否有内容更新，并通知 Vue 更新 raw
+    if (hasNewChunk) {
+        messages.value[idx].raw = currentRaw; // 💡 修复 4: 无条件更新 raw，保持流式输出
+        hasNewChunk = false;
+        // 滚动到底部，以便用户能实时看到输出
+        scrollToBottom() 
+    }
   }
+}
+
+function scrollToBottom() {
+  nextTick(() => {
+    if (aiWindow.value) {
+      aiWindow.value.scrollTop = aiWindow.value.scrollHeight
+    }
+  })
 }
 
 onUnmounted(() => {
@@ -131,9 +137,8 @@ onUnmounted(() => {
   }
 })
 </script>
-
 <style scoped>
-/* 原有样式保持不变 */
+/* (你的样式代码不变) */
 .card {
   background: #fff;
   border: 1px solid #ddd;
@@ -188,93 +193,6 @@ onUnmounted(() => {
 }
 .ai-input button:hover {
   background: #2563eb;
-}
-</style>
-
-<style>
-/* 增强标题样式 - 确保标题明显可见 */
-.markdown-body h1 {
-  font-size: 2em !important;
-  font-weight: bold !important;
-  margin: 0.67em 0 !important;
-  border-bottom: 1px solid #eaecef !important;
-  padding-bottom: 0.3em !important;
-  color: #24292e !important;
-}
-
-.markdown-body h2 {
-  font-size: 1.5em !important;
-  font-weight: bold !important;
-  margin: 0.83em 0 !important;
-  border-bottom: 1px solid #eaecef !important;
-  padding-bottom: 0.3em !important;
-  color: #24292e !important;
-}
-
-.markdown-body h3 {
-  font-size: 1.25em !important;
-  font-weight: bold !important;
-  margin: 1em 0 !important;
-  color: #24292e !important;
-}
-
-.markdown-body h4 {
-  font-size: 1.1em !important;
-  font-weight: bold !important;
-  margin: 1.33em 0 !important;
-  color: #24292e !important;
-}
-
-/* 其他样式保持不变 */
-.markdown-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  word-wrap: break-word;
-}
-
-.markdown-body p {
-  margin-top: 0;
-  margin-bottom: 1em;
-}
-
-.markdown-body pre {
-  background-color: #f6f8fa;
-  border-radius: 6px;
-  padding: 16px;
-  overflow: auto;
-  margin-bottom: 1em;
-}
-
-.markdown-body code {
-  background-color: rgba(175, 184, 193, 0.2);
-  border-radius: 3px;
-  padding: 0.2em 0.4em;
-  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-  font-size: 85%;
-}
-
-.markdown-body pre code {
-  background-color: transparent;
-  padding: 0;
-  font-size: 100%;
-}
-
-.markdown-body blockquote {
-  border-left: 4px solid #dfe2e5;
-  color: #6a737d;
-  padding: 0 1em;
-  margin: 0 0 1em 0;
-}
-
-.markdown-body ul,
-.markdown-body ol {
-  padding-left: 2em;
-  margin-bottom: 1em;
-}
-
-.markdown-body li {
-  margin-bottom: 0.5em;
 }
 
 .loading {

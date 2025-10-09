@@ -18,15 +18,18 @@
     "element-plus": "^2.10.4",
     "github-markdown-css": "^5.8.1",
     "highlight.js": "^11.11.1",
+    "katex": "^0.16.23",
     "marked": "^16.1.1",
     "monaco-editor": "^0.52.2",
     "monaco-editor-vue3": "^1.0.3",
     "pinia": "^3.0.3",
     "vue": "^3.5.17",
+    "vue-markdown-render": "^2.3.0",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
+    "@types/katex": "^0.16.7",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/eslint-config-prettier": "^10.2.0",
     "eslint": "^9.29.0",

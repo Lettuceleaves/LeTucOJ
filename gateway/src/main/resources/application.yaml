@@ -40,10 +40,10 @@ spring:
       default-filters:
         - DedupeResponseHeader=Vary Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
 
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.web.cors: DEBUG
+#logging:
+#  level:
+#    org.springframework.cloud.gateway: DEBUG
+#    org.springframework.web.cors: DEBUG
 
 auth:
   service:

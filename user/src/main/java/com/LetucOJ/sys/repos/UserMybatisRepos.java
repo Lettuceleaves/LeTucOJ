@@ -12,7 +12,7 @@ import java.util.Map;
 @Repository
 public interface UserMybatisRepos {
 
-    @Insert("INSERT INTO user (user_name, cnname, password, role, status) VALUES (#{userName}, #{cnname}, #{password}, #{role}, #{enabled})")
+    @Insert("INSERT INTO user (user_name, cnname, password, role, status) VALUES (#{userName}, #{cnname}, #{password}, #{role}, #{status})")
     Integer saveUserInfo(UserManagerDTO userDTO);
 
     @Select("SELECT * FROM user WHERE user_name = #{userName}")

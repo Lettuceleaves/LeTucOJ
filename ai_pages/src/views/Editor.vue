@@ -110,7 +110,7 @@ const sendToAI = () => {
          const basePrompt = `请分析我刚刚提交的代码，并给出优化建议。`;
          
          // 将序列化后的上下文附加到提示词后面
-         const fullPrompt = `${basePrompt}\n\n--- 上下文数据 ---\n\`\`\`json\n${serializedContext}\n\`\`\``;
+         const fullPrompt = `\n\n--- 上下文数据 ---\n\`\`\`json\n${serializedContext}\n\`\`\``;
          // *** 用户的修改逻辑结束 ***
 
          console.log('发送给AI的完整提示:', fullPrompt)
@@ -118,7 +118,7 @@ const sendToAI = () => {
          try {
             // 调用AI聊天组件的发送消息方法，仅传递包含所有信息的 fullPrompt
             // AiChat.vue 的 sendMessage 只需要接受这个完整的文本即可
-            aiChatRef.value.sendMessage(fullPrompt)
+            aiChatRef.value.sendMessage(basePrompt, fullPrompt)
             console.log('AI分析请求发送成功，已将上下文附加到提示词中。')
          } catch (e) {
             console.error('调用AI组件方法失败:', e)

@@ -45,6 +45,7 @@ public class PracticeServiceImpl implements PracticeService {
             try {
                 inputBytesArrays = getCases(qname, problemStatus.getCaseAmount(), 0);
             } catch (RuntimeException e) {
+                System.out.println(e.getMessage());
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
             for (byte[] inputBytes : inputBytesArrays) {
@@ -55,6 +56,7 @@ public class PracticeServiceImpl implements PracticeService {
             try {
                 outputBytesArray = getCases(qname, problemStatus.getCaseAmount(), 1);
             } catch (RuntimeException e) {
+                System.out.println(e.getMessage());
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
             ResultVO runResult = runClient.run(inputs, language);
@@ -68,6 +70,7 @@ public class PracticeServiceImpl implements PracticeService {
                 if (check == null || check == 0) {
                     Integer res = mybatisRepos.insertCorrect(pname, qname);
                     if (res == null || res == 0) {
+                        System.out.println("insertCorrect error");
                         return Result.failure(BaseErrorCode.SERVICE_ERROR);
                     }
                 }

@@ -3,26 +3,19 @@
     <h3 class="title">{{ data.cnname }}（{{ data.name }}）</h3>
     <p><strong>测试点数量：</strong>{{ data.caseAmount }}</p>
     <p><strong>题目描述：</strong></p>
-    <div class="paragraph" v-html="parsedMarkdown" />
+    
+    <MarkdownRenderer 
+      :raw-content="data.content || '暂无描述'" 
+      container-class="paragraph" 
+    />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { marked } from 'marked'
+import MarkdownRenderer from '../../components/MarkdownRenderer.vue'; //
 
 const props = defineProps({
   data: Object,
-})
-
-const parsedMarkdown = computed(() => {
-  // 获取内容，如果没有内容，使用默认内容
-  const content = props.data?.content || '暂无描述'
-  
-  // 使用 marked 库解析 Markdown
-  const htmlContent = marked(content)
-  
-  return htmlContent
 })
 </script>
 
@@ -47,26 +40,12 @@ const parsedMarkdown = computed(() => {
   margin-bottom: 12px;
   color: #1f2937;
 }
-
 .paragraph {
   font-size: 16px;
   line-height: 1.6;
   color: #374151;
-  white-space: normal;
+  /* 确保这个容器允许正常的文本折行 */
+  white-space: normal; 
 }
 
-/* 可选：Markdown 样式优化 */
-.paragraph h1,
-.paragraph h2,
-.paragraph h3 {
-  margin-top: 16px;
-  font-weight: bold;
-}
-
-.paragraph code {
-  background-color: #f3f4f6;
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-family: monospace;
-}
 </style>

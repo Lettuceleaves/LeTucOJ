@@ -28,11 +28,11 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
 
-logging:
-  level:
-    root: INFO
-    org.springframework: DEBUG
-    com.zaxxer.hikari: DEBUG
-    org.mybatis: DEBUG
-    com.OMS.practice_service: DEBUG
+#logging:
+#  level:
+#    root: INFO
+#    org.springframework: DEBUG
+#    com.zaxxer.hikari: DEBUG
+#    org.mybatis: DEBUG
+#    com.OMS.practice_service: DEBUG
 

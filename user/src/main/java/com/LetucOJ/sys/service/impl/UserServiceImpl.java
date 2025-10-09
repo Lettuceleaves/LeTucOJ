@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
         if (!passwordPattern.matcher(rawPwd).matches()) {
             return Result.failure(UserErrorCode.PARAM_FORMAT_ERROR);
         }
-
+        System.out.println(username);
         UserInfoDTO existingUser = userMybatisRepos.getUserFullInfo(username);
 
         if (existingUser != null) {
@@ -57,16 +57,18 @@ public class UserServiceImpl implements UserService {
         }
 
         String encodedPwd = PasswordUtil.encrypt(rawPwd);
-        UserManagerDTO userManagerDTO = new UserManagerDTO(username, cnname, encodedPwd, "USER", 0);
+        UserManagerDTO userManagerDTO = new UserManagerDTO(username, cnname, encodedPwd, "USER", 1);
 
         try {
             Integer result = userMybatisRepos.saveUserInfo(userManagerDTO);
 
             if (!result.equals(1)) {
+                System.out.println(result);
                 return Result.failure(UserErrorCode.REGISTER_FAILED);
             }
             return Result.success();
         } catch (Exception e) {
+            e.printStackTrace();
             return Result.failure(UserErrorCode.REGISTER_FAILED);
         }
     }
@@ -305,6 +307,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVO getUserFullInfo(String username) {
+        System.out.println(username);
         if (username == null) {
             return Result.failure(UserErrorCode.EMPTY_PARAMETER);
         }

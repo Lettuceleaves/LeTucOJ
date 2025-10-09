@@ -88,7 +88,7 @@
               </div>
           </div>
           
-          <div v-if="heatmapData.length > 0 || heatmapLoading || heatmapError" 
+          <div v-if="isHeatmapContainerVisible" 
                class="heatmap-placeholder" 
                ref="heatmapChart">
           </div>
@@ -109,13 +109,6 @@
               <div v-if="historyLoading" class="loading-message">记录加载中...</div>
               
               <div v-else>
-                  <div class="pagination-bar">
-                      <button :disabled="start === 0" @click="prevPage">上一页</button>
-                      <div class="page-info">
-                          第 {{ start / limit + 1 }} 页 / 共 {{ Math.ceil(total / limit) }} 页 (总数: {{ total }})
-                      </div>
-                      <button :disabled="start + limit >= total" @click="nextPage">下一页</button>
-                  </div>
 
                   <ul v-if="sortedRecords.length" class="records">
                       <li v-for="r in sortedRecords" :key="r.submitTime" class="record">
@@ -136,6 +129,13 @@
                       </li>
                   </ul>
                   <p v-else class="no-records">暂无提交记录。</p>
+                  <div class="pagination-bar">
+                      <button :disabled="start === 0" @click="prevPage">上一页</button>
+                      <div class="page-info">
+                          第 {{ start / limit + 1 }} 页 / 共 {{ Math.ceil(total / limit) }} 页 (总数: {{ total }})
+                      </div>
+                      <button :disabled="start + limit >= total" @click="nextPage">下一页</button>
+                  </div>
               </div>
           </div>
         </div>
@@ -177,7 +177,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, getCurrentInstance, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, getCurrentInstance, computed, watch, nextTick  } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import * as echarts from 'echarts';
 
@@ -185,7 +185,7 @@ const router = useRouter();
 const route = useRoute();
 
 // ===================================
-//             配置项
+//             配置项
 // ===================================
 
 // 默认占位图（如果后端不提供，或者加载失败）
@@ -194,7 +194,7 @@ const DEFAULT_AVATAR = 'https://k.sinaimg.cn/n/sinakd20240807ac/775/w397h378/202
 const DEFAULT_BACKGROUND = 'https://picsum.photos/1200/200';
 
 // ===================================
-//             状态和数据
+//             状态和数据
 // ===================================
 
 const loading = ref(true);
@@ -223,20 +223,22 @@ const jwtToken = ref(localStorage.getItem('jwt'));
 const searchUsername = ref(''); 
 
 // ===================================
-//             搜索用户
+//             搜索用户
 // ===================================
 
 function searchUser() {
     const username = searchUsername.value.trim();
     if (!username) {
-        alert('请输入要搜索的用户名');
+        // 使用自定义消息或模态框代替 alert
+        console.warn('请输入要搜索的用户名'); 
         return;
     }
 
     // 假设您的用户主页路由是 `/user/:username`
     // 如果当前页面已经是目标用户页面，则不跳转
     if (username.toLowerCase() === targetUserName.value.toLowerCase()) {
-        alert(`您已经在用户 ${username} 的主页了。`);
+        // 使用自定义消息或模态框代替 alert
+        console.warn(`您已经在用户 ${username} 的主页了。`); 
         return;
     }
 
@@ -246,13 +248,13 @@ function searchUser() {
         name: 'othersProfile', 
         // ⭐ 使用 params 来传递动态路径中的参数
         query: { 
-            pname: username 
+            pname: username 
         } 
     });
 }
 
 // ===================================
-//             简介信息
+//             简介信息
 // ===================================
 
 
@@ -331,21 +333,23 @@ async function submitForm() {
     
     if (response.code === '0') {
       userInfo.value = { ...editForm.value }; 
-      alert('资料更新成功！');
+      // 使用自定义消息或模态框代替 alert
+      console.log('资料更新成功！'); 
     } else {
       throw new Error("API返回错误: " + (response.message || '未知错误'));
     }
     
   } catch (err) {
     console.error('更新用户信息失败:', err);
-    alert('更新失败: ' + (err.message || '网络或服务异常'));
+    // 使用自定义消息或模态框代替 alert
+    console.error('更新失败: ' + (err.message || '网络或服务异常')); 
   } finally {
     closeModal();
   }
 }
 
 // ===================================
-//             数据获取
+//             数据获取
 // ===================================
 
 async function fetchUserInfo() {
@@ -413,11 +417,13 @@ async function onSelectFile(e) {
   const isLt1M = file.size / 1024 / 1024 < 1
 
   if (!isJpg) {
-    alert('只能上传 JPG 文件')
+    // 使用自定义消息或模态框代替 alert
+    console.warn('只能上传 JPG 文件')
     return
   }
   if (!isLt1M) {
-    alert('图片必须小于 1MB')
+    // 使用自定义消息或模态框代替 alert
+    console.warn('图片必须小于 1MB')
     return
   }
 
@@ -442,11 +448,13 @@ async function onSelectFile(e) {
       avatarUrl.value = `data:image/jpeg;base64,${json.data}`
       fetchUserAvatar();
     } else {
-      alert('上传失败：' + (json.message || '未知错误'))
+      // 使用自定义消息或模态框代替 alert
+      console.error('上传失败：' + (json.message || '未知错误'))
     }
   } catch (e) {
     console.error(e)
-    alert('网络异常，上传失败')
+    // 使用自定义消息或模态框代替 alert
+    console.error('网络异常，上传失败')
   }
 
   // 清空 input，允许重复选同一张图
@@ -456,8 +464,10 @@ async function onSelectFile(e) {
 async function onSelectBg(e) {
   const file = e.target.files[0]
   if (!file) return
-  if (!file.type.includes('jpeg')) return alert('只能上传 JPG 背景')
-  if (file.size > 1_048_576) return alert('背景图必须 < 1MB')
+  // 使用自定义消息或模态框代替 alert
+  if (!file.type.includes('jpeg')) return console.error('只能上传 JPG 背景')
+  // 使用自定义消息或模态框代替 alert
+  if (file.size > 1_048_576) return console.error('背景图必须 < 1MB')
 
   try {
     const token = localStorage.getItem('jwt')
@@ -472,11 +482,13 @@ async function onSelectBg(e) {
       backgroundImageUrl.value = `data:image/jpeg;base64,${json.data}`
       fetchUserBackground()
     } else {
-      alert('背景上传失败：' + (json.message || '未知错误'))
+      // 使用自定义消息或模态框代替 alert
+      console.error('背景上传失败：' + (json.message || '未知错误'))
     }
   } catch (e) {
     console.error(e)
-    alert('网络异常')
+    // 使用自定义消息或模态框代替 alert
+    console.error('网络异常')
   }
   e.target.value = '' // 允许重复选同一张
 }
@@ -504,9 +516,9 @@ async function fetchUserBackground() {
 // 背景高度（默认 200，后续可从后端读）
 const backgroundHeight = ref(200)
 
-let dragStartY = 0      // 按下时鼠标 Y
+let dragStartY = 0      // 按下时鼠标 Y
 let dragStartHeight = 0 // 按下时背景高度
-let dragging = false    // 是否正在拖
+let dragging = false    // 是否正在拖
 
 // 按下拖动条
 function startDrag(e) {
@@ -521,7 +533,7 @@ function startDrag(e) {
 // 拖动中
 function onDrag(e) {
   if (!dragging) return
-  const delta = e.clientY - dragStartY      // 向下为正
+  const delta = e.clientY - dragStartY      // 向下为正
   let newHeight = dragStartHeight + delta
   // 限制最小 120，最大 500
   newHeight = Math.max(120, Math.min(500, newHeight))
@@ -539,7 +551,7 @@ function stopDrag() {
   // await saveBgHeight(backgroundHeight.value)
 }
 // ===================================
-//             热力图
+//             热力图
 // ===================================
 const heatmapChart = ref(null);
 let myChart = null;
@@ -550,6 +562,11 @@ const heatmapData = ref([]);
 const maxYear = new Date().getFullYear();
 const minYear = maxYear - 5;
 const currentHeatmapYear = ref(maxYear);
+
+// ✅ 【修改 1/3】新增计算属性，用于监听 ECharts 容器的 v-if 状态
+const isHeatmapContainerVisible = computed(() => {
+    return heatmapData.value.length > 0 || heatmapLoading.value || heatmapError.value;
+});
 
 const changeYear = (delta) => {
     const newYear = currentHeatmapYear.value + delta;
@@ -581,21 +598,18 @@ function transformHeatmapData(data, year) {
     return result;
 }
 
-/**
- * 获取热力图数据
- * 后端接口: GET /heatmap?pname=xxx&year=yyyy
- */
+// ⚠️ 将 resize 监听器提取为独立函数，以便在 dispose 时可以正确移除
+let resizeListener = null;
+
 async function fetchHeatmapData() {
     // 确保用户名已加载
     if (!userInfo.value.userName) {
-        // 如果没有用户名，则清空并退出，等待 userInfo.userName 加载
         renderHeatmap([], currentHeatmapYear.value); 
         return;
     }
 
     heatmapLoading.value = true;
     heatmapError.value = false;
-    heatmapData.value = [];
 
     try {
         const token = localStorage.getItem('jwt');
@@ -615,9 +629,6 @@ async function fetchHeatmapData() {
         const response = await res.json();
 
         if (response.code === '0' && response.data) {
-            const base64String = response.data;
-            // console.log("原始 Base64 字符串:", base64String); // 调试用
-            
             let heatmapJsonData = {};
             try {
                 // 1. Base64 解码 (使用 atob)
@@ -633,55 +644,61 @@ async function fetchHeatmapData() {
             const transformedData = transformHeatmapData(heatmapJsonData, year);
             heatmapData.value = transformedData;
             
-            // ⭐ 确保 DOM 已更新后再渲染 ECharts
-            await new Promise(resolve => setTimeout(resolve, 0)); 
+            await nextTick(); 
             renderHeatmap(transformedData, year);
         } else {
             // 如果 data 为空，视为成功加载但无数据
-            renderHeatmap([], year); // 渲染空图表
+            heatmapData.value = []; 
+            renderHeatmap([], year); 
         }
     } catch (err) {
         console.error('获取热力图数据失败:', err);
         heatmapError.value = true;
-        renderHeatmap([], currentHeatmapYear.value); // 出错时也清理图表
+        heatmapData.value = []; 
+        renderHeatmap([], currentHeatmapYear.value); 
     } finally {
         heatmapLoading.value = false;
     }
 }
 
+
 function renderHeatmap(data, year) {
-    if (!heatmapChart.value) {
-        console.warn('ECharts 容器未加载或引用错误！');
+    // 1. 检查 ECharts 容器是否可用
+    // heatmapChart 是模板中 ref="heatmapChart" 的引用
+    if (!heatmapChart.value) { 
+        console.warn('ECharts 容器（ref="heatmapChart"）未加载或引用错误！');
         return;
     }
 
+    // 2. 初始化 ECharts 实例（如果尚未初始化）
+    // ⚠️ 【修改 3/3】移除 resize 监听器，并将其逻辑移至 watch(isHeatmapContainerVisible)
     if (!myChart) {
         try {
             myChart = echarts.init(heatmapChart.value);
-            window.addEventListener('resize', () => myChart.resize()); 
+            // ❌ 移除此处添加 resizeListener 的逻辑，由 watch 统一管理
         } catch (e) {
             console.error("ECharts 初始化失败，请检查容器尺寸：", e);
             return;
         }
-    } else {
-        myChart.clear();
-    }
-
+    } 
+    
+    // --- 3. 配置图表选项 ---
+    
+    // 提交次数的最大值，用于确保 visualMap 覆盖所有数据
+    // 如果没有数据，最大值设为 1，确保 0 次提交的颜色能正确显示
     const values = data.map(item => item[1]);
-    // 对于 GitHub 风格，通常有固定的颜色分段，最大值可能不完全决定颜色。
-    // 但我们仍然需要一个 max 值给 visualMap 确保覆盖所有提交数。
     const maxCommits = values.length > 0 ? Math.max(...values, 1) : 1; 
 
     const option = {
         tooltip: {
             position: 'top',
             formatter: function (params) {
+                // 格式化提示框内容：日期 + 提交次数
                 return params.value[0] + ': ' + (params.value[1] ?? 0) + ' 次提交';
             }
         },
         visualMap: {
-            // ⭐ 调整分段值，使其更符合 GitHub 的逻辑
-            // 如果只有少量提交，可以调整这些分段值
+            // 使用 pieces 进行分段，模拟 GitHub 的颜色梯度
             pieces: [
                 { min: 4, label: '4+ 次', color: '#216e39' }, // 深绿色
                 { min: 3, max: 3, label: '3 次', color: '#30a14e' },
@@ -691,17 +708,17 @@ function renderHeatmap(data, year) {
             ],
             orient: 'horizontal',
             left: 'center',
-            bottom: 10, // 放置在底部，与日历图距离更近
-            text: ['多', '少'], // 调整文字
+            bottom: 10, 
+            text: ['多', '少'], 
             show: true
         },
         calendar: {
-            top: 30, // 顶部留出空间
-            left: 25, // 左侧留出空间
-            right: 20, // 右侧留出空间
-            bottom: 50, // 底部留出空间给 visualMap
-            cellSize: ['auto', 15], // ⭐ 缩小单元格高度，让更多月份能显示
-            range: year,
+            top: 30, 
+            left: 25, 
+            right: 20, 
+            bottom: 50, 
+            cellSize: ['auto', 15], // 单元格大小
+            range: year, // 设置日历的年份范围
             itemStyle: {
                 borderWidth: 0.5,
                 borderColor: '#fff' // 单元格之间的白色边框
@@ -713,7 +730,7 @@ function renderHeatmap(data, year) {
                 margin: 10
             },
             monthLabel: {
-                nameMap: 'cn',
+                nameMap: 'cn', // 使用中文月份
                 color: '#999',
                 fontSize: 12,
                 margin: 10,
@@ -725,15 +742,17 @@ function renderHeatmap(data, year) {
             {
                 type: 'heatmap',
                 coordinateSystem: 'calendar',
-                data: data 
+                data: data // 传入格式化后的数据
             }
         ]
     };
 
+    // 4. 更新或设置图表选项
+    // 使用 setOption(option, true) 清除旧数据并应用新选项
     myChart.setOption(option, true);
 }
 // ===================================
-//             历史记录
+//             历史记录
 // ===================================
 
 const records = ref([])
@@ -818,7 +837,8 @@ function logout() {
     // 3. 跳转到登录页
     // 假设你的登录路由是 '/login'
     router.push('/login'); 
-    alert('已退出登录。');
+    // 使用自定义消息或模态框代替 alert
+    console.log('已退出登录。');
   }
 }
 
@@ -826,8 +846,45 @@ function logout() {
 
 
 // ===================================
-//             生命周期
+//             生命周期与监听
 // ===================================
+
+// ✅ 【修改 2/3】新增 watch 监听容器 v-if 状态，用于手动清理 ECharts 实例
+watch(isHeatmapContainerVisible, (isVisible) => {
+    if (!isVisible && myChart) {
+        // 当 v-if 条件变为 false 时，DOM 元素被销毁。
+        // 必须手动 dispose ECharts 实例并移除 resize 监听器。
+        
+        if (resizeListener) {
+            window.removeEventListener('resize', resizeListener);
+            resizeListener = null;
+        }
+        
+        try {
+            myChart.dispose();
+        } catch(e) {
+            console.warn('Attempted to dispose already disposed ECharts instance:', e);
+        }
+        myChart = null; // 重置 myChart，确保下次 v-if 变为 true 时能正确重新初始化
+    } else if (isVisible && heatmapChart.value && !myChart) {
+        // 当 v-if 变为 true，DOM 挂载完成后，如果 myChart 尚未初始化，则添加 resize 监听器。
+        // 由于 nextTick 会在 fetchHeatmapData 内部调用 renderHeatmap，这里主要处理 resize 监听
+        // 并在 myChart 实例创建后绑定它。
+        
+        // **注意：由于 renderHeatmap 内部会在 nextTick 后立即运行，此处的逻辑可以简化。**
+        // 确保 myChart 存在后再添加监听器，防止多次添加。
+        
+        // 重新添加 resize 监听器
+        if (!resizeListener) {
+             resizeListener = () => {
+                if (myChart) {
+                    myChart.resize();
+                }
+            };
+            window.addEventListener('resize', resizeListener);
+        }
+    }
+}, { immediate: false });
 
 
 onMounted(async () => {
@@ -849,16 +906,27 @@ onMounted(async () => {
         fetchHeatmapData(targetUserName.value);
     }
 });
-onUnmounted(() => {
-    if (myChart) {
-        window.removeEventListener('resize', () => myChart.resize());
-        myChart.dispose();
-        myChart = null;
-    }
-});
+
+// 监听年份变化，触发数据重新获取
 watch(currentHeatmapYear, (newYear, oldYear) => {
     if (newYear !== oldYear) {
         fetchHeatmapData();
+    }
+});
+
+// 确保在组件完全销毁时，清理所有残留
+onUnmounted(() => {
+    if (myChart) {
+        // 理论上 watch 已经清理了，但这里做最终保险
+        if (resizeListener) {
+            window.removeEventListener('resize', resizeListener);
+        }
+        myChart.dispose();
+        myChart = null;
+    }
+    if (resizeListener) { // 再次检查并清理
+        window.removeEventListener('resize', resizeListener);
+        resizeListener = null;
     }
 });
 </script>

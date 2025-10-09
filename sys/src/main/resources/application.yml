@@ -12,14 +12,14 @@ spring:
     password: 430103535
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-logging:
-  level:
-    org.springframework.security: DEBUG
-    root: INFO
-    org.springframework: DEBUG
-    com.zaxxer.hikari: DEBUG
-    org.mybatis: DEBUG
-    com.OMS.practice_service: DEBUG
+#logging:
+#  level:
+#    org.springframework.security: DEBUG
+#    root: INFO
+#    org.springframework: DEBUG
+#    com.zaxxer.hikari: DEBUG
+#    org.mybatis: DEBUG
+#    com.OMS.practice_service: DEBUG
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml

@@ -16,14 +16,14 @@ spring:
       host: redis
       port: 6379
 
-logging:
-  level:
-    org.springframework.security: DEBUG
-    root: INFO
-    org.springframework: DEBUG
-    com.zaxxer.hikari: DEBUG
-    org.mybatis: DEBUG
-    com.OMS.practice_service: DEBUG
+#logging:
+#  level:
+#    org.springframework.security: DEBUG
+#    root: INFO
+#    org.springframework: DEBUG
+#    com.zaxxer.hikari: DEBUG
+#    org.mybatis: DEBUG
+#    com.OMS.practice_service: DEBUG
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
