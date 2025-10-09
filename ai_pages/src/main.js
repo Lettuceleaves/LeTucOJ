@@ -11,7 +11,7 @@ app.use(ElementPlus)
 app.config.globalProperties.$dialog = Dialog
 
 app.mount('#app')
-app.config.globalProperties.$ip = "letucoj.cn"
+app.config.globalProperties.$ip = "localhost"
 
 document.title = 'LetucOJ';
 
