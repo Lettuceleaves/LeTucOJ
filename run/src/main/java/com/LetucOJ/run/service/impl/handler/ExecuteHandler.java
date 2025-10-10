@@ -34,7 +34,6 @@ public class ExecuteHandler implements Handler {
     @Override
     public ResultVO handle(List<String> inputFiles, int boxid, String language) {
 
-        ResultVO finalResult = null;
         String containerName = "box-" + language + "-" + boxid + "-" + System.currentTimeMillis();
         String imageName = "run_" + RunPath.getSuffix(language);
         String numTestCases = String.valueOf(inputFiles.size() - 1);
@@ -56,11 +55,9 @@ public class ExecuteHandler implements Handler {
 
             Process proc = pb.start();
 
-            // 2. 等待进程完成（带超时）
             boolean finished = proc.waitFor(EXECUTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!finished) {
-                // 如果超时，强制杀死容器
                 System.out.println("[ExecuteHandler] Execution timeout, attempting to kill container: " + containerName);
                 try {
                     new ProcessBuilder("docker", "kill", containerName).start().waitFor();
@@ -70,7 +67,6 @@ public class ExecuteHandler implements Handler {
                 return Result.failure(BaseErrorCode.OUT_OF_TIME);
             }
 
-            // 3. 读取脚本的退出状态码
             Path statusFile = Path.of(RunPath.getStatusPath(boxid));
             if (!Files.exists(statusFile)) {
                 System.err.println("[ExecuteHandler] code.txt file not found after execution.");
@@ -78,7 +74,7 @@ public class ExecuteHandler implements Handler {
             }
             String status = Files.readString(statusFile).trim();
 
-            int exitCodeFromScript = 5; // Default to unknown message
+            int exitCodeFromScript = 5;
             try {
                 if (!status.isEmpty()) {
                     exitCodeFromScript = Integer.parseInt(status);
@@ -89,11 +85,9 @@ public class ExecuteHandler implements Handler {
                 System.err.println("[ExecuteHandler] Invalid content in status.txt: '" + status + "'");
             }
 
-            // 4. 根据脚本的退出码处理结果
             switch (exitCodeFromScript) {
                 case 0 -> { // 正常完成
                     List<String> results = new ArrayList<>();
-                    // 读取所有输出文件
                     for (int i = 1; i <= Integer.parseInt(numTestCases); i++) {
                         Path outTxt = Path.of(RunPath.getOutputPath(boxid, i));
                         String answer = Files.exists(outTxt)
@@ -122,7 +116,7 @@ public class ExecuteHandler implements Handler {
                             : "Runtime message, but err.txt missing";
                     return Result.failure(BaseErrorCode.RUNTIME_ERROR, errMsg.substring(0, Math.min(1000, errMsg.length())));
                 }
-                case 4 -> { // 脚本内部的超时
+                case 4 -> { // 超时
                     System.out.println("[ExecuteHandler] Runtime timeout (exit 4) from script.");
                     String errMsg = "Execution exceeded time limit";
                     return Result.failure(BaseErrorCode.OUT_OF_TIME, errMsg);
@@ -138,15 +132,10 @@ public class ExecuteHandler implements Handler {
             e.printStackTrace();
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         } finally {
-            // 在 finally 块中调用清理方法，确保目录被删除
             forceCleanup(boxid);
         }
     }
 
-    /**
-     * 清理宿主机上被挂载的目录
-     * @param boxid 盒子ID
-     */
     private void forceCleanup(int boxid) {
         Path pathToDelete = Path.of(RunPath.getBoxDir(boxid));
         System.out.println("[ExecuteHandler] Final cleanup for boxid: " + boxid + ", path: " + pathToDelete);

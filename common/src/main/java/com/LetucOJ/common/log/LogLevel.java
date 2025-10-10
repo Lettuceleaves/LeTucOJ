@@ -1,8 +1,8 @@
 package com.LetucOJ.common.log;
 
 public enum LogLevel {
-    INFO("INFO"), // 信息
-    WARN("WARN"), // 警告
+    INFO("INFO"),   // 信息
+    WARN("WARN"),   // 警告
     ERROR("ERROR"); // 错误
 
     private final String message;

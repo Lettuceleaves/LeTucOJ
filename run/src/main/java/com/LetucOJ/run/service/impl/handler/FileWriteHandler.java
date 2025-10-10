@@ -25,18 +25,15 @@ public class FileWriteHandler implements Handler {
     @Override
     public ResultVO handle(List<String> inputFiles, int boxid, String language) {
         try {
-            /* 1. 确保 box 根目录存在 */
             Path boxDir = Paths.get(RunPath.getBoxDir(boxid));
             Files.createDirectories(boxDir);
 
-            /* 3. 写用户代码 */
             Path codePath = Paths.get(RunPath.userCodePath(boxid, language));
             Files.write(codePath,
                     inputFiles.get(0).getBytes(),
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING);
 
-            /* 4. 写输入文件 + 预创建对应的输出文件 */
             for (int i = 1; i < inputFiles.size(); i++) {
                 Path inputPath = Paths.get(RunPath.getInputPath(boxid, i));
                 Files.write(inputPath,
@@ -46,12 +43,11 @@ public class FileWriteHandler implements Handler {
 
                 Path outputPath = Paths.get(RunPath.getOutputPath(boxid, i));
                 Files.write(outputPath,
-                        new byte[0], // 空文件
+                        new byte[0],
                         StandardOpenOption.CREATE,
                         StandardOpenOption.TRUNCATE_EXISTING);
             }
 
-            /* 5. 创建状态错误文件、编译错误文件和运行时错误文件 */
             Path compileErr = Paths.get(RunPath.getCompilePath(boxid));
             Files.write(compileErr, new byte[0],
                     StandardOpenOption.CREATE,

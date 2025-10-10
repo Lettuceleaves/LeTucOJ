@@ -59,21 +59,18 @@ public class SysServiceImpl implements SysService {
                 .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + ".sql";
 
         try {
-            // 1. 生成临时文件
             Path temp = Files.createTempFile("dump", ".sql");
 
-            // 2. 构建 mysqldump 命令
             List<String> cmd = List.of(
                     "mysqldump",
                     "-h" + host,
-                    "-P" + String.valueOf(port),
+                    "-P" + port,
                     "-u" + user,
                     "-p" + password,
                     "--databases", "letucoj",
                     "--result-file", temp.toString()
             );
 
-            // 3. 执行
             ProcessBuilder pb = new ProcessBuilder(cmd);
             pb.redirectErrorStream(true);
             Process proc = pb.start();
@@ -85,12 +82,10 @@ public class SysServiceImpl implements SysService {
                 }
             }
 
-            // 4. 上传到 MinIO
             byte[] data = Files.readAllBytes(temp);
             String bucketName = "mysql";
             minioRepos.addFile(bucketName, objectName, data);
 
-            // 5. 清理临时文件
             Files.deleteIfExists(temp);
 
             return Result.success(objectName);

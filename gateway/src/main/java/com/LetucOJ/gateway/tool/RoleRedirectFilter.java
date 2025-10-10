@@ -82,7 +82,6 @@ public class RoleRedirectFilter implements WebFilter {
                             return internalForward(exchange, "/contest/full/getContestInRoot", chain);
                         }
                     }
-                    // 不是需要转发的情况，继续原链路
                     return chain.filter(exchange);
                 });
     }

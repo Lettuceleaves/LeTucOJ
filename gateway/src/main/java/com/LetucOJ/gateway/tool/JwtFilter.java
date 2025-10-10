@@ -29,9 +29,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * JWT 过滤器：解析 Token、计算 TTL、检查黑名单，并注入参数
- */
 @Component
 public class JwtFilter implements WebFilter {
 
@@ -53,14 +50,12 @@ public class JwtFilter implements WebFilter {
         return STATIC.stream().anyMatch(p -> MATCHER.match(p, path));
     }
 
-    /** 需要注入 pname 参数的接口 */
     private static final List<String> NAME_REQUIRED = List.of(
             "/contest/attend", "/contest/submit", "/contest/submitInRoot", "/practice/recordList/self", "/user/info/update",
             "/practice/submit", "/practice/submitInRoot", "/user/change-password", "/contest/inContest", "/practice/list",
             "/practice/listRoot", "/practice/searchList", "/practice/searchListInRoot", "/user/logout", "/user/background/update", "/user/headPortrait/update"
     );
 
-    /** 需要注入 cnname 参数的接口 */
     private static final List<String> CNNAME_REQUIRED = List.of(
             "/contest/attend", "/contest/submit", "/contest/submitInRoot", "/practice/submit", "/practice/submitInRoot"
     );
@@ -76,7 +71,6 @@ public class JwtFilter implements WebFilter {
             return chain.filter(exchange);
         }
 
-        // 验证 Authorization 头
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -85,16 +79,13 @@ public class JwtFilter implements WebFilter {
 
         String token = authHeader.substring(BEARER_PREFIX.length());
 
-        // 解析 JWT
         Claims claims;
         try {
             claims = JwtUtil.parseToken(token);
         } catch (JwtException ex) {
-            /* 1. 返回 200，但 code=401 */
             String body = Result.failure(BaseErrorCode.NEED_LOGIN).toJsonString();
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
 
-            /* 2. 重写响应头 */
             ServerHttpResponse resp = exchange.getResponse();
 
             resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
@@ -102,7 +93,7 @@ public class JwtFilter implements WebFilter {
             resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "Authorization,Content-Type");
             resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
 
-            resp.setStatusCode(HttpStatus.OK);          // 200
+            resp.setStatusCode(HttpStatus.OK);
             resp.getHeaders().setContentType(MediaType.APPLICATION_JSON);
             resp.getHeaders().setContentLength(bytes.length);
 
@@ -114,7 +105,6 @@ public class JwtFilter implements WebFilter {
         if (Redis.mapGet("black:" + claims.getSubject()) != null && !"/user/login".equals(path)) {
             return JwtUtil.writeErrorResponse(exchange, GatewayErrorCode.USER_BLOCKED);
         }
-        /* ---------- 黑名单未命中，继续走业务 ---------- */
 
         ServerWebExchange mutated = exchange;
         URI originalUri = exchange.getRequest().getURI();
@@ -138,13 +128,11 @@ public class JwtFilter implements WebFilter {
                     .build();
         }
 
-        // 设置认证上下文
         String role = claims.get("role", String.class);
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 claims.getSubject(), null,
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role)));
 
-        // 正常放行
         return chain.filter(mutated)
                 .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
 

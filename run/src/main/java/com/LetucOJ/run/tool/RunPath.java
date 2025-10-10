@@ -12,7 +12,7 @@ public class RunPath {
     private static final ThreadLocal<Integer> BOX_HOLDER = new ThreadLocal<>();
 
     public static String getBoxDir(int boxId) {
-        return work_dir + boxId;   // 你实际的路径前缀
+        return work_dir + boxId;
     }
 
     static public String getInputPath(int boxid, int index) {

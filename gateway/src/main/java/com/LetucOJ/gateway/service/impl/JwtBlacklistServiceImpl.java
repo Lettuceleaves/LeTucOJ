@@ -19,9 +19,7 @@ public class JwtBlacklistServiceImpl implements JwtBlacklistService {
 
     @Override
     public void blacklist(String token, Duration ttl) {
-        // 将整个 token 作为 key，也可以只存 jti
         String key = PREFIX + token;
-        // value 可随意，比如 "1"
         redis.opsForValue().set(key, "1", ttl);
     }
 

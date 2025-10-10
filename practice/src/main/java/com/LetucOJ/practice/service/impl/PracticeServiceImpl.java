@@ -85,9 +85,9 @@ public class PracticeServiceImpl implements PracticeService {
     }
 
     private String[] getExpectedOutputs(byte[][] outputBytesArray) {
-        return Arrays.stream(outputBytesArray)          // byte[][]
-                .map(bytes -> new String(bytes, StandardCharsets.UTF_8)) // byte[] -> String
-                .flatMap(s -> Arrays.stream(s.split("\\R"))) // 按行拆分
+        return Arrays.stream(outputBytesArray)
+                .map(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                .flatMap(s -> Arrays.stream(s.split("\\R")))
                 .toArray(String[]::new);
     }
 

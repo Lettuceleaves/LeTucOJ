@@ -56,6 +56,7 @@ public class ListController {
         return dbService.recordListAll(start, limit);
     }
 
+    // base64多次编码问题 辅助解析方法
     private String recursiveDecode(String s) {
         if (s == null) return null;
         String tmp;

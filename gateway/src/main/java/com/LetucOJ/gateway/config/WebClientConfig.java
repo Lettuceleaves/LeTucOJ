@@ -19,7 +19,7 @@ public class WebClientConfig {
                 .exchangeStrategies(ExchangeStrategies.builder()
                         .codecs(config -> config
                                 .defaultCodecs()
-                                .maxInMemorySize(16 * 1024 * 1024)) // 设置最大响应内存大小
+                                .maxInMemorySize(16 * 1024 * 1024))
                         .build())
                 .build();
     }

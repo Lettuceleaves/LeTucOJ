@@ -35,6 +35,9 @@ public class PracticeServiceImpl implements PracticeService {
 
     public ResultVO submit(String userName, String cnname, String questionName, String contestName, String code, String lang, boolean root) throws Exception {
         try {
+
+            // 合法性检验
+
             List<String> inputs = new ArrayList<>();
             inputs.add(code);
 
@@ -67,6 +70,8 @@ public class PracticeServiceImpl implements PracticeService {
                 }
             }
 
+            // 获取测试数据
+
             ProblemStatusDTO problemStatus = mybatisRepos.getStatus(questionName);
             if (problemStatus == null) {
                 return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
@@ -91,7 +96,15 @@ public class PracticeServiceImpl implements PracticeService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
 
+
+            // 运行用户代码
+
             ResultVO runResult = runClient.run(inputs, lang);
+
+
+            // 处理运行结果
+
+
             System.out.println(runResult.getCode());
             if (!runResult.getCode().equals("0")) {
                 return runResult;
@@ -150,9 +163,9 @@ public class PracticeServiceImpl implements PracticeService {
     }
 
     private String[] getExpectedOutputs(byte[][] outputBytesArray) {
-        return Arrays.stream(outputBytesArray)          // byte[][]
-                .map(bytes -> new String(bytes, StandardCharsets.UTF_8)) // byte[] -> String
-                .flatMap(s -> Arrays.stream(s.split("\\R"))) // 按行拆分
+        return Arrays.stream(outputBytesArray)
+                .map(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                .flatMap(s -> Arrays.stream(s.split("\\R")))
                 .toArray(String[]::new);
     }
 

@@ -10,7 +10,6 @@ import java.util.List;
 @Mapper
 public interface MybatisRepos {
 
-    // --- Problem 相关 ---
     @Select("SELECT public > 0 as ispublic, showsolution, caseAmount FROM problem WHERE name = #{name}")
     ProblemStatusDTO getStatus(String name);
 
@@ -19,7 +18,6 @@ public interface MybatisRepos {
             "WHERE name = #{name}")
     FullInfoDTO getProblem(String name);
 
-    // --- Contest 相关 ---
     @Select("SELECT * FROM contest")
     List<ContestInfoDTO> getContestList();
 
@@ -42,7 +40,6 @@ public interface MybatisRepos {
             "WHERE name = #{name}")
     Integer updateContest(ContestInfoDTO contestInfoDTO);
 
-    // --- Contest–Problem 关联（题库中题目在某场比赛的权重） ---
     @Select("SELECT * FROM contest_problem WHERE contest_name = #{contestName}")
     List<ContestProblemDTO> getProblemList(@Param("contestName") String contestName);
 
@@ -64,7 +61,6 @@ public interface MybatisRepos {
     Integer getScoreByContestAndProblem(@Param("contestName") String contestName,
                                         @Param("problemName") String problemName);
 
-    // --- 添加参赛用户 ---
     @Insert("INSERT INTO contest_user (contest_name, user_name, cnname) " +
             "VALUES (#{contestName}, #{userName}, #{cnname})")
     Integer insertContestUser(@Param("contestName") String contestName,
@@ -76,7 +72,6 @@ public interface MybatisRepos {
                                   @Param("userName")    String userName);
 
 
-    // --- 排行榜（使用视图，动态组合所有用户×题目） ---
     @Select("SELECT contest_name AS contestName, " +
             "       user_name AS userName, " +
             "       problem_name AS problemName, " +
@@ -118,7 +113,6 @@ public interface MybatisRepos {
             "  AND problem_name = #{problemName}")
     Integer updateContestBoard(BoardDTO boardDTO);
 
-    // --- 提交记录 ---
     @Insert("INSERT INTO record " +
             "(userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime) " +
             "VALUES " +

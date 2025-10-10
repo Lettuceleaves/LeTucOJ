@@ -20,11 +20,11 @@ rocketmq:
   consumer:
     group: my-consumer-group
 
-logging:
-  level:
-    root: INFO
-    org.springframework: DEBUG
-    com.zaxxer.hikari: DEBUG
-    org.mybatis: DEBUG
-    com.OMS.practice_service: DEBUG
+#logging:
+#  level:
+#    root: INFO
+#    org.springframework: DEBUG
+#    com.zaxxer.hikari: DEBUG
+#    org.mybatis: DEBUG
+#    com.OMS.practice_service: DEBUG
 

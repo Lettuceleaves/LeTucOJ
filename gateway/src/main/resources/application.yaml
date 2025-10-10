@@ -29,7 +29,6 @@ spring:
           uri: http://advice:9999
           predicates:
             - Path=/advice/**
-      #跨域配置
       globalcors:
         cors-configurations:
           '[/**]':

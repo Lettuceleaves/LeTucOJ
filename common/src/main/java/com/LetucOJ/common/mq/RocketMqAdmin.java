@@ -6,21 +6,19 @@ import java.util.stream.Stream;
 
 public class RocketMqAdmin {
 
-    private static final String NS = "127.0.0.1:9876";   // NameServer 地址
-    private static final String CLUSTER = "DefaultCluster"; // 集群名，按实际改
+    private static final String NAME_SERVER = "127.0.0.1:9876";
+    private static final String CLUSTER = "DefaultCluster";
 
-    /** 创建 Topic，已存在会返回成功 */
     public static void createTopic(String topic) {
         run("updateTopic",
-                "-n", NS,
+                "-n", NAME_SERVER,
                 "-c", CLUSTER,
                 "-t", topic);
     }
 
-    /** 删除 Topic */
     public static void deleteTopic(String topic) {
         run("deleteTopic",
-                "-n", NS,
+                "-n", NAME_SERVER,
                 "-c", CLUSTER,
                 "-t", topic);
     }
@@ -32,7 +30,6 @@ public class RocketMqAdmin {
                             .toArray(String[]::new)
             );
         } catch (Exception e) {
-            // 工具类会调用 System.exit，捕获后阻止退出 JVM
         }
     }
 }

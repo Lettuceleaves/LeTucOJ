@@ -15,6 +15,7 @@ public final class Redis {
     }
 
     /* ------------------- map ------------------- */
+
     public static void mapPut(String key, String value) {
         template.opsForValue().set(key, value);
     }
@@ -33,23 +34,20 @@ public final class Redis {
     }
 
     /* ------------------- set ------------------- */
-    /** 判断 member 是否在 key 对应的 set 中 */
+
     public static boolean setContains(String key, String member) {
         return Boolean.TRUE.equals(template.opsForSet().isMember(key, member));
     }
 
-    /** 往 set 里加成员，返回是否新增成功 */
     public static boolean setAdd(String key, String member) {
         Long ret = template.opsForSet().add(key, member);
         return ret != null && ret > 0;
     }
 
-    /** 从 set 里删成员，返回是否删除成功 */
     public static boolean setRemove(String key, String member) {
         Long ret = template.opsForSet().remove(key, member);
         return ret != null && ret > 0;
     }
-
 
     private Redis() {}
 }
