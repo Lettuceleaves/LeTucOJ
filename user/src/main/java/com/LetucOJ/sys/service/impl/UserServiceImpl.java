@@ -216,7 +216,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVO getUserRankings() {
-        /* ---------- 1. 取数据 ---------- */
         List<Map<String, Object>> corrects = userMybatisRepos.listCorrect();
         List<UserManagerDTO> users = userMybatisRepos.getUserListByRole("USER");
 
