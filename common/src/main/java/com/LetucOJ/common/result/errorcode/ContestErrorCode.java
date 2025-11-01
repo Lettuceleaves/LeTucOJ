@@ -18,6 +18,7 @@ public enum ContestErrorCode implements ErrorCode {
     EMPTY_BOARD("B020009", "榜单为空"),
     WRONG_ANSWER("B020010", "答案错误"),
     CONTEST_NOT_EXIST("B020011", "赛事不存在"),
+    USER_NOT_ATTEND("B020012", "用户未参加该竞赛"),
     // ========== 模块错误码 调用第三方服务出错 ==========
     REMOTE_ERROR("C020001", "调用第三方服务出错");
 

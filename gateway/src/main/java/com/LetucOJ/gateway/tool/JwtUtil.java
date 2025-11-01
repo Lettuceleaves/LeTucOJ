@@ -1,14 +1,13 @@
 package com.LetucOJ.gateway.tool;
 
-import com.LetucOJ.common.result.Result;
-import com.LetucOJ.common.result.errorcode.ErrorCode;
-import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
+import com.LetucOJ.gateway.result.Result;
+import com.LetucOJ.gateway.result.errorcode.ErrorCode;
+import com.LetucOJ.gateway.result.errorcode.GatewayErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -28,24 +27,24 @@ public class JwtUtil {
 
     public static String generateToken(String username, String cnname, String role) {
         return Jwts.builder()
-            .issuer("LetucOJ")
-            .subject(username)
-            .expiration((new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)))
-            .claim("cnname", cnname)
-            .claim("role", role)
-            .signWith(KEY)
-            .compact();
+                .issuer("LetucOJ")
+                .subject(username)
+                .expiration((new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)))
+                .claim("cnname", cnname)
+                .claim("role", role)
+                .signWith(KEY)
+                .compact();
     }
 
     public static Claims parseToken(String token) throws JwtException {
         return Jwts.parser()
-            .verifyWith(KEY)
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
+                .verifyWith(KEY)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
-    public static byte[] createErrorResponseBody(ErrorCode errorCode) {
+    public static byte[] createErrorResponseBody(GatewayErrorCode errorCode) {
         try {
             return objectMapper.writeValueAsBytes(Result.failure(errorCode));
         } catch (JsonProcessingException e) {

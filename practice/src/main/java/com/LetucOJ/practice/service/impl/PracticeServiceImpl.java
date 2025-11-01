@@ -45,7 +45,6 @@ public class PracticeServiceImpl implements PracticeService {
             try {
                 inputBytesArrays = getCases(qname, problemStatus.getCaseAmount(), 0);
             } catch (RuntimeException e) {
-                System.out.println(e.getMessage());
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
             for (byte[] inputBytes : inputBytesArrays) {
@@ -56,10 +55,9 @@ public class PracticeServiceImpl implements PracticeService {
             try {
                 outputBytesArray = getCases(qname, problemStatus.getCaseAmount(), 1);
             } catch (RuntimeException e) {
-                System.out.println(e.getMessage());
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
-            ResultVO runResult = runClient.run(inputs, language);
+            ResultVO runResult = runClient.run(inputs, language, qname);
             if (!runResult.getCode().equals("0")) {
                 return runResult;
             }
@@ -70,13 +68,11 @@ public class PracticeServiceImpl implements PracticeService {
                 if (check == null || check == 0) {
                     Integer res = mybatisRepos.insertCorrect(pname, qname);
                     if (res == null || res == 0) {
-                        System.out.println("insertCorrect error");
                         return Result.failure(BaseErrorCode.SERVICE_ERROR);
                     }
                 }
                 return Result.success();
             }
-            System.out.println(resultVO.getCode());
             return resultVO;
         } catch (Exception e) {
             System.out.println(e);
@@ -93,18 +89,15 @@ public class PracticeServiceImpl implements PracticeService {
 
     private ResultVO checkAnswer(String[] expected, String[] actual) {
         if (expected.length != actual.length) {
-            System.out.println(expected.length + " != " + actual.length);
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
         for (int i = 0; i < expected.length; i++) {
             System.out.println(expected[i] + " == " + actual[i]);
             if (!expected[i].equals(actual[i])) {
                 String msg = "expect: " + expected[i].substring(0, Math.min(500, expected[i].length())) + " but actual: " + actual[i].substring(0, Math.min(500, actual[i].length())) + " at case " + (i + 1);
-                System.out.println(msg);
                 return Result.failure(BaseErrorCode.WRONG_ANSWER, msg);
             }
         }
-        System.out.println("check success");
         return Result.success();
     }
 

@@ -7,6 +7,7 @@ public enum UserErrorCode implements ErrorCode {
     FILE_TOO_LARGE("A070003", "文件过大"),
     PARAM_FORMAT_ERROR("A070004", "参数格式错误"),
     USERNAME_ALREADY_EXISTS("A070005", "用户名已存在"),
+    SECRET_KEY_INVALID("A070006", "密钥无效或过期（两分钟）"),
 
     // ========== 模块错误码 系统执行出错 ==========
     SERVICE_ERROR("B070001", "系统执行出错"),
@@ -19,6 +20,7 @@ public enum UserErrorCode implements ErrorCode {
     NO_HEATMAP("B070008", "这个人很懒，今年一题没写"),
     NO_HEADPORTRAIT("B070009", "没有头像"),
     NO_BACKGROUND("B070010", "没有背景图"),
+    NO_EMAIL("B070011", "没有绑定邮箱"),
 
     // ========== 模块错误码 调用第三方服务出错 ==========
     REMOTE_ERROR("C070001", "调用第三方服务出错");

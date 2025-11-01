@@ -57,10 +57,12 @@
           <textarea id="content" v-model="form.content" rows="10" placeholder="请输入题目描述 Markdown"></textarea>
         </div>
 
-        <!-- 实时预览 -->
         <div class="form-item full">
           <label>题目描述（预览）</label>
-          <div class="markdown-preview" v-html="renderedMarkdown"></div>
+          <MarkdownRenderer 
+            :rawContent="form.content" 
+            containerClass="markdown-preview" 
+          />
         </div>
 
         <!-- 题解 Monaco -->
@@ -118,7 +120,7 @@ import {
   getCurrentInstance,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { marked } from 'marked'
+import MarkdownRenderer from '../components/MarkdownRenderer.vue'
 import * as monaco from 'monaco-editor'
 import { setupMyC } from '../components/monaco-c'
 import 'monaco-editor/min/vs/editor/editor.main.css'
@@ -164,11 +166,6 @@ const labels = {
   freq: '使用频率',
   solution: '题解',
 }
-
-/* -------------------------------------------------- */
-/* 3. Markdown 预览                                      */
-/* -------------------------------------------------- */
-const renderedMarkdown = computed(() => marked.parse(form.value.content || ''))
 
 /* -------------------------------------------------- */
 /* 4. Monaco 编辑器（去重版）                             */

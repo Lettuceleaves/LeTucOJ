@@ -136,7 +136,7 @@ const fetchDataOnRefresh = async () => {
       ctname: contest.value
     })
 
-    const response = await fetch(`http://${ip}/practice/full/get?${params}`, {
+    const response = await fetch(`http://${ip}/contest/full/getProblem?${params}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     })

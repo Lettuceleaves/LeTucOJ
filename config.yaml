@@ -1,0 +1,21 @@
+language_defaults:
+  c:
+    time_limit_wall_s: 1.0
+    memory_limit_mb: 128
+  cpp:
+    time_limit_wall_s: 1.0
+    memory_limit_mb: 256
+  java:
+    time_limit_wall_s: 2.5
+    memory_limit_mb: 512
+  py:
+    time_limit_wall_s: 3.0
+    memory_limit_mb: 256
+
+test_cases:
+  - id: 1
+  - id: 2
+  - id: 3
+    java:
+      time_limit_wall_s: 7.0
+

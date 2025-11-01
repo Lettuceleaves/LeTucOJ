@@ -1,6 +1,11 @@
 spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/letucoj?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: 430103535
+    driver-class-name: com.mysql.cj.jdbc.Driver
   application:
-    name: practice
+    name: common
   data:
     redis:
       host: redis
@@ -19,6 +24,16 @@ rocketmq:
     group: my-producer-group
   consumer:
     group: my-consumer-group
+
+snowflake:
+  worker-id: 1
+  datacenter-id: 1
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.OMS.user_service.repository
+  configuration:
+    map-underscore-to-camel-case: true
 
 #logging:
 #  level:

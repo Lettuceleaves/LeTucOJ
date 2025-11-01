@@ -59,6 +59,9 @@
         <jwt.version>0.12.6</jwt.version>
         <openfeign.version>4.1.1</openfeign.version>
         <rocketmq.version>2.3.0</rocketmq.version>
+        <hutool-all.version>5.8.27</hutool-all.version>
+        <snowflake.version>1.2.0</snowflake.version>
+        <thread-local.version>2.2.0</thread-local.version>
     </properties>
 
     <dependencyManagement>
@@ -216,6 +219,20 @@
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-spring-boot-starter</artifactId>
                 <version>${rocketmq.version}</version>
+            </dependency>
+
+            <!-- Hutool -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool-all.version}</version>
+            </dependency>
+
+            <!-- ThreadLocal -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>transmittable-thread-local</artifactId>
+                <version>${thread-local.version}</version>
             </dependency>
 
         </dependencies>

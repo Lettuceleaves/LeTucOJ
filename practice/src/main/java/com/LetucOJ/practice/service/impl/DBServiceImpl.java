@@ -103,11 +103,11 @@ public class DBServiceImpl implements DBService {
             }
 
             if (dto.getOrder() == null || dto.getOrder().isEmpty()) {
-                dto.setOrder("name");
+                dto.setOrder("lang");
             }
 
-            if (!Objects.equals(dto.getOrder(), "name") && !Objects.equals(dto.getOrder(), "difficulty") && !Objects.equals(dto.getOrder(), "cnname")) {
-                dto.setOrder("name");
+            if (!Objects.equals(dto.getOrder(), "lang") && !Objects.equals(dto.getOrder(), "difficulty") && !Objects.equals(dto.getOrder(), "cnname")) {
+                dto.setOrder("lang");
             }
 
             Integer amount = mybatisRepos.getSearchAmount(dto);
@@ -144,11 +144,11 @@ public class DBServiceImpl implements DBService {
             }
 
             if (dto.getOrder() == null || dto.getOrder().isEmpty()) {
-                dto.setOrder("name");
+                dto.setOrder("lang");
             }
 
-            if (!Objects.equals(dto.getOrder(), "name") && !Objects.equals(dto.getOrder(), "difficulty") && !Objects.equals(dto.getOrder(), "cnname")) {
-                dto.setOrder("name");
+            if (!Objects.equals(dto.getOrder(), "lang") && !Objects.equals(dto.getOrder(), "difficulty") && !Objects.equals(dto.getOrder(), "cnname")) {
+                dto.setOrder("lang");
             }
 
             Integer amount = mybatisRepos.getSearchAmountInRoot(dto);
@@ -245,10 +245,20 @@ public class DBServiceImpl implements DBService {
     }
 
     public ResultVO getCase(CaseInputDTO caseInputDTO) {
+        String input = caseInputDTO.getInput();
+        String code = caseInputDTO.getCode();
+        String name = caseInputDTO.getName();
+        if (input == null || code == null || name == null) {
+            return Result.failure(BaseErrorCode.CLIENT_ERROR);
+        }
+        FullInfoDTO exist = mybatisRepos.getProblem(name);
+        if (exist == null) {
+            return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
+        }
         List<String> inputs = new ArrayList<>();
-        inputs.add(caseInputDTO.getCode());
-        inputs.add(caseInputDTO.getInput());
-        return runClient.run(inputs, "c");
+        inputs.add(code);
+        inputs.add(input);
+        return runClient.run(inputs, "c", name);
     }
 
     @Transactional
@@ -256,9 +266,9 @@ public class DBServiceImpl implements DBService {
         String name = casePairDTO.getName();
         String input = casePairDTO.getInput();
         String output = casePairDTO.getOutput();
+        byte[] config = casePairDTO.getConfig();
         try {
-            // 检查输入输出是否存在
-            if (input == null || output == null) {
+            if (input == null || output == null || config == null) {
                 return Result.failure(BaseErrorCode.CLIENT_ERROR);
             }
             Integer result = mybatisRepos.incrementCaseAmount(name);
@@ -272,6 +282,8 @@ public class DBServiceImpl implements DBService {
             String bucketName = "letucoj";
             String inputObjectName = "problems" + "/" + name + "/input/" + problemStatus.getCaseAmount() + 1 + ".txt";
             String outputObjectName = "problems" + "/" + name + "/output/" + problemStatus.getCaseAmount() + 1 + ".txt";
+            String configObjectName = "problems" + "/" + name + "/config.yaml";
+            minioRepos.addFile(bucketName, configObjectName, config);
             minioRepos.addFile(bucketName, inputObjectName, input.getBytes());
             minioRepos.addFile(bucketName, outputObjectName, output.getBytes());
             return Result.success();
@@ -314,6 +326,37 @@ public class DBServiceImpl implements DBService {
                     "records",   records,
                     "amount", amount
                     ));
+        } catch (Exception e) {
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+        }
+    }
+
+    @Override
+    public ResultVO getExistCase(String qname, Integer id) {
+        try {
+            byte[] inputFile = minioRepos.getFile("letucoj", "problems/" + qname + "/input/" + id + ".txt");
+            byte[] outputFile = minioRepos.getFile("letucoj", "problems/" + qname + "/output/" + id + ".txt");
+            if (inputFile == null || outputFile == null) {
+                return Result.failure(PracticeErrorCode.CASE_NOT_EXIST);
+            }
+            Map<String, String> caseMap = new HashMap<>();
+            caseMap.put("input", new String(inputFile));
+            caseMap.put("output", new String(outputFile));
+            return Result.success(caseMap);
+        } catch (Exception e) {
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+        }
+    }
+
+    @Override
+    public ResultVO getConfigFile(String qname) {
+        try {
+            byte[] configFile = minioRepos.getFile("letucoj", "problems/" + qname + "/config.yaml");
+            if (configFile == null) {
+                return Result.failure(PracticeErrorCode.CONFIG_NOT_EXIST);
+            }
+            String configContent = new String(configFile);
+            return Result.success(configContent);
         } catch (Exception e) {
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }

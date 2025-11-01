@@ -74,6 +74,7 @@ services:
     mem_reservation: 256m
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
+      - TZ=Asia/Shanghai
 
   gateway:
     image: gateway:latest
@@ -94,6 +95,7 @@ services:
     mem_reservation: 256m
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
+      - TZ=Asia/Shanghai
 
   sys:
     image: sys:latest

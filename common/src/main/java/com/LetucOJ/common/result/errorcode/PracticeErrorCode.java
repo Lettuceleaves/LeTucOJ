@@ -8,6 +8,8 @@ public enum PracticeErrorCode implements ErrorCode {
     SERVICE_ERROR("B040001", "系统执行出错"),
     NO_RECORD_FOUND("B040002", "暂无历史记录"),
     NOT_PUBLIC("B040003", "非公开题目"),
+    CASE_NOT_EXIST("B040004", "测试用例不存在"),
+    CONFIG_NOT_EXIST("B040005", "题目配置不存在"),
 
     // ========== 模块错误码 调用第三方服务出错 ==========
     REMOTE_ERROR("C040001", "调用第三方服务出错");

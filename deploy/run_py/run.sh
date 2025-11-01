@@ -1,61 +1,72 @@
-#!/bin/bash
-
-# 获取命令行参数中的测试案例总数
 N=$1
+LANG=$2
 
-# 定义超时时间 (秒)
-TIMEOUT=5
-
-# 检查是否提供了参数
-if [ -z "$N" ]; then
-    echo "5" > status.txt
-    echo "Error: Number of test cases (N) not provided." >&2
-    exit 1
+if [ -z "$N" ] || [ -z "$LANG" ]; then
+    echo "5" > /submission/status.txt; exit 1
 fi
-
-# 切换到提交目录
 cd /submission || { echo "5" > status.txt; exit 1; }
 
-# 清空之前的输出文件
-rm -f out_*.txt err.txt compile.txt status.txt
+CONFIG_FILE="config.yaml"
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "5" > status.txt; exit 1
+fi
 
-echo "start" > status.txt
+> err.txt; > compile.txt; > status.txt
 
-# 1. Python 是解释型语言，不需要编译步骤，所以直接跳过编译检查。
-# 这里我们创建一个空的 compile.txt，以保持文件结构一致性
-> compile.txt
+TEMP_TIME_FILE="time.tmp"
+> "$TEMP_TIME_FILE"
 
-# 2. 循环运行每个测试用例
+MAX_MEM_KB=0
+
+if [ $? -ne 0 ]; then
+    echo "2" > status.txt; rm -f "$TEMP_TIME_FILE"; exit 0
+fi
+
 for i in $(seq 1 $N); do
-    # 检查输入文件是否存在
+
     if [ ! -f "in_$i.txt" ]; then
-        echo "5" > status.txt
-        echo "Error: Test case in_$i.txt not found." >&2
-        exit 0
+        echo "5" > status.txt; rm -f "$TEMP_TIME_FILE"; exit 0
     fi
+
+    idx=$((i - 1))
+    WALL_S=$(yq e ".test_cases[$idx].$LANG.time_limit_wall_s // .language_defaults.$LANG.time_limit_wall_s" "$CONFIG_FILE")
+
+    if [ -z "$WALL_S" ]; then
+        echo "5" > status.txt; rm -f "$TEMP_TIME_FILE"; exit 1
+    fi
+
     
-    # 运行程序，并将输入和输出重定向
-    # 使用 'python prog.py' 来执行 Python 文件
-    timeout $TIMEOUT python prog.py < "in_$i.txt" >> ou_$i.txt 2>> err.txt
     
-    # 获取退出状态码
+
+    (timeout "$WALL_S" /usr/bin/time -f "%M" -o "$TEMP_TIME_FILE" \
+    python prog.py < "in_$i.txt" >> "ou_$i.txt" 2>> "err.txt")
     exit_code=$?
-    
-    # 检查退出状态码
+
+
+
+
     if [ $exit_code -eq 124 ]; then
-        # 超时
-        echo "4" > status.txt
-        exit 0
+        echo "4" > status.txt; rm -f "$TEMP_TIME_FILE"; exit 0
+    elif [ $exit_code -eq 137 ]; then
+        echo "3" > status.txt; rm -f "$TEMP_TIME_FILE"; exit 0
     elif [ $exit_code -ne 0 ]; then
-        # 运行时错误
-        echo "3" > status.txt
-        exit 0
+        echo "3" > status.txt; rm -f "$TEMP_TIME_FILE"; exit 0
+    fi
+
+    CURRENT_MEM_KB=$(awk 'NR==1 {print $1}' "$TEMP_TIME_FILE")
+    
+    if [ -z "$CURRENT_MEM_KB" ]; then
+        echo "5" > status.txt; rm -f "$TEMP_TIME_FILE"; exit 1
+    fi
+
+    if [ "$CURRENT_MEM_KB" -gt "$MAX_MEM_KB" ]; then
+        MAX_MEM_KB=$CURRENT_MEM_KB
     fi
 done
 
-# 3. 如果所有测试用例都成功通过
-echo "0" > status.txt
+rm -f "$TEMP_TIME_FILE"
+echo "0 " > status.txt
+echo "$MAX_MEM_KB" > err.txt
 
 exit 0
-
-sleep infinity
+python prog.py

@@ -8,7 +8,7 @@ spring:
     name: sys
   datasource:
     url: jdbc:mysql://mysql:3306/letucoj?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: letuc
+    username: root
     password: 430103535
     driver-class-name: com.mysql.cj.jdbc.Driver
 

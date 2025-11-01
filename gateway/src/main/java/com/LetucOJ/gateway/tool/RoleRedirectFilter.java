@@ -1,9 +1,6 @@
 package com.LetucOJ.gateway.tool;
 
-import io.jsonwebtoken.lang.Collections;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

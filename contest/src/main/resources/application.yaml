@@ -8,7 +8,7 @@ spring:
     name: contest
   datasource:
     url: jdbc:mysql://mysql:3306/letucoj?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: letuc
+    username: root
     password: 430103535
     driver-class-name: com.mysql.cj.jdbc.Driver
 
@@ -18,10 +18,17 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
 
-#logging:
-#  level:
-#    root: INFO
-#    org.springframework: DEBUG
-#    com.zaxxer.hikari: DEBUG
-#    org.mybatis: DEBUG
-#    com.OMS.user_service.client: DEBUG
+logging:
+  level:
+    root: INFO
+    org.springframework: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.mybatis: DEBUG
+    com.OMS.user_service.client: DEBUG
+
+rocketmq:
+  name-server: rocketmq-namesrv:9876
+  producer:
+    group: my-producer-group
+  consumer:
+    group: my-consumer-group

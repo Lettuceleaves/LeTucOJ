@@ -14,5 +14,5 @@ import java.util.List;
 public interface RunClient {
 
     @PostMapping("/run")
-    ResultVO run(@RequestBody List<String> files, @RequestParam String language);
+    ResultVO run(@RequestBody List<String> files, @RequestParam String language, @RequestParam String qname);
 }

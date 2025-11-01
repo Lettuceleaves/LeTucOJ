@@ -13,7 +13,7 @@
         </div>
       </div>
       <div class="actions">
-        <button @click="$emit('close')">退出</button>
+        <button class="btn-return" @click="handleReturn">返回</button>
         <button v-if="!attended" @click="handleAttend" :disabled="attending">
           {{ attending ? '参加中...' : '参加竞赛' }}
         </button>
@@ -26,11 +26,18 @@
     <div v-else class="body">
       <section class="info">
         <p><strong>模式：</strong>{{ effectiveContest.mode }}</p>
-        <p><strong>备注：</strong>{{ effectiveContest.note || '无' }}</p>
-        <p><strong>公开：</strong>{{ effectiveContest.ispublic ? '是' : '否' }}</p>
+
+        <div class="info-item">
+          <strong>备注：</strong>
+          <div v-if="effectiveContest.note" class="note-content">
+            <MarkdownRenderer :rawContent="effectiveContest.note" />
+          </div>
+          <span v-else>无</span>
+        </div>
+
+        <p><strong>公开：</strong>{{ effectiveContest.publicContest ? '是' : '否' }}</p>
       </section>
 
-      <!-- 题目列表 -->
       <section class="problems">
         <div class="section-header">
           <h3>题目列表</h3>
@@ -39,16 +46,13 @@
           </div>
         </div>
 
-        <!-- 加载中 / 错误 -->
         <div v-if="problemsLoading" class="status">正在加载题目...</div>
         <div v-else-if="problemsError && !problemsError.includes('No problems found')" class="status error">
           加载题目失败：{{ problemsError }}
           <button @click="fetchProblemList" class="retry-btn">重试</button>
         </div>
 
-        <!-- 正常区域 -->
         <template v-else>
-          <!-- 题目列表 -->
           <ul class="problem-list">
             <li
               v-for="p in problemList"
@@ -60,9 +64,8 @@
                 <div class="title">{{ p.problemName }}</div>
                 <div class="meta">分数：{{ p.score }}</div>
               </div>
-              <div v-if="canDelete" class="right">
+              <div v-if="isAdmin" class="right">
                 <button
-                  v-if="canDelete"
                   class="btn-delete"
                   @click.stop="openDeleteConfirm(p.problemName)"
                 >
@@ -71,12 +74,10 @@
               </div>
             </li>
 
-            <!-- 空列表提示 -->
             <li v-if="problemList.length === 0 && !isAddingProblem" class="empty">
               当前没有题目
             </li>
 
-            <!-- 新增输入框（作为最后一项） -->
             <li v-if="isAddingProblem" class="problem-item add-problem-row">
               <div class="add-form">
                 <input v-model="newProblemName" placeholder="请输入题目名称" />
@@ -93,15 +94,13 @@
               </div>
             </li>
 
-            <!-- 添加按钮（作为最后一项） -->
             <li
-              v-if="userInfo && (userInfo === 'ROOT' || userInfo === 'MANAGER') && !isAddingProblem"
+              v-if="isAdmin && !isAddingProblem"
               class="problem-item add-button-row"
               @click="startAddProblem"
             >
               <button class="add-problem-btn">+ 添加题目</button>
             </li>
-
           </ul>
         </template>
       </section>
@@ -113,9 +112,7 @@
           <p>暂无提交记录</p>
         </div>
 
-        <!-- 表格：粘性表头 + 斑马纹 + 悬停 -->
         <div v-else class="board">
-          <!-- 表头 -->
           <div class="board-header" :style="{ '--cols': colCount }">
             <div class="cell th left-sticky">排名 / 用户</div>
             <div class="cell th" v-for="p in uniqueProblems" :key="p">{{ p }}</div>
@@ -123,21 +120,18 @@
             <div class="cell th">最后提交</div>
           </div>
 
-          <!-- 表体 -->
           <div class="board-body" :style="{ '--cols': colCount }">
             <div
               class="board-row"
               v-for="(row, idx) in rows"
               :key="row.user"
             >
-              <!-- 用户与排名 -->
               <div class="cell left-sticky user-cell">
                 <span class="rank" :class="medalClass(idx)">{{ idx + 1 }}</span>
                 <span class="avatar">{{ (row.userCnname || row.user).slice(0,1).toUpperCase() }}</span>
                 <span class="uname" :title="row.user">{{ row.userCnname || row.user }}</span>
               </div>
 
-              <!-- 每题得分（填充：未答白、部分绿、满分金；数字黑色） -->
               <div
                 class="cell score"
                 v-for="p in uniqueProblems"
@@ -148,7 +142,6 @@
                 <span class="score-text">{{ row.scores[p] ?? 0 }}</span>
               </div>
 
-              <!-- 总分（进度条） -->
               <div class="cell total">
                 <div class="bar">
                   <div class="bar-inner" :style="{ width: totalPercent(row) }"></div>
@@ -156,7 +149,6 @@
                 <span class="total-text">{{ row.totalScore }}</span>
               </div>
 
-              <!-- 最后提交 -->
               <div class="cell">{{ formatTime(row.lastSubmit) }}</div>
             </div>
           </div>
@@ -166,7 +158,6 @@
     </div>
   </div>
 
-  <!-- 删除确认弹窗 -->
   <div v-if="deleteConfirmVisible" class="modal-overlay" @click.self="closeDeleteConfirm">
     <div class="modal">
       <p>确定删除题目 “{{ deleteTargetName }}” 吗？</p>
@@ -182,6 +173,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import MarkdownRenderer from '../../../components/MarkdownRenderer.vue'
 
 const instance = getCurrentInstance()
 const ip = instance.appContext.config.globalProperties.$ip
@@ -189,25 +181,7 @@ const route = useRoute()
 const router = useRouter()
 const ctname = route.query.ctname
 
-const isAddingProblem = ref(false)
-const newProblemName = ref('')
-
-const canDelete = computed(() => ['ROOT', 'MANAGER'].includes(userRole.value))
-
-const userRole = ref('')
-
-function parseRoleFromJWT() {
-  const token = localStorage.getItem('jwt')
-  if (!token) return
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    userRole.value = payload.role || ''
-  } catch (e) {
-    console.error('解析 JWT 失败', e)
-  }
-}
-
-// 确保传递 ctname 给 props
+// Props
 const props = defineProps({
   contest: {
     type: Object,
@@ -215,13 +189,10 @@ const props = defineProps({
   }
 })
 
-// 在 fetchFullContest 和 fetchProblemList 方法中使用 ctname
-console.log(ctname) // 测试是否正确获取到参数
-
-/* emits */
+// Emits
 const emit = defineEmits(['close', 'view-leaderboard'])
 
-/* reactive data */
+// --- State ---
 const fullContest = ref({})
 const loading = ref(false)
 const error = ref(null)
@@ -235,36 +206,25 @@ const attending = ref(false)
 const countdown = ref('')
 let timer = null
 
-const newProblemScore = ref(100) // 默认分数为 100
+const isAddingProblem = ref(false)
+const newProblemName = ref('')
+const newProblemScore = ref(100)
 
 const deleteConfirmVisible = ref(false)
 const deleteTargetName = ref('')
 
-function openDeleteConfirm(name) {
-  deleteTargetName.value = name
-  deleteConfirmVisible.value = true
-}
+const leaderboardData = ref([])
 
-function closeDeleteConfirm() {
-  deleteConfirmVisible.value = false
-  deleteTargetName.value = ''
-}
+// --- 用户权限管理 ---
+const userRole = ref('') // 统一存储用户角色
 
-const uniqueProblems = computed(() => {
-  const set = new Set(leaderboardData.value.map(r => r.problemName))
-  return Array.from(set)
-})
+// [OPTIMIZED] 使用计算属性统一判断管理员权限
+const isAdmin = computed(() => ['ROOT', 'MANAGER'].includes(userRole.value))
 
-const userInfo = ref(null)
-
-const loadUserInfo = () => {
+// [OPTIMIZED] 统一的JWT解析和角色设置函数
+function initializeUserRole() {
   const token = localStorage.getItem('jwt')
   if (!token) return
-  const parsed = parseJwt(token)
-  userInfo.value = parsed.role ?? null
-}
-
-const parseJwt = (token) => {
   try {
     const base64Url = token.split('.')[1]
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
@@ -274,148 +234,15 @@ const parseJwt = (token) => {
         .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     )
-    return JSON.parse(jsonPayload)
-  } catch {
-    return {}
-  }
-}
-
-
-const colCount = computed(() => uniqueProblems.value.length + 3)
-
-const groupedByUser = computed(() => {
-  const map = {}
-  for (const r of leaderboardData.value) {
-    if (!map[r.userName]) {
-      map[r.userName] = {
-        userCnname: r.userCnname,
-        scores: {},
-        lastSubmit: r.lastSubmit,
-        totalScore: 0
-      }
-    }
-    map[r.userName].scores[r.problemName] = r.score
-    map[r.userName].totalScore += r.score
-    if (new Date(r.lastSubmit) > new Date(map[r.userName].lastSubmit)) {
-      map[r.userName].lastSubmit = r.lastSubmit
-    }
-  }
-  return map
-})
-
-const leaderboardData = ref([])
-
-async function fetchLeaderboard() {
-  try {
-    const token = localStorage.getItem('jwt')
-    const params = new URLSearchParams({
-      ctname: ctname
-    })
-    const res = await fetch(`http://${ip}/contest/list/board?${params}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    const text = await res.text()
-    if (!res.ok) {
-      console.warn('获取榜单失败：HTTP', res.code)
-      return
-    }
-    const json = JSON.parse(text)
-    if ((json.code === '0') && Array.isArray(json.data)) {
-      leaderboardData.value = json.data
-    } else if (json.code === 'B020009') {
-      leaderboardData.value = []
-    } else {
-      alert('获取榜单失败：' + (json.message || '未知错误'))
-    }
-
+    const payload = JSON.parse(jsonPayload)
+    userRole.value = payload.role || ''
   } catch (e) {
-    console.error('获取榜单失败', e)
+    console.error('解析 JWT 失败', e)
+    userRole.value = '' // 解析失败则清空角色
   }
 }
 
-async function confirmDeleteProblem() {
-  try {
-    const token = localStorage.getItem('jwt')
-    const res = await fetch(`http://${ip}/contest/deleteProblem`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        contestName: ctname,
-        problemName: deleteTargetName.value,
-        score: newProblemScore.value
-      })
-    })
-    const json = await res.json()
-    if (json.code === '0') {
-      await fetchProblemList()
-      closeDeleteConfirm()
-    } else {
-      alert(`删除失败：${json.message || '未知错误'}`)
-    }
-  } catch (e) {
-    alert(`删除失败：${e.message}`)
-  }
-}
-
-const canAddProblem = computed(() => {
-  alert(userRole.value)
-  return ['ROOT', 'MANAGER'].includes(userRole.value)
-})
-
-function startAddProblem() {
-  isAddingProblem.value = true
-  newProblemName.value = ''
-}
-
-function cancelAddProblem() {
-  isAddingProblem.value = false
-  newProblemName.value = ''
-}
-
-async function confirmAddProblem() {
-  const name = newProblemName.value.trim()
-  if (!name) {
-    alert('请输入题目名称')
-    return
-  }
-
-  try {
-    const token = localStorage.getItem('jwt')
-    const res = await fetch(`http://${ip}/contest/insertProblem`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        contestName: ctname,
-        problemName: name,
-        score: newProblemScore.value
-      })
-    })
-    const json = await res.json()
-    if (json.code === '0') {
-      // 成功
-      await fetchProblemList()
-      cancelAddProblem()
-    } else if (json.code === 'B010002') {
-      // 题目不存在，可继续新增
-      alert(json.message || '题目未在题库中，请先在题库创建后再添加')
-    } else {
-      alert(json.message || '添加失败')
-    }
-  } catch (e) {
-    alert(`添加失败：${e.message}`)
-  }
-}
-
-/* computed */
+// --- Computed Properties ---
 const effectiveContest = computed(() =>
   Object.keys(fullContest.value).length ? fullContest.value : props.contest || {}
 )
@@ -436,16 +263,81 @@ const beforeStart = computed(() => {
 })
 
 const remainingText = computed(() => {
-  const c = effectiveContest.value
-  if (!c.start) return ''
-  const delta = Math.max(0, new Date(c.start).getTime() - Date.now())
+  if (!beforeStart.value || !effectiveContest.value.start) return ''
+  const delta = new Date(effectiveContest.value.start).getTime() - Date.now()
+  if (delta <= 0) return ''
   const sec = Math.floor(delta / 1000)
   const m = Math.floor(sec / 60)
   const s = sec % 60
   return `还有 ${m}m${s}s 开始`
-}) // <- 修复：这里要以 }) 结束
+})
 
-/* methods */
+// --- Leaderboard Computeds ---
+const uniqueProblems = computed(() => {
+  const problemNames = new Set()
+  leaderboardData.value.forEach(item => {
+    if (item.problemName) {
+      problemNames.add(item.problemName)
+    }
+  })
+  return Array.from(problemNames)
+})
+
+const colCount = computed(() => uniqueProblems.value.length + 3)
+
+const groupedByUser = computed(() => {
+  const map = {}
+  for (const r of leaderboardData.value) {
+    if (!map[r.userName]) {
+      map[r.userName] = {
+        user: r.userName,
+        userCnname: r.userCnname,
+        scores: {},
+        lastSubmit: '1970-01-01T00:00:00Z',
+        totalScore: 0
+      }
+    }
+    map[r.userName].scores[r.problemName] = r.score
+  }
+  
+  // Recalculate totals and last submit time
+  for (const user in map) {
+    map[user].totalScore = Object.values(map[user].scores).reduce((a, b) => a + b, 0);
+    const userSubmissions = leaderboardData.value.filter(sub => sub.userName === user);
+    if (userSubmissions.length > 0) {
+      map[user].lastSubmit = userSubmissions.reduce((latest, current) => 
+        new Date(current.lastSubmit) > new Date(latest.lastSubmit) ? current : latest
+      ).lastSubmit;
+    }
+  }
+
+  return map
+})
+
+const rows = computed(() => {
+  const arr = Object.values(groupedByUser.value)
+  arr.sort((a, b) => {
+    if (b.totalScore !== a.totalScore) {
+      return b.totalScore - a.totalScore
+    }
+    return new Date(a.lastSubmit) - new Date(b.lastSubmit)
+  })
+  return arr
+})
+
+const maxTotal = computed(() => {
+  const totalScores = problemList.value.reduce((sum, p) => sum + (Number(p.score) || 0), 0)
+  return totalScores > 0 ? totalScores : 100; // Fallback to 100 if no problems/scores
+})
+
+const problemMaxMap = computed(() => {
+  return problemList.value.reduce((map, p) => {
+    map[p.problemName] = Number(p.score) || 0
+    return map
+  }, {})
+})
+
+// --- Methods ---
 function formatTime(ts) {
   if (!ts) return ''
   const d = new Date(ts)
@@ -456,40 +348,23 @@ function formatTime(ts) {
   ).padStart(2, '0')}`
 }
 
+// Data Fetching
 async function fetchFullContest() {
   loading.value = true
   error.value = null
-
-  const params = new URLSearchParams({
-    ctname: ctname
-  });
   try {
     const token = localStorage.getItem('jwt') || ''
-    const res = await fetch(`http://${ip}/contest/full/getContest?${params}`, { // 添加  和 ip
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    const res = await fetch(`http://${ip}/contest/full/getContest?ctname=${ctname}`, {
+      headers: { Authorization: `Bearer ${token}` }
     })
-    const text = await res.text()
-    if (!res.ok) {
-      error.value = `获取详情失败：HTTP ${res.code}`
-      console.warn('getContest 非 2xx 返回：', text)
-      return
-    }
-    if (text.trim().startsWith('<')) {
-      error.value = '获取详情返回 HTML，可能未登录或路径错'
-      console.warn('getContest 返回 HTML:', text.slice(0, 500))
-      return
-    }
-    const json = JSON.parse(text)
-    if ((json.code === '0') && json.data) {
+    const json = await res.json()
+    if (json.code === '0' && json.data) {
       fullContest.value = json.data
     } else {
-      error.value = json.message || '详情接口返回异常'
+      error.value = json.message || '获取竞赛详情失败'
     }
   } catch (e) {
-    error.value = e.message || '获取详情失败'
+    error.value = e.message
   } finally {
     loading.value = false
   }
@@ -500,105 +375,40 @@ async function fetchProblemList() {
   problemsError.value = null
   try {
     const token = localStorage.getItem('jwt') || ''
-    const params = new URLSearchParams({
-      ctname: ctname
-    });
-
-    const res = await fetch(`http://${ip}/contest/list/problem?${params}`, { // 添加  和 ip
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    const res = await fetch(`http://${ip}/contest/list/problem?ctname=${ctname}`, {
+      headers: { Authorization: `Bearer ${token}` }
     })
-    const text = await res.text()
-    if (!res.ok) {
-      problemsError.value = `获取题目失败：HTTP ${res.code}`
-      console.warn('getProblemList 非 2xx 返回：', text)
-      return
-    }
-    if (text.trim().startsWith('<')) {
-      problemsError.value = '题目列表接口返回 HTML，可能权限/登录问题'
-      console.warn('getProblemList 返回 HTML:', text.slice(0, 500))
-      return
-    }
-    const json = JSON.parse(text)
-    if ((json.code === '0') && Array.isArray(json.data)) {
+    const json = await res.json()
+    if (json.code === '0' && Array.isArray(json.data)) {
       problemList.value = json.data
     } else if (json.code === 'B020007') {
-      problemList.value = []
+      problemList.value = [] // No problems found is not an error
     } else {
-      problemsError.value = json.message || '题目列表数据异常'
+      problemsError.value = json.message || '获取题目列表失败'
     }
   } catch (e) {
-    problemsError.value = e.message || '获取题目失败'
+    problemsError.value = e.message
   } finally {
     problemsLoading.value = false
   }
 }
 
-function startCountdownIfNeeded() {
-  if (beforeStart.value) {
-    updateCountdown()
-    timer = setInterval(updateCountdown, 1000)
-  }
-}
-
-function updateCountdown() {
-  if (!effectiveContest.value.start) return
-  const delta = Math.max(0, new Date(effectiveContest.value.start).getTime() - Date.now())
-  const sec = Math.floor(delta / 1000)
-  const m = Math.floor(sec / 60)
-  const s = sec % 60
-  countdown.value = `${m}m${s}s`
-  if (delta <= 0 && timer) {
-    clearInterval(timer)
-    countdown.value = ''
-  }
-}
-
-function goToProblem(p) {
-  router.push({
-    path: '/contest/editor',
-    query: { contest: effectiveContest.value.name, problem: p.problemName }
-  })
-}
-
-async function handleAttend() {
-  if (attended.value) return
-  attending.value = true
+async function fetchLeaderboard() {
   try {
-    const token = localStorage.getItem('jwt') || ''
-    const params = new URLSearchParams({
-      ctname: ctname
-    });
-    const res = await fetch(`http://${ip}/contest/attend?${params}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    const token = localStorage.getItem('jwt')
+    const res = await fetch(`http://${ip}/contest/list/board?ctname=${ctname}`, {
+      headers: { Authorization: `Bearer ${token}` }
     })
-    const text = await res.text()
-    if (!res.ok) {
-      console.warn('attendContest 非 2xx 返回：', text)
-      alert(`参加失败：HTTP ${res.code}`)
-      return
-    }
-    if (text.trim().startsWith('<')) {
-      console.warn('attendContest 返回 HTML:', text.slice(0, 500))
-      alert('参加竞赛时返回了非 JSON，可能未登录')
-      return
-    }
-    const json = JSON.parse(text)
-    if (json.code === '0') {
-      attended.value = true
+    const json = await res.json()
+    if (json.code === '0' && Array.isArray(json.data)) {
+      leaderboardData.value = json.data
+    } else if (json.code === 'B020009') {
+      leaderboardData.value = []
     } else {
-      alert(`参加失败：${json.message || '未知'}`)
+      console.warn('获取榜单失败：', json.message)
     }
   } catch (e) {
-    console.error('参加出错', e)
-    alert(`参加出错：${e.message}`)
-  } finally {
-    attending.value = false
+    console.error('获取榜单异常', e)
   }
 }
 
@@ -609,32 +419,146 @@ async function fetchAttendStatus() {
       headers: { Authorization: `Bearer ${token}` }
     })
     const json = await res.json()
-    if (json.code === '0') {
-      attended.value = json.data
-    } else if (json.code === 'B020008') {
-      attended.value = false
-    } else {
-      console.error('获取参加状态失败', json.message)
-    }
+    attended.value = json.code === '0'
   } catch (e) {
-    console.error('获取参加状态失败', e)
+    console.error('获取参赛状态失败', e)
   }
 }
 
-// 将 user -> row 的 map 转成排序数组，并计算最大总分用于进度条
-const rows = computed(() => {
-  const arr = Object.entries(groupedByUser.value).map(([user, row]) => ({
-    ...row,
-    user
-  }))
-  arr.sort((a, b) => b.totalScore - a.totalScore)
-  return arr
-})
 
-const maxTotal = computed(() =>
-  rows.value.length ? Math.max(...rows.value.map(r => r.totalScore)) : 0
-)
+// Problem Management
+function startAddProblem() {
+  isAddingProblem.value = true
+  newProblemName.value = ''
+  newProblemScore.value = 100
+}
 
+function cancelAddProblem() {
+  isAddingProblem.value = false
+}
+
+async function confirmAddProblem() {
+  const name = newProblemName.value.trim()
+  if (!name) return alert('请输入题目名称')
+
+  try {
+    const token = localStorage.getItem('jwt')
+    const res = await fetch(`http://${ip}/contest/insertProblem`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        contestName: ctname,
+        problemName: name,
+        score: newProblemScore.value
+      })
+    })
+    const json = await res.json()
+    if (json.code === '0') {
+      await fetchProblemList()
+      cancelAddProblem()
+    } else if (json.code === 'B010002') {
+      alert(json.message || '题目未在题库中，请先在题库创建后再添加')
+    } else {
+      alert(`添加失败：${json.message || '未知错误'}`)
+    }
+  } catch (e) {
+    alert(`添加失败：${e.message}`)
+  }
+}
+
+function openDeleteConfirm(name) {
+  deleteTargetName.value = name
+  deleteConfirmVisible.value = true
+}
+
+function closeDeleteConfirm() {
+  deleteConfirmVisible.value = false
+  deleteTargetName.value = ''
+}
+
+async function confirmDeleteProblem() {
+  try {
+    const token = localStorage.getItem('jwt')
+    const res = await fetch(`http://${ip}/contest/deleteProblem`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        contestName: ctname,
+        problemName: deleteTargetName.value
+      })
+    })
+    const json = await res.json()
+    if (json.code === '0') {
+      await fetchProblemList()
+      closeDeleteConfirm()
+    } else {
+      alert(`删除失败：${json.message || '未知错误'}`)
+    }
+  } catch (e) {
+    alert(`删除失败：${e.message}`)
+  }
+}
+
+// UI and Navigation
+function goToProblem(p) {
+  router.push({
+    path: '/contest/editor',
+    query: { contest: effectiveContest.value.name, problem: p.problemName }
+  })
+}
+
+async function handleAttend() {
+  attending.value = true
+  try {
+    const token = localStorage.getItem('jwt') || ''
+    const res = await fetch(`http://${ip}/contest/attend?ctname=${ctname}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const json = await res.json()
+    if (json.code === '0') {
+      attended.value = true
+    } else {
+      alert(`参加失败：${json.message || '未知错误'}`)
+    }
+  } catch (e) {
+    alert(`参加出错：${e.message}`)
+  } finally {
+    attending.value = false
+  }
+}
+
+// Countdown Timer
+function startCountdownIfNeeded() {
+  if (timer) clearInterval(timer)
+  if (beforeStart.value) {
+    updateCountdown()
+    timer = setInterval(updateCountdown, 1000)
+  }
+}
+
+function updateCountdown() {
+  if (!effectiveContest.value.start) return
+  const delta = new Date(effectiveContest.value.start).getTime() - Date.now()
+  if (delta <= 0) {
+    countdown.value = ''
+    if (timer) clearInterval(timer)
+    // You might want to refetch contest data here to update status
+    return
+  }
+  const sec = Math.floor(delta / 1000)
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  countdown.value = `${m}m${s}s`
+}
+
+// Leaderboard Display Helpers
 function totalPercent(row) {
   if (!maxTotal.value) return '0%'
   return `${Math.round((row.totalScore / maxTotal.value) * 100)}%`
@@ -647,15 +571,6 @@ function medalClass(index) {
   return ''
 }
 
-/* ====== 每题得分：按比例填充（基于题目满分） ====== */
-// 从题目列表建立满分映射：problemName -> maxScore
-const problemMaxMap = computed(() => {
-  const map = {}
-  for (const p of problemList.value) {
-    map[p.problemName] = Number(p.score) || 0
-  }
-  return map
-})
 function maxScoreOf(problemName) {
   return problemMaxMap.value[problemName] ?? 0
 }
@@ -663,32 +578,31 @@ function maxScoreOf(problemName) {
 function scoreBgStyle(score, problemName) {
   const max = maxScoreOf(problemName)
   const s = Number(score) || 0
+  const base = { color: '#111827' }
 
-  const base = { color: '#111827' } // 统一黑色数字
-
-  if (!max || s <= 0) return { ...base, background: '#ffffff' } // 未答题：白色
-  if (s >= max) return { ...base, background: '#FFD700' }       // 满分：金色
+  if (!max || s <= 0) return { ...base, background: '#ffffff' }
+  if (s >= max) return { ...base, background: '#FFD700' }
 
   const pct = Math.max(0, Math.min(100, (s / max) * 100))
-  const pctStr = pct.toFixed(2) + '%'
   return {
     ...base,
-    background: `linear-gradient(90deg,
-      rgba(40,167,69,.35) 0%,
-      rgba(40,167,69,.35) ${pctStr},
-      transparent ${pctStr},
-      transparent 100%)`
+    background: `linear-gradient(90deg, rgba(40,167,69,.35) ${pct}%, transparent ${pct}%)`
   }
 }
 
-/* lifecycle */
+function handleReturn() {
+  router.push('/main?tab=contest') 
+}
+
+// Lifecycle Hooks
 onMounted(async () => {
-  loadUserInfo()
-  parseRoleFromJWT()
-  fetchFullContest()
-  fetchProblemList()
-  fetchAttendStatus()
-  fetchLeaderboard()
+  initializeUserRole() // 初始化用户角色
+  await fetchFullContest()
+  await Promise.all([
+      fetchProblemList(),
+      fetchAttendStatus(),
+      fetchLeaderboard()
+  ])
   startCountdownIfNeeded()
 })
 
@@ -698,7 +612,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-
 /* 外层 80% 宽，水平居中 */
 .board-wrapper {
   width: 80%;
@@ -727,10 +640,10 @@ onUnmounted(() => {
 
 /* ---------- 通用变量 ---------- */
 :root {
-  --primary: #28a745;          /* 主色改为绿色 */
+  --primary: #28a745;        /* 主色改为绿色 */
   --primary-hover: #1e7e34;
   --danger: #e74c3c;
-  --success: #007bff;          /* 互换：确定按钮用蓝 */
+  --success: #007bff;        /* 互换：确定按钮用蓝 */
   --muted: #6c757d;
   --border: #e3e6f0;
   --bg-light: #f8f9fa;
@@ -1295,5 +1208,18 @@ section.info p {
 .cell.score { color: #111827; }
 .cell.score .score-text { color: #111827; }
 .score.pass { color: #111827 !important; }
+
+.info-item {
+  display: flex;
+  align-items: flex-start; /* 顶部对齐 */
+  gap: 8px; /* 标签和内容之间的间距 */
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.note-content {
+  flex: 1; /* 让内容占据剩余空间 */
+  margin-top: -2px; /* 微调，让内容与“备注”标签的基线对齐 */
+}
 
 </style>

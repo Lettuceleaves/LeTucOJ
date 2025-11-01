@@ -3,20 +3,35 @@ FROM gcc:12
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 使用腾讯云 APT 镜像，优化构建速度
+# 设置 yq 版本，方便后续更新
+ARG YQ_VERSION=v4.44.2
+
+# 使用腾讯云 APT 镜像，优化构建速度，并安装 yq 和 time
 RUN set -eux; \
     # 替换为腾讯云镜像
     for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
       [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
     done; \
     apt-get update; \
-    apt-get install -y --no-install-recommends ca-certificates; \
+    \
+    # [修改] 同时安装 ca-certificates, wget, 和 time
+    apt-get install -y --no-install-recommends ca-certificates wget time; \
+    \
     update-ca-certificates; \
+    \
+    # [新增] 下载 yq (v4+) 并使其可执行
+    echo "Downloading yq ${YQ_VERSION}..."; \
+    wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 -O /usr/bin/yq; \
+    chmod +x /usr/bin/yq; \
+    \
     # 切回 https 安全源
     for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
       [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
     done; \
     apt-get update; \
+    \
+    # [修改] 清理时也移除 wget
+    apt-get purge -y --auto-remove wget; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 

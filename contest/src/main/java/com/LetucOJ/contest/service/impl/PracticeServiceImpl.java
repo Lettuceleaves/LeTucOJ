@@ -10,6 +10,7 @@ import com.LetucOJ.contest.model.BoardDTO;
 import com.LetucOJ.contest.model.ContestInfoDTO;
 import com.LetucOJ.contest.model.ProblemStatusDTO;
 import com.LetucOJ.contest.repos.MybatisRepos;
+import com.LetucOJ.contest.service.DBService;
 import com.LetucOJ.contest.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,9 @@ public class PracticeServiceImpl implements PracticeService {
     @Autowired
     private MybatisRepos mybatisRepos;
 
+    @Autowired
+    private DBService dbService;
+
     public ResultVO submit(String userName, String cnname, String questionName, String contestName, String code, String lang, boolean root) throws Exception {
         try {
 
@@ -42,6 +46,11 @@ public class PracticeServiceImpl implements PracticeService {
             inputs.add(code);
 
             ContestInfoDTO contestInfo = mybatisRepos.getContest(contestName);
+
+            ResultVO attended = dbService.getUserStatus(userName, contestName);
+            if (!attended.getCode().equals("0") && !root) {
+                return Result.failure(ContestErrorCode.USER_NOT_ATTEND);
+            }
 
             if (contestInfo == null) {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
@@ -58,12 +67,15 @@ public class PracticeServiceImpl implements PracticeService {
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime start = contestInfo.getStart();
                 LocalDateTime end = contestInfo.getEnd();
+                System.out.println(now);
+                System.out.println(start);
+                System.out.println(end);
                 if (start != null && end != null) {
                     if (now.isBefore(start)) {
                         long secondsToStart = Duration.between(now, start).getSeconds();
                         return Result.failure(ContestErrorCode.CONTEST_NOT_START, secondsToStart);
                     } else if (now.isAfter(end)) {
-                        return Result.success(ContestErrorCode.CONTEST_FINISHED);
+                        return Result.failure(ContestErrorCode.CONTEST_FINISHED);
                     }
                 } else {
                     return Result.failure(BaseErrorCode.SERVICE_ERROR);
@@ -99,7 +111,7 @@ public class PracticeServiceImpl implements PracticeService {
 
             // 运行用户代码
 
-            ResultVO runResult = runClient.run(inputs, lang);
+            ResultVO runResult = runClient.run(inputs, lang, questionName);
 
 
             // 处理运行结果

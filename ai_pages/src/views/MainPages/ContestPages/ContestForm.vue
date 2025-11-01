@@ -5,7 +5,7 @@
     <form @submit.prevent="handleSubmit">
       <div class="grid-container">
 
-        <!-- name -->
+        <!-- lang -->
         <div class="form-item">
           <label for="data-name">{{ labels.name }}</label>
           <input
@@ -125,7 +125,7 @@ const labels = {
   note: '备注信息'
 }
 
-const renderedNote = computed(() => 
+const renderedNote = computed(() =>
   marked.parse(form.value.note || '')
 )
 

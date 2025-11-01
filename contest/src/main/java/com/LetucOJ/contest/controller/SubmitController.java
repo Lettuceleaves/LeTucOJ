@@ -1,5 +1,6 @@
 package com.LetucOJ.contest.controller;
 
+import com.LetucOJ.common.anno.SubmitLimit;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
@@ -20,7 +21,14 @@ public class SubmitController {
     private MybatisRepos mybatisRepos;
 
     @PostMapping("/submit")
-    public ResultVO submit(@RequestParam("pname") String pname, @RequestParam("cnname") String cnname, @RequestParam("qname") String qname, @RequestParam("ctname") String ctname, @RequestParam("lang") String lang, @RequestBody String code) throws Exception {
+    @SubmitLimit
+    public ResultVO submit(
+            @RequestParam("lang") String lang,
+            @RequestParam("pname") String pname,
+            @RequestParam("qname") String qname,
+            @RequestParam("cnname") String cnname,
+            @RequestParam("ctname") String ctname,
+            @RequestBody String code) throws Exception {
         ResultVO result =  practiceService.submit(pname, cnname, qname, ctname, code, lang, false);
         try {
             Integer res = mybatisRepos.insertRecord(new RecordDTO(pname, cnname, qname, lang, code, result.getCode() + " $ " + result.getMessage(), 0L, 0L, System.currentTimeMillis()));
@@ -35,7 +43,14 @@ public class SubmitController {
     }
 
     @PostMapping("/submitInRoot")
-    public ResultVO submitRoot(@RequestParam("pname") String pname, @RequestParam("cnname") String cnname, @RequestParam("qname") String qname, @RequestParam("ctname") String ctname, @RequestParam("lang") String lang, @RequestBody String code) throws Exception {
+    @SubmitLimit
+    public ResultVO submitRoot(
+            @RequestParam("lang") String lang,
+            @RequestParam("pname") String pname,
+            @RequestParam("qname") String qname,
+            @RequestParam("cnname") String cnname,
+            @RequestParam("ctname") String ctname,
+            @RequestBody String code) throws Exception {
         ResultVO result =  practiceService.submit(pname, cnname, qname, ctname, code, lang, true);
         try {
             Integer res = mybatisRepos.insertRecord(new RecordDTO(pname, cnname, qname, lang, code, result.getCode() + " $ " + result.getMessage(), 0L, 0L, System.currentTimeMillis()));

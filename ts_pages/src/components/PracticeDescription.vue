@@ -1,6 +1,6 @@
 <template>
   <el-descriptions :column="2" label-width="100">
-    <!-- <el-descriptions-item label="题目 ID">{{ practiceDetail.name }}</el-descriptions-item> -->
+    <!-- <el-descriptions-item label="题目 ID">{{ practiceDetail.lang }}</el-descriptions-item> -->
     <el-descriptions-item label="作者">{{ practiceDetail.authors }}</el-descriptions-item>
     <el-descriptions-item label="频率(总次数)">{{ practiceDetail.freq }}</el-descriptions-item>
     <el-descriptions-item label="测试点数量">{{ practiceDetail.caseAmount }}</el-descriptions-item>

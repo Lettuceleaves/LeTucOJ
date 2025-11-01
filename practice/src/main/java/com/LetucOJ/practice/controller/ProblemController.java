@@ -49,6 +49,16 @@ public class ProblemController {
         return dbService.getCase(caseInputDTO);
     }
 
+    @GetMapping("/get_exist_case")
+    public ResultVO getExistCase(@RequestParam("qname") String qname, @RequestParam("id") Integer id) {
+        return dbService.getExistCase(qname, id);
+    }
+
+    @GetMapping("/config_file")
+    public ResultVO getConfigFile(@RequestParam("qname") String qname) {
+        return dbService.getConfigFile(qname);
+    }
+
     @PostMapping("/submitCase")
     public ResultVO submitCase(@RequestBody CasePairDTO casePairDTO) {
         return dbService.submitCase(casePairDTO);

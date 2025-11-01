@@ -1,9 +1,9 @@
 package com.LetucOJ.gateway.tool;
 
-import com.LetucOJ.common.cache.Redis;
-import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
+import com.LetucOJ.gateway.Redis;
 import com.LetucOJ.gateway.client.UserClient;
+import com.LetucOJ.gateway.result.ResultVO;
+import com.LetucOJ.gateway.result.errorcode.GatewayErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;

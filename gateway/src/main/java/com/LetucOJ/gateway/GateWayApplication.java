@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication(
-        scanBasePackages = {"com.LetucOJ.gateway", "com.LetucOJ.common"}
+        scanBasePackages = {"com.LetucOJ.gateway"}
 )
 @EnableFeignClients
 public class GateWayApplication {

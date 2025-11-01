@@ -92,8 +92,15 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
-    public ResultVO getProblem(String name, String contestName) {
+    public ResultVO getProblem(String name, String contestName, String userName) {
         try {
+
+            ResultVO attended = getUserStatus(userName, contestName);
+            if (!attended.getCode().equals("0")) {
+                System.out.println(attended.getCode());
+                return Result.failure(ContestErrorCode.USER_NOT_IN_CONTEST);
+            }
+
             ContestInfoDTO dbDtoContest = mybatisRepos.getContest(contestName);
 
             if (!dbDtoContest.isPublicContest()) {
@@ -130,10 +137,10 @@ public class DBServiceImpl implements DBService {
 
 
     @Override
-    public ResultVO getUserStatus(String name, String contestName) {
+    public ResultVO getUserStatus(String userName, String contestName) {
         try {
 
-            Integer inContest = mybatisRepos.getUserStatus(name, contestName);
+            Integer inContest = mybatisRepos.getUserStatus(contestName, userName);
 
             if (inContest == null || inContest == 0) {
                 return Result.failure(ContestErrorCode.USER_NOT_IN_CONTEST);

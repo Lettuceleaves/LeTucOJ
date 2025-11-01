@@ -8,7 +8,7 @@ public interface DBService {
     ResultVO getProblemList(String contestName);
     ResultVO getProblemListInRoot(String contestName);
     ResultVO getContestList();
-    ResultVO getProblem(String name, String contestName);
+    ResultVO getProblem(String name, String contestName, String userName);
     ResultVO getProblemInRoot(String name, String contestName);
     ResultVO deleteProblem(ContestProblemDTO dto);
     ResultVO getBoard(String contestName);

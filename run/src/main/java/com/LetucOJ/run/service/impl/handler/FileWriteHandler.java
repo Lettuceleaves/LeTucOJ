@@ -1,17 +1,24 @@
 package com.LetucOJ.run.service.impl.handler;
 
+import com.LetucOJ.common.oss.MinioRepos;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.run.service.Handler;
 import com.LetucOJ.run.tool.RunPath;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.nio.file.*;
 import java.util.List;
 
 @Data
+@Service
 public class FileWriteHandler implements Handler {
+
+    @Autowired
+    private MinioRepos minioRepos;
 
     private Handler nextHandler;
 
@@ -23,7 +30,7 @@ public class FileWriteHandler implements Handler {
     }
 
     @Override
-    public ResultVO handle(List<String> inputFiles, int boxid, String language) {
+    public ResultVO handle(List<String> inputFiles, int boxid, String language, String qname, byte[] config) {
         try {
             Path boxDir = Paths.get(RunPath.getBoxDir(boxid));
             Files.createDirectories(boxDir);
@@ -31,6 +38,12 @@ public class FileWriteHandler implements Handler {
             Path codePath = Paths.get(RunPath.userCodePath(boxid, language));
             Files.write(codePath,
                     inputFiles.get(0).getBytes(),
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING);
+
+            Path configPath = Paths.get(RunPath.getConfigPath(boxid));
+            Files.write(configPath,
+                    config,
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING);
 
@@ -64,8 +77,9 @@ public class FileWriteHandler implements Handler {
                     StandardOpenOption.TRUNCATE_EXISTING);
 
         } catch (Exception e) {
+            System.out.println(e);
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
-        return nextHandler.handle(inputFiles, boxid, language);
+        return nextHandler.handle(inputFiles, boxid, language, qname, config);
     }
 }

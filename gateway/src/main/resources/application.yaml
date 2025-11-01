@@ -6,6 +6,10 @@ spring:
     import: "optional:classpath:default.yaml"
   application:
     name: gateway
+  data:
+    redis:
+      host: redis
+      port: 6379
   cloud:
     gateway:
       routes:
@@ -48,5 +52,4 @@ auth:
   service:
     url: http://user:5555
     on: false
-
 

@@ -5,7 +5,7 @@
     <form @submit.prevent="handleSubmit">
       <div class="grid-container">
 
-        <!-- name -->
+        <!-- lang -->
         <div class="form-item">
           <label for="name">{{ labels.name }}</label>
           <input
@@ -232,11 +232,11 @@ const handleSubmit = async () => {
       alert('更新成功');
     } else if (!isEdit.value && res.type === 2) {
       alert('添加题目成功');
-      // 提交成功后更新 URL 中的 name 参数
+      // 提交成功后更新 URL 中的 lang 参数
       // 使用 router.replace 来替换当前的路径
       router.replace({
         path: route.path,
-        query: { ...route.query, name: form.value.name }, // 更新 name 参数
+        query: { ...route.query, name: form.value.name }, // 更新 lang 参数
       }).then(() => {
         // 强制刷新页面
         window.location.reload();  // 页面重新加载

@@ -1,9 +1,9 @@
 package com.LetucOJ.gateway.tool;
 
-import com.LetucOJ.common.cache.Redis;
-import com.LetucOJ.common.result.Result;
-import com.LetucOJ.common.result.errorcode.BaseErrorCode;
-import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
+import com.LetucOJ.gateway.Redis;
+import com.LetucOJ.gateway.result.Result;
+import com.LetucOJ.gateway.result.errorcode.BaseErrorCode;
+import com.LetucOJ.gateway.result.errorcode.GatewayErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.jetbrains.annotations.NotNull;

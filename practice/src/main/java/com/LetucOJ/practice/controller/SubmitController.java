@@ -1,5 +1,6 @@
 package com.LetucOJ.practice.controller;
 
+import com.LetucOJ.common.anno.SubmitLimit;
 import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.result.Result;
@@ -27,21 +28,23 @@ public class SubmitController {
     private MessageQueueProducer mqProducer;
 
     @PostMapping("/submit")
-    public ResultVO submit(@RequestParam("pname") String pname,
-                           @RequestParam("cnname") String cnname,
-                           @RequestParam("qname") String qname,
-                           @RequestParam("language") String language,
-                           @RequestBody String code) throws Exception {
-        ResultVO result = practiceService.submit(pname, qname, code, language, false);
+    @SubmitLimit
+    public ResultVO submit(
+            @RequestParam("lang") String lang,
+            @RequestParam("pname") String pname,
+            @RequestParam("qname") String qname,
+            @RequestParam("cnname") String cnname,
+            @RequestBody String code) throws Exception {
+        ResultVO result = practiceService.submit(pname, qname, code, lang, false);
 
         try {
             RecordDTO record = new RecordDTO(
                     pname,
                     cnname,
                     qname,
-                    language,
+                    lang,
                     code,
-                    result.getCode() + " $ " + result.getMessage(),
+                    result.getCode() + " $ " + result.getData(),
                     0L,
                     0L,
                     System.currentTimeMillis()
@@ -63,22 +66,24 @@ public class SubmitController {
     }
 
     @PostMapping("/submitInRoot")
-    public ResultVO submitInRoot(@RequestParam("pname") String pname,
-                                 @RequestParam("cnname") String cnname,
-                                 @RequestParam("qname") String qname,
-                                 @RequestParam("language") String language,
-                                 @RequestBody String code) throws Exception {
+    @SubmitLimit
+    public ResultVO submitInRoot(
+            @RequestParam("lang") String lang,
+            @RequestParam("pname") String pname,
+            @RequestParam("qname") String qname,
+            @RequestParam("cnname") String cnname,
+            @RequestBody String code) throws Exception {
 
-        ResultVO result = practiceService.submit(pname, qname, code, language, true);
+        ResultVO result = practiceService.submit(pname, qname, code, lang, true);
 
         try {
             RecordDTO record = new RecordDTO(
                     pname,
                     cnname,
                     qname,
-                    language,
+                    lang,
                     code,
-                    result.getCode() + " $ " + result.getMessage(),
+                    result.getCode() + " $ " + result.getData(),
                     0L,
                     0L,
                     System.currentTimeMillis()

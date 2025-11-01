@@ -14,7 +14,7 @@ public class RunController {
     RunService runService;
 
     @PostMapping("/run")
-    public ResultVO run(@RequestBody List<String> files, @RequestParam String language) {
-        return runService.run(files, language);
+    public ResultVO run(@RequestBody List<String> files, @RequestParam String language, @RequestParam String qname) {
+        return runService.run(files, language, qname);
     }
 }

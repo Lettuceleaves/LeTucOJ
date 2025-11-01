@@ -19,8 +19,8 @@ public class ContestController {
     private DBService dbService;
 
     @GetMapping("/full/getProblem")
-    public ResultVO getProblem(@RequestParam("qname") String qname, @RequestParam("ctname") String contestName) throws Exception {
-        return dbService.getProblem(qname, contestName);
+    public ResultVO getProblem(@RequestParam("qname") String qname, @RequestParam("ctname") String contestName, @RequestParam("pname") String pname) throws Exception {
+        return dbService.getProblem(qname, contestName, pname);
     }
 
     @GetMapping("/full/getProblemInRoot")

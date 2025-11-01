@@ -6,6 +6,7 @@ public enum RunErrorCode implements ErrorCode {
 
     // ========== 模块错误码 系统执行出错 ==========
     SERVICE_ERROR("B050001", "系统执行出错"),
+    VALIDATE_ERROR("B050002", "语言缺失或配置错误"),
 
     // ========== 模块错误码 调用第三方服务出错 ==========
     REMOTE_ERROR("C050001", "调用第三方服务出错");

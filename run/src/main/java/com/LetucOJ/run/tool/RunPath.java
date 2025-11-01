@@ -35,6 +35,10 @@ public class RunPath {
         return work_dir + boxid + "/status.txt";
     }
 
+    static public String getConfigPath(int boxid) {
+        return work_dir + boxid + "/config.yaml";
+    }
+
     static public String userCodePath(int boxid, String language) {
         return work_dir + boxid + "/prog." + getSuffix(language);
     }

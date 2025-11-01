@@ -3,24 +3,32 @@ FROM gcc:12
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 替换为腾讯云镜像源，并安装 CA 证书
+# 替换为腾讯云镜像源，并安装所有必需的依赖
 RUN set -eux; \
     # 替换 APT 源为腾讯云镜像源
     for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
       [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
     done; \
     apt-get update; \
-    apt-get install -y --no-install-recommends ca-certificates; \
+    # 【核心改动】安装所有必需的包：
+    # ca-certificates: 用于 https
+    # wget: 用于下载 yq
+    # systemd: run.sh 脚本现在需要用它来限制资源
+    apt-get install -y --no-install-recommends ca-certificates systemd wget; \
     update-ca-certificates; \
     # 切回 https 源，保持安全
     for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
       [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
     done; \
     apt-get update; \
+    # 下载并安装正确的、基于 Go 的 yq 版本
+    wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && \
+    chmod +x /usr/bin/yq; \
+    # 清理APT缓存和不必要的文件
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 
-# 将前面编写的脚本复制到镜像中
+# 将评测脚本复制到镜像中
 COPY run.sh /usr/local/bin/run.sh
 
 # 授予脚本执行权限

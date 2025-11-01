@@ -1,6 +1,8 @@
 package com.LetucOJ.contest.repos;
 
+import com.LetucOJ.common.anno.LanguageConfigDO;
 import com.LetucOJ.contest.model.*;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -8,7 +10,7 @@ import java.util.List;
 
 @Repository
 @Mapper
-public interface MybatisRepos {
+public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
 
     @Select("SELECT public > 0 as ispublic, showsolution, caseAmount FROM problem WHERE name = #{name}")
     ProblemStatusDTO getStatus(String name);
@@ -120,5 +122,5 @@ public interface MybatisRepos {
     Integer insertRecord(RecordDTO recordDTO);
 
     @Select("SELECT COUNT(*) FROM problem WHERE name = #{name}")
-    Integer problemExist(@Param("name") String name);
+    Integer problemExist(@Param("lang") String name);
 }

@@ -81,7 +81,7 @@ const register = async () => {
     const response = await new RegisterRequest(
       form.username,
       form.password,
-      form.username // TODO: Use a proper name field if available, here using username as cnname for simplicity
+      form.username // TODO: Use a proper lang field if available, here using username as cnname for simplicity
     ).request();
 
     if (response.status === 0) {

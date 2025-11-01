@@ -126,7 +126,7 @@ export default {
     },
   },
   created() {
-    // guard：必须有有效 contest.name
+    // guard：必须有有效 contest.lang
     if (!this.contest || !this.contest.name) {
       const msg = 'ContestDetail 初始化失败：未传有效 contest prop'
       this.error = msg

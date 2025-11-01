@@ -28,7 +28,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, nextTick, getCurrentInstance, provide, readonly, onUnmounted } from 'vue' // <-- 1. 导入 onUnmounted
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 import DoPage from './EditorPages/DoPage.vue'
 import SolutionPage from './EditorPages/SolutionPage.vue'
@@ -36,8 +36,8 @@ import ResultPage from './EditorPages/ResultPage.vue'
 import AiChat from './EditorPages/AiChat.vue'
 
 const router = useRouter()
-const props = defineProps({ name: { type: String, required: true } })
-const name = props.name
+const route = useRoute()
+const name = route.params.name
 
 const activeTab = ref('do')
 const editorReady = ref(false)
@@ -141,7 +141,7 @@ const sendCode = async (userCode) => {
       const token = localStorage.getItem('jwt')
       const params = new URLSearchParams({
          qname: name,
-         language: selectedLanguage.value
+         lang: selectedLanguage.value
       });
       const response = await fetch(`http://${ip}/practice/submit?${params}`, {
          method: 'POST',

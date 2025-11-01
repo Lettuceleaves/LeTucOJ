@@ -17,4 +17,6 @@ public interface DBService {
     ResultVO submitCase(CasePairDTO dto);
     ResultVO recordListByName(String pname, int start, int limit);
     ResultVO recordListAll(int start, int limit);
+    ResultVO getExistCase(String qname, Integer id);
+    ResultVO getConfigFile(String qname);
 }
