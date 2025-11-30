@@ -1,9 +1,11 @@
 package com.LetucOJ.run.service;
 
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.run.model.TestCaseDTO;
+import com.LetucOJ.run.model.TestCaseVO;
 
 import java.util.List;
 
 public interface RunService {
-     ResultVO run(List<String> inputFiles, String language, String qname);
+     ResultVO<TestCaseVO> run(TestCaseDTO testCaseDTO);
 }

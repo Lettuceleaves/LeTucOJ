@@ -2,6 +2,9 @@ package com.LetucOJ.run.tool;
 
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -10,6 +13,16 @@ public class RunPath {
     private static final int MAX_BOX = 1000; // 上限，开区间
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
     private static final ThreadLocal<Integer> BOX_HOLDER = new ThreadLocal<>();
+    private static final Map<String, String> SUFFIX_REGISTRY;
+
+    static {
+        SUFFIX_REGISTRY = new HashMap<>();
+        SUFFIX_REGISTRY.put("c", "c");
+        SUFFIX_REGISTRY.put("cpp", "cpp");
+        SUFFIX_REGISTRY.put("java", "java");
+        SUFFIX_REGISTRY.put("py", "py");
+        SUFFIX_REGISTRY.put("node", "js");
+    }
 
     public static String getBoxDir(int boxId) {
         return work_dir + boxId;
@@ -61,25 +74,7 @@ public class RunPath {
     }
 
     public static String getSuffix(String language) {
-        switch (language) {
-            case "c" -> {
-                return "c";
-            }
-            case "cpp" -> {
-                return "cpp";
-            }
-            case "java" -> {
-                return "java";
-            }
-            case "py" -> {
-                return "py";
-            }
-            case "node" -> {
-                return "js";
-            }
-            default -> {
-                return "txt"; // 默认后缀
-            }
-        }
+        Objects.requireNonNull(language, "Language input cannot be null");
+        return SUFFIX_REGISTRY.getOrDefault(language.toLowerCase(), "txt");
     }
 }

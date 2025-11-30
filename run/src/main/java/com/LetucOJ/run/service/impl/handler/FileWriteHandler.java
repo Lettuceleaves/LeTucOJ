@@ -1,9 +1,14 @@
 package com.LetucOJ.run.service.impl.handler;
 
+import com.LetucOJ.common.log.LogLevel;
+import com.LetucOJ.common.log.Logger;
+import com.LetucOJ.common.log.Type;
 import com.LetucOJ.common.oss.MinioRepos;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
+import com.LetucOJ.run.model.TestCaseDTO;
+import com.LetucOJ.run.model.TestCaseVO;
 import com.LetucOJ.run.service.Handler;
 import com.LetucOJ.run.tool.RunPath;
 import lombok.Data;
@@ -30,14 +35,14 @@ public class FileWriteHandler implements Handler {
     }
 
     @Override
-    public ResultVO handle(List<String> inputFiles, int boxid, String language, String qname, byte[] config) {
+    public ResultVO<TestCaseVO> handle(TestCaseDTO testCaseDTO, int boxid, byte[] config) {
         try {
             Path boxDir = Paths.get(RunPath.getBoxDir(boxid));
             Files.createDirectories(boxDir);
 
-            Path codePath = Paths.get(RunPath.userCodePath(boxid, language));
+            Path codePath = Paths.get(RunPath.userCodePath(boxid, testCaseDTO.getLanguage()));
             Files.write(codePath,
-                    inputFiles.get(0).getBytes(),
+                    testCaseDTO.getUserCode().getBytes(),
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING);
 
@@ -47,10 +52,10 @@ public class FileWriteHandler implements Handler {
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING);
 
-            for (int i = 1; i < inputFiles.size(); i++) {
+            for (int i = 0; i < testCaseDTO.getCaseFiles().size(); i++) {
                 Path inputPath = Paths.get(RunPath.getInputPath(boxid, i));
                 Files.write(inputPath,
-                        inputFiles.get(i).getBytes(),
+                        testCaseDTO.getCaseFiles().get(i).getBytes(),
                         StandardOpenOption.CREATE,
                         StandardOpenOption.TRUNCATE_EXISTING);
 
@@ -77,9 +82,9 @@ public class FileWriteHandler implements Handler {
                     StandardOpenOption.TRUNCATE_EXISTING);
 
         } catch (Exception e) {
-            System.out.println(e);
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
-        return nextHandler.handle(inputFiles, boxid, language, qname, config);
+        return nextHandler.handle(testCaseDTO, boxid, config);
     }
 }

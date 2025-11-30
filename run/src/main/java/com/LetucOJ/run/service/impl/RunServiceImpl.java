@@ -1,9 +1,14 @@
 package com.LetucOJ.run.service.impl;
 
+import com.LetucOJ.common.log.LogLevel;
+import com.LetucOJ.common.log.Logger;
+import com.LetucOJ.common.log.Type;
 import com.LetucOJ.common.oss.MinioRepos;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
+import com.LetucOJ.run.model.TestCaseDTO;
+import com.LetucOJ.run.model.TestCaseVO;
 import com.LetucOJ.run.service.Handler;
 //import com.LetucOJ.run.service.impl.handler.CompileHandler;
 import com.LetucOJ.run.service.impl.handler.ExecuteHandler;
@@ -26,19 +31,17 @@ public class RunServiceImpl implements RunService {
     private MinioRepos minioRepos;
 
     @Override
-    public ResultVO run(List<String> inputFiles, String language, String qname) {
+    public ResultVO<TestCaseVO> run(TestCaseDTO  testCaseDTO) {
         int boxId = RunPath.borrowBoxId();
         try {
             Handler fileWriteHandler = new FileWriteHandler();
             Handler executeHandler = new ExecuteHandler();
             fileWriteHandler.setNextHandler(executeHandler);
-            byte[] config = minioRepos.getFile("letucoj", "problems/" + qname + "/config.yaml");
-            return fileWriteHandler.handle(inputFiles, boxId, language, qname, config);
+            byte[] config = minioRepos.getFile("letucoj", "problems/" + testCaseDTO.getQuestionName() + "/config.yaml");
+            return fileWriteHandler.handle(testCaseDTO, boxId, config);
         } catch (Exception e) {
-            e.printStackTrace();
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         } finally {
             RunPath.returnBoxId();
         }

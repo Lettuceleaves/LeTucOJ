@@ -7,6 +7,8 @@ import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.RunErrorCode;
+import com.LetucOJ.run.model.TestCaseDTO;
+import com.LetucOJ.run.model.TestCaseVO;
 import com.LetucOJ.run.service.Handler;
 import com.LetucOJ.run.tool.RunPath;
 import lombok.Data;
@@ -31,7 +33,7 @@ public class ExecuteHandler implements Handler {
     private Handler nextHandler;
     private static final long EXECUTION_TIMEOUT_SECONDS = 30; // 容器执行超时时间
     public static final String HOST_DIR = System.getenv("HOST_DIR"); // 占位符，表示宿主机目录
-    public static final String CONTAINER_PATH = "/submission";
+    public static final String CONTAINER_PATH = "/submission"; // 容器文件挂载位置
 
     public ExecuteHandler() {}
 
@@ -41,42 +43,39 @@ public class ExecuteHandler implements Handler {
     }
 
     @Override
-    public ResultVO handle(List<String> inputFiles, int boxid, String language, String qname, byte[] config) {
+    public ResultVO<TestCaseVO> handle(TestCaseDTO testCaseDTO, int boxid, byte[] config) {
 
-        String containerName = "box-" + language + "-" + boxid + "-" + System.currentTimeMillis();
-        String imageName = "run_" + RunPath.getSuffix(language);
-        String numTestCases = String.valueOf(inputFiles.size() - 1);
+        String containerName = "box-" + testCaseDTO.getLanguage() + "-" + boxid + "-" + System.currentTimeMillis(); // 本次测试使用的沙盒名
+        String imageName = "run_" + RunPath.getSuffix(testCaseDTO.getLanguage()); // 本次测试使用的镜像名
+        String numTestCases = String.valueOf(testCaseDTO.getCaseFiles().size()); // 本次测试的测试用例数量
 
         try {
-            // --- 核心修改开始 ---
 
-            // 1. 使用 SnakeYAML 解析配置文件的字节数组
+            // 解析配置文件的字节数组
             Yaml yaml = new Yaml();
             Map<String, Object> configMap = yaml.load(new ByteArrayInputStream(config));
 
-            // 2. 导航到语言专属的默认配置
+            // 语言专属的默认配置
             Map<String, Object> languageDefaults = (Map<String, Object>) configMap.get("language_defaults");
-            if (languageDefaults == null || !languageDefaults.containsKey(language)) {
-                Logger.log(Type.CLIENT, LogLevel.ERROR, "Language defaults missing or language not found: " + language + "language_defaults");
-                return Result.failure(RunErrorCode.VALIDATE_ERROR);
+            if (languageDefaults == null || !languageDefaults.containsKey(testCaseDTO.getLanguage())) {
+                Logger.log(Type.CLIENT, LogLevel.ERROR, "Language defaults missing or language not found: " + testCaseDTO.getLanguage() + "language_defaults");
+                return Result.failure(RunErrorCode.VALIDATE_ERROR, null);
             }
 
-            Map<String, Object> langConfig = (Map<String, Object>) languageDefaults.get(language);
+            Map<String, Object> langConfig = (Map<String, Object>) languageDefaults.get(testCaseDTO.getLanguage());
 
-            // 3. 提取资源限制
-            // 内存限制是必须的
+            // 资源限制
             Integer memoryLimitMb = (Integer) langConfig.get("memory_limit_mb");
             if (memoryLimitMb == null) {
-                Logger.log(Type.CLIENT, LogLevel.ERROR, "Language defaults missing or language not found: " + language + " memory_limit_mb");
-                return Result.failure(RunErrorCode.VALIDATE_ERROR);
+                Logger.log(Type.CLIENT, LogLevel.ERROR, "Language defaults missing or language not found: " + testCaseDTO.getLanguage() + " memory_limit_mb");
+                return Result.failure(RunErrorCode.VALIDATE_ERROR, null);
             }
 
-            // CPU 核心数是可选的，如果未配置，则默认为 "0.5"
+            // CPU 核心数 默认为 "0.5"
             Object cpusObj = langConfig.get("cpus");
             String cpusLimit = (cpusObj != null) ? cpusObj.toString() : "0.5";
 
-            // --- 核心修改结束 ---
-
+            // 创建执行任务
             ProcessBuilder pb = new ProcessBuilder(
                     "docker", "run", "--rm",
                     "--name", containerName,
@@ -89,31 +88,34 @@ public class ExecuteHandler implements Handler {
                     "-v", HOST_DIR + "/" + boxid + ":" + CONTAINER_PATH,
                     imageName,
                     numTestCases,
-                    language
+                    testCaseDTO.getLanguage()
             );
 
 
             String cmdLine = String.join(" ", pb.command());
-            System.out.println("[ExecuteHandler] 正在运行的 Docker 指令: " + cmdLine);
+            Logger.log(Type.SERVER, LogLevel.INFO, "Executing command: " + cmdLine);
 
             Process proc = pb.start();
 
             boolean finished = proc.waitFor(EXECUTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
+            // 超过系统限制时长
             if (!finished) {
-                System.out.println("[ExecuteHandler] Execution timeout, attempting to kill container: " + containerName);
+                Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Execution timeout, attempting to kill container: " + containerName);
                 try {
                     new ProcessBuilder("docker", "kill", containerName).start().waitFor();
                 } catch (Exception e) {
-                    System.err.println("[ExecuteHandler] Failed to kill container: " + e.getMessage());
+                    Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Killing container: " + containerName + e.getMessage());
                 }
-                return Result.failure(BaseErrorCode.OUT_OF_TIME);
+                return Result.failure(BaseErrorCode.OUT_OF_TIME, null);
             }
 
             Path statusFile = Path.of(RunPath.getStatusPath(boxid));
+
+            // 结果状态文件缺失
             if (!Files.exists(statusFile)) {
-                System.err.println("[ExecuteHandler] status.txt file not found after execution.");
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Status file not found after execution.");
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
             String status = Files.readString(statusFile).trim();
 
@@ -122,10 +124,10 @@ public class ExecuteHandler implements Handler {
                 if (!status.isEmpty()) {
                     exitCodeFromScript = Integer.parseInt(status);
                 } else {
-                    System.err.println("[ExecuteHandler] status.txt file is empty.");
+                    Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Status is empty.");
                 }
             } catch (NumberFormatException nfe) {
-                System.err.println("[ExecuteHandler] Invalid content in status.txt: '" + status + "'");
+                Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Invalid content in status.txt: '" + status + "'");
             }
 
             switch (exitCodeFromScript) {
@@ -142,54 +144,54 @@ public class ExecuteHandler implements Handler {
                     String errMsg = Files.exists(errTxt)
                             ? Files.readString(errTxt)
                             : "Runtime message, but err.txt missing";
-                    System.out.println("[ExecuteHandler] Execution memory top point: " + errMsg);
-                    return Result.success(results);
+                    Logger.log(Type.EXTERNAL, LogLevel.INFO, "Memory top point: " + errMsg);
+                    return Result.success(new TestCaseVO(results, null));
                 }
                 case 1: { // 脚本内部的错误
-                    return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                    return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
                 }
                 case 2: { // 编译错误
                     Path compileErr = Path.of(RunPath.getCompilePath(boxid));
                     String errMsg = Files.exists(compileErr)
                             ? Files.readString(compileErr)
                             : "Compilation message, but compile.txt missing";
-                    System.out.println("[ExecuteHandler] Compile Error: " + errMsg);
-                    return Result.failure(BaseErrorCode.COMPILE_ERROR, errMsg.substring(0, Math.min(1000, errMsg.length())));
+                    Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Compilation error: " + errMsg);
+                    return Result.failure(BaseErrorCode.COMPILE_ERROR, new TestCaseVO(null, errMsg.substring(0, Math.min(1000, errMsg.length()))));
                 }
                 case 3: { // 运行时错误
                     Path errTxt = Path.of(RunPath.getErrorPath(boxid));
                     String errMsg = Files.exists(errTxt)
                             ? Files.readString(errTxt)
                             : "Runtime message, but err.txt missing";
-                    return Result.failure(BaseErrorCode.RUNTIME_ERROR, errMsg.substring(0, Math.min(1000, errMsg.length())));
+                    return Result.failure(BaseErrorCode.RUNTIME_ERROR, new TestCaseVO(null, errMsg.substring(0, Math.min(1000, errMsg.length()))));
                 }
                 case 4: { // 超时
-                    System.out.println("[ExecuteHandler] Runtime timeout (exit 4) from script.");
+                    Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Runtime timeout from script.");
                     String errMsg = "Execution exceeded time limit";
-                    return Result.failure(BaseErrorCode.OUT_OF_TIME, errMsg);
+                    return Result.failure(BaseErrorCode.OUT_OF_TIME, new TestCaseVO(null, errMsg));
                 }
                 case 5: { // 脚本内部的异常
-                    return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                    Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Container ErrorCode 5: " + containerName);
+                    return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
                 }
                 default: {
-                    return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                    Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Container ErrorCode != 5: " + containerName);
+                    return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
                 }
             }
         } catch (ClassCastException cce) {
-            cce.printStackTrace();
-            Logger.log(Type.CLIENT, LogLevel.ERROR, cce.getMessage());
-            return Result.failure(RunErrorCode.VALIDATE_ERROR, "Invalid data type in config.yaml for language '" + language + "'. Check your configuration.");
+            Logger.log(Type.SERVER, LogLevel.ERROR, cce.getMessage());
+            return Result.failure(RunErrorCode.VALIDATE_ERROR, new TestCaseVO(null, "Invalid data type in config.yaml for language '" + testCaseDTO.getLanguage() + "'. Check your configuration."));
         } catch (Exception e) {
-            e.printStackTrace();
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         } finally {
-//            forceCleanup(boxid);
+            forceCleanup(boxid);
         }
     }
 
     private void forceCleanup(int boxid) {
         Path pathToDelete = Path.of(RunPath.getBoxDir(boxid));
-        System.out.println("[ExecuteHandler] Final cleanup for boxid: " + boxid + ", path: " + pathToDelete);
         try {
             if (Files.exists(pathToDelete)) {
                 try (Stream<Path> walk = Files.walk(pathToDelete)) {
@@ -198,9 +200,9 @@ public class ExecuteHandler implements Handler {
                             .forEach(File::delete);
                 }
             }
-            System.out.println("[ExecuteHandler] Directory " + pathToDelete + " cleaned up successfully.");
+            Logger.log(Type.SERVER, LogLevel.INFO, "Cleanup boxid: " + boxid);
         } catch (IOException e) {
-            System.err.println("[ExecuteHandler] Failed to force cleanup for boxid " + boxid + ": " + e.getMessage());
+            Logger.log(Type.SERVER, LogLevel.ERROR, "Failed to force cleanup for boxid " + boxid + ": " + e.getMessage());
         }
     }
 }
