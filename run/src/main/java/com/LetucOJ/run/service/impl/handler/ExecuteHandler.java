@@ -47,7 +47,7 @@ public class ExecuteHandler implements Handler {
 
         String containerName = "box-" + testCaseDTO.getLanguage() + "-" + boxid + "-" + System.currentTimeMillis(); // 本次测试使用的沙盒名
         String imageName = "run_" + RunPath.getSuffix(testCaseDTO.getLanguage()); // 本次测试使用的镜像名
-        String numTestCases = String.valueOf(testCaseDTO.getCaseFiles().size()); // 本次测试的测试用例数量
+        String numTestCases = String.valueOf(testCaseDTO.getCaseFiles().size() - 1); // 本次测试的测试用例数量
 
         try {
 
@@ -186,7 +186,7 @@ public class ExecuteHandler implements Handler {
             Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         } finally {
-            forceCleanup(boxid);
+//            forceCleanup(boxid);
         }
     }
 

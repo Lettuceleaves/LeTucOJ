@@ -1,47 +1,24 @@
-# -------------- 基础：官方已瘦身 JRE --------------
-FROM openjdk:17-slim
+# 使用官方OpenJDK镜像，更稳定可靠
+FROM eclipse-temurin:17-jre-alpine
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-# 使用腾讯云镜像源：
-RUN set -eux; \
-    # 替换为腾讯云镜像
-    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
-      [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
-    done; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends ca-certificates; \
-    update-ca-certificates; \
-    # 切回 https 源
-    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
-      [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
-    done; \
-    apt-get update; \
-    # 安装 docker-cli 和 mysql 客户端
-    apt-get install -y --no-install-recommends docker.io default-mysql-client; \
-    # 清理不必要的文件，减小镜像体积
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
-
-# 创建非 root 用户，提升安全性
-RUN set -eux; \
-    groupadd -r app && useradd -r -g app app; \
-    mkdir -p /app && chown -R app:app /app
-
+# 设置工作目录
 WORKDIR /app
 
-# 将 sys.jar 复制到容器中
+# 复制jar文件到容器
 COPY sys.jar /app/
 
-# 设置正确的权限，确保脚本可执行
-RUN chmod 0644 /app/sys.jar
+# 创建非root用户并设置权限
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
+    chown -R appuser:appgroup /app
 
-# 以非 root 用户运行容器
-USER app
+# 切换到非root用户
+USER appuser
 
+# 设置Java运行参数
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
 
+# 暴露端口
 EXPOSE 2121
 
-# 启动时执行 Java 程序
+# 启动命令
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/sys.jar"]

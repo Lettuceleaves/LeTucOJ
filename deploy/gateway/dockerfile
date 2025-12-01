@@ -1,41 +1,24 @@
-FROM debian:bookworm-slim
+# 使用官方OpenJDK镜像，更稳定可靠
+FROM eclipse-temurin:17-jre-alpine
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-# 使用腾讯云 APT 镜像：
-# 1) 先把 deb/ security 的域名替换为 http://mirrors.cloud.tencent.com（避免 slim 镜像在没有 CA 时 https 失败）
-# 2) apt-get update -> 安装 ca-certificates -> 切回 https -> 再 apt-get update -> 安装 openjdk-17
-RUN set -eux; \
-    for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
-      [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
-    done; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends ca-certificates; \
-    update-ca-certificates; \
-    # 安装完 CA 后切回 https
-    for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
-      [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
-    done; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends openjdk-17-jre-headless; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
-
+# 设置工作目录
 WORKDIR /app
+
+# 复制jar文件到容器
 COPY gateway.jar /app/
 
-# JAR 不需要执行位，设置为 0644 更合适
-RUN chmod 0644 /app/gateway.jar
+# 创建非root用户并设置权限
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
+    chown -R appuser:appgroup /app
 
-# 推荐使用非 root 用户运行，提高安全性
-RUN set -eux; \
-    groupadd -r app && useradd -r -g app app; \
-    chown -R app:app /app
+# 切换到非root用户
+USER appuser
 
-USER app
-
+# 设置Java运行参数
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
 
+# 暴露端口
 EXPOSE 7777
 
+# 启动命令
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/gateway.jar"]
