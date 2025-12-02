@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CasePairDTO {
+public class Case {
     private String name;
     private String input;
     private String output;

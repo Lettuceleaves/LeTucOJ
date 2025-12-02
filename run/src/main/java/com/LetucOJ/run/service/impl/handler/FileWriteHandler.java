@@ -7,8 +7,8 @@ import com.LetucOJ.common.oss.MinioRepos;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
-import com.LetucOJ.run.model.TestCaseDTO;
-import com.LetucOJ.run.model.TestCaseVO;
+import com.LetucOJ.run.model.TestTaskDTO;
+import com.LetucOJ.run.model.TestTaskVO;
 import com.LetucOJ.run.service.Handler;
 import com.LetucOJ.run.tool.RunPath;
 import lombok.Data;
@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.*;
-import java.util.List;
 
 @Data
 @Service
@@ -35,14 +34,14 @@ public class FileWriteHandler implements Handler {
     }
 
     @Override
-    public ResultVO<TestCaseVO> handle(TestCaseDTO testCaseDTO, int boxid, byte[] config) {
+    public ResultVO<TestTaskVO> handle(TestTaskDTO testTaskDTO, int boxid, byte[] config) {
         try {
             Path boxDir = Paths.get(RunPath.getBoxDir(boxid));
             Files.createDirectories(boxDir);
 
-            Path codePath = Paths.get(RunPath.userCodePath(boxid, testCaseDTO.getLanguage()));
+            Path codePath = Paths.get(RunPath.userCodePath(boxid, testTaskDTO.getLanguage()));
             Files.write(codePath,
-                    testCaseDTO.getUserCode().getBytes(),
+                    testTaskDTO.getUserCode().getBytes(),
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING);
 
@@ -52,10 +51,10 @@ public class FileWriteHandler implements Handler {
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING);
 
-            for (int i = 0; i < testCaseDTO.getCaseFiles().size(); i++) {
+            for (int i = 0; i < testTaskDTO.getCaseFiles().size(); i++) {
                 Path inputPath = Paths.get(RunPath.getInputPath(boxid, i));
                 Files.write(inputPath,
-                        testCaseDTO.getCaseFiles().get(i).getBytes(),
+                        testTaskDTO.getCaseFiles().get(i).getBytes(),
                         StandardOpenOption.CREATE,
                         StandardOpenOption.TRUNCATE_EXISTING);
 
@@ -85,6 +84,6 @@ public class FileWriteHandler implements Handler {
             Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
-        return nextHandler.handle(testCaseDTO, boxid, config);
+        return nextHandler.handle(testTaskDTO, boxid, config);
     }
 }

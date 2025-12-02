@@ -1,9 +1,8 @@
 package com.LetucOJ.practice.controller;
 
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.practice.model.ListServiceDTO;
+import com.LetucOJ.practice.model.DTO.ListConditionDTO;
 import com.LetucOJ.practice.service.DBService;
-import com.LetucOJ.practice.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,25 +17,25 @@ public class ListController {
     private DBService dbService;
 
     @GetMapping("/list")
-    public ResultVO getList(@ModelAttribute ListServiceDTO sql, @RequestParam("pname") String pname) {
+    public ResultVO getList(@ModelAttribute ListConditionDTO sql, @RequestParam("pname") String pname) {
         sql.setLike(recursiveDecode(sql.getLike()));
         return dbService.getList(sql, pname);
     }
 
     @GetMapping("/listRoot")
-    public ResultVO getListInRoot(@ModelAttribute ListServiceDTO sql, @RequestParam("pname") String pname) {
+    public ResultVO getListInRoot(@ModelAttribute ListConditionDTO sql, @RequestParam("pname") String pname) {
         sql.setLike(recursiveDecode(sql.getLike()));
         return dbService.getListInRoot(sql, pname);
     }
 
     @GetMapping("/searchList")
-    public ResultVO searchList(@ModelAttribute ListServiceDTO sql, @RequestParam("pname") String pname) {
+    public ResultVO searchList(@ModelAttribute ListConditionDTO sql, @RequestParam("pname") String pname) {
         sql.setLike(recursiveDecode(sql.getLike()));
         return dbService.searchList(sql, pname);
     }
 
     @GetMapping("/searchListInRoot")
-    public ResultVO searchListInRoot(@ModelAttribute ListServiceDTO sql, @RequestParam("pname") String pname) {
+    public ResultVO searchListInRoot(@ModelAttribute ListConditionDTO sql, @RequestParam("pname") String pname) {
         sql.setLike(recursiveDecode(sql.getLike()));
         return dbService.searchListInRoot(sql, pname);
     }

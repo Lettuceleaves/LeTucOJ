@@ -1,4 +1,4 @@
-package com.LetucOJ.run.model;
+package com.LetucOJ.practice.model.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class TestCaseDTO {
+public class TestTaskDTO {
     private String userCode;
     private List<String> caseFiles;
     private String language;

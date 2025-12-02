@@ -1,9 +1,8 @@
 package com.LetucOJ.practice.controller;
 
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.practice.model.CaseInputDTO;
-import com.LetucOJ.practice.model.CasePairDTO;
-import com.LetucOJ.practice.model.FullInfoDTO;
+import com.LetucOJ.practice.model.Case;
+import com.LetucOJ.practice.model.Problem;
 import com.LetucOJ.practice.service.DBService;
 import com.LetucOJ.practice.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +29,12 @@ public class ProblemController {
     }
 
     @PostMapping("/fullRoot/insert")
-    public ResultVO insertProblem(@RequestBody FullInfoDTO dto) throws Exception {
+    public ResultVO insertProblem(@RequestBody Problem dto) throws Exception {
         return dbService.insertProblem(dto);
     }
 
     @PutMapping("/fullRoot/update")
-    public ResultVO updateProblem(@RequestBody FullInfoDTO dto) throws Exception {
+    public ResultVO updateProblem(@RequestBody Problem dto) throws Exception {
         return dbService.updateProblem(dto);
     }
 
@@ -60,8 +59,8 @@ public class ProblemController {
     }
 
     @PostMapping("/submitCase")
-    public ResultVO submitCase(@RequestBody CasePairDTO casePairDTO) {
-        return dbService.submitCase(casePairDTO);
+    public ResultVO submitCase(@RequestBody Case aCase) {
+        return dbService.submitCase(aCase);
     }
 
 }

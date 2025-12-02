@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ListDTO {
-    private String name;
-    private String cnname;
-    private String tags;
-    private int difficulty;
-    private int accepted;
+public class ProblemStatus {
+    boolean publicProblem;
+    boolean showsolution;
+    int caseAmount;
+    int correct;
 }

@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CaseInputDTO {
+public class ProblemBrief {
     private String name;
-    private String code;
-    private String input;
+    private String cnname;
+    private String tags;
+    private int difficulty;
+    private int accepted;
 }

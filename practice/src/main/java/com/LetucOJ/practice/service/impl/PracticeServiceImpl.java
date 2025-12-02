@@ -6,7 +6,7 @@ import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.PracticeErrorCode;
 import com.LetucOJ.practice.client.RunClient;
-import com.LetucOJ.practice.model.*;
+import com.LetucOJ.practice.model.ProblemStatus;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ public class PracticeServiceImpl implements PracticeService {
             List<String> inputs = new ArrayList<>();
             inputs.add(code);
 
-            ProblemStatusDTO problemStatus = mybatisRepos.getStatus(qname);
+            ProblemStatus problemStatus = mybatisRepos.getStatus(qname);
 
             if (problemStatus == null) {
                 return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);

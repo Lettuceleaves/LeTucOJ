@@ -1,11 +1,9 @@
 package com.LetucOJ.run.service;
 
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.run.model.TestCaseDTO;
-import com.LetucOJ.run.model.TestCaseVO;
-
-import java.util.List;
+import com.LetucOJ.run.model.TestTaskDTO;
+import com.LetucOJ.run.model.TestTaskVO;
 
 public interface RunService {
-     ResultVO<TestCaseVO> run(TestCaseDTO testCaseDTO);
+     ResultVO<TestTaskVO> run(TestTaskDTO testTaskDTO);
 }

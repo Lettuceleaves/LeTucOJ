@@ -6,7 +6,11 @@ import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.PracticeErrorCode;
 import com.LetucOJ.practice.client.RunClient;
-import com.LetucOJ.practice.model.*;
+import com.LetucOJ.practice.model.Case;
+import com.LetucOJ.practice.model.DTO.*;
+import com.LetucOJ.practice.model.Problem;
+import com.LetucOJ.practice.model.ProblemBrief;
+import com.LetucOJ.practice.model.ProblemStatus;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.DBService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +32,7 @@ public class DBServiceImpl implements DBService {
     @Autowired
     private RunClient runClient;
 
-    public ResultVO getList(ListServiceDTO dto, String name) {
+    public ResultVO getList(ListConditionDTO dto, String name) {
 
         try {
 
@@ -37,7 +41,7 @@ public class DBServiceImpl implements DBService {
             }
 
             Integer amount = mybatisRepos.getAmount(dto);
-            List<ListDTO> list = mybatisRepos.getList(dto);
+            List<ProblemBrief> list = mybatisRepos.getList(dto);
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
@@ -46,7 +50,7 @@ public class DBServiceImpl implements DBService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
 
-            for (ListDTO item : list) {
+            for (ProblemBrief item : list) {
                 if (acceptedSet.contains(item.getName())) {
                     item.setAccepted(1);
                 }
@@ -61,7 +65,7 @@ public class DBServiceImpl implements DBService {
         }
     }
 
-    public ResultVO getListInRoot(ListServiceDTO dto, String name) {
+    public ResultVO getListInRoot(ListConditionDTO dto, String name) {
 
         try {
 
@@ -70,7 +74,7 @@ public class DBServiceImpl implements DBService {
             }
 
             Integer amount = mybatisRepos.getAmountInRoot(dto);
-            List<ListDTO> list = mybatisRepos.getListInRoot(dto);
+            List<ProblemBrief> list = mybatisRepos.getListInRoot(dto);
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
@@ -79,7 +83,7 @@ public class DBServiceImpl implements DBService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
 
-            for (ListDTO item : list) {
+            for (ProblemBrief item : list) {
                 if (acceptedSet.contains(item.getName())) {
                     item.setAccepted(1);
                 }
@@ -96,7 +100,7 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
-    public ResultVO searchList(ListServiceDTO dto, String name) {
+    public ResultVO searchList(ListConditionDTO dto, String name) {
         try {
             if (dto.getStart() == null || dto.getLimit() == null) {
                 return Result.failure(BaseErrorCode.CLIENT_ERROR);
@@ -111,7 +115,7 @@ public class DBServiceImpl implements DBService {
             }
 
             Integer amount = mybatisRepos.getSearchAmount(dto);
-            List<ListDTO> list = mybatisRepos.searchList(dto);
+            List<ProblemBrief> list = mybatisRepos.searchList(dto);
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
@@ -120,7 +124,7 @@ public class DBServiceImpl implements DBService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
 
-            for (ListDTO item : list) {
+            for (ProblemBrief item : list) {
                 if (acceptedSet.contains(item.getName())) {
                     item.setAccepted(1);
                 }
@@ -137,7 +141,7 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
-    public ResultVO searchListInRoot(ListServiceDTO dto, String name) {
+    public ResultVO searchListInRoot(ListConditionDTO dto, String name) {
         try {
             if (dto.getStart() == null || dto.getLimit() == null) {
                 return Result.failure(BaseErrorCode.CLIENT_ERROR);
@@ -152,7 +156,7 @@ public class DBServiceImpl implements DBService {
             }
 
             Integer amount = mybatisRepos.getSearchAmountInRoot(dto);
-            List<ListDTO> list = mybatisRepos.searchListInRoot(dto);
+            List<ProblemBrief> list = mybatisRepos.searchListInRoot(dto);
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
@@ -161,7 +165,7 @@ public class DBServiceImpl implements DBService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
 
-            for (ListDTO item : list) {
+            for (ProblemBrief item : list) {
                 if (acceptedSet.contains(item.getName())) {
                     item.setAccepted(1);
                 }
@@ -181,7 +185,7 @@ public class DBServiceImpl implements DBService {
 
         try {
 
-            FullInfoDTO dbDto = mybatisRepos.getProblem(name);
+            Problem dbDto = mybatisRepos.getProblem(name);
 
             if (dbDto == null) {
                 return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
@@ -200,7 +204,7 @@ public class DBServiceImpl implements DBService {
 
         try {
 
-            FullInfoDTO dbDto = mybatisRepos.getProblemInRoot(name);
+            Problem dbDto = mybatisRepos.getProblemInRoot(name);
 
             if (dbDto == null) {
                 return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
@@ -211,7 +215,7 @@ public class DBServiceImpl implements DBService {
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
-    public ResultVO insertProblem(FullInfoDTO dto) {
+    public ResultVO insertProblem(Problem dto) {
         dto.setCreatetime(new Date(System.currentTimeMillis()));
 
         try {
@@ -226,7 +230,7 @@ public class DBServiceImpl implements DBService {
         }
     }
 
-    public ResultVO updateProblem(FullInfoDTO dto) {
+    public ResultVO updateProblem(Problem dto) {
         try {
             Integer rows = mybatisRepos.updateProblem(dto);
 
@@ -251,7 +255,7 @@ public class DBServiceImpl implements DBService {
         if (input == null || code == null || name == null) {
             return Result.failure(BaseErrorCode.CLIENT_ERROR);
         }
-        FullInfoDTO exist = mybatisRepos.getProblem(name);
+        Problem exist = mybatisRepos.getProblem(name);
         if (exist == null) {
             return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
         }
@@ -262,11 +266,11 @@ public class DBServiceImpl implements DBService {
     }
 
     @Transactional
-    public ResultVO submitCase(CasePairDTO casePairDTO) {
-        String name = casePairDTO.getName();
-        String input = casePairDTO.getInput();
-        String output = casePairDTO.getOutput();
-        byte[] config = casePairDTO.getConfig();
+    public ResultVO submitCase(Case aCase) {
+        String name = aCase.getName();
+        String input = aCase.getInput();
+        String output = aCase.getOutput();
+        byte[] config = aCase.getConfig();
         try {
             if (input == null || output == null || config == null) {
                 return Result.failure(BaseErrorCode.CLIENT_ERROR);
@@ -275,7 +279,7 @@ public class DBServiceImpl implements DBService {
             if (result == null || result <= 0) {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
-            ProblemStatusDTO problemStatus = mybatisRepos.getStatus(name);
+            ProblemStatus problemStatus = mybatisRepos.getStatus(name);
             if (problemStatus == null) {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }

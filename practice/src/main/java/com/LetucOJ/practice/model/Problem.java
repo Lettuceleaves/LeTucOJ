@@ -11,7 +11,7 @@ import java.sql.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FullInfoDTO {
+public class Problem {
     private String name;
     private String cnname;
     private Integer caseAmount;

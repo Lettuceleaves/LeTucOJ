@@ -2,7 +2,7 @@ package com.LetucOJ.practice.repos;
 
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.oss.MinioRepos;
-import com.LetucOJ.practice.model.RecordDTO;
+import com.LetucOJ.practice.model.DTO.RecordDTO;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import jakarta.annotation.Resource;

@@ -1,7 +1,10 @@
 package com.LetucOJ.practice.repos;
 
 import com.LetucOJ.common.anno.LanguageConfigDO;
-import com.LetucOJ.practice.model.*;
+import com.LetucOJ.practice.model.DTO.*;
+import com.LetucOJ.practice.model.Problem;
+import com.LetucOJ.practice.model.ProblemBrief;
+import com.LetucOJ.practice.model.ProblemStatus;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -14,50 +17,50 @@ import java.util.Set;
 public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
 
     @Select("SELECT public > 0 AS publicProblem, showsolution > 0 AS showSolution, caseAmount FROM problem WHERE name = #{name}")
-    ProblemStatusDTO getStatus(String name);
+    ProblemStatus getStatus(String name);
 
     @Update("UPDATE problem SET caseAmount = caseAmount + 1 WHERE name = #{name}")
     Integer incrementCaseAmount(String name);
 
     @Select("SELECT name, cnname, tags, difficulty, 0 AS accepted  FROM problem WHERE public = 1 ORDER BY ${order} LIMIT #{start}, #{limit}")
-    List<ListDTO> getList(ListServiceDTO listServiceDTO);
+    List<ProblemBrief> getList(ListConditionDTO listConditionDTO);
 
     @Select("SELECT COUNT(*) FROM problem WHERE public = 1")
-    Integer getAmount(ListServiceDTO listServiceDTO);
+    Integer getAmount(ListConditionDTO listConditionDTO);
 
     @Select("SELECT name, cnname, tags, difficulty, 0 AS accepted FROM problem WHERE public = 1 AND (cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%')) ORDER BY ${order} LIMIT #{start}, #{limit}")
-    List<ListDTO> searchList(ListServiceDTO listServiceDTO);
+    List<ProblemBrief> searchList(ListConditionDTO listConditionDTO);
 
     @Select("SELECT COUNT(*) FROM problem WHERE public = 1 AND (cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%'))")
-    Integer getSearchAmount(ListServiceDTO listServiceDTO);
+    Integer getSearchAmount(ListConditionDTO listConditionDTO);
 
     @Select("SELECT name, cnname, tags, difficulty, 0 AS accepted FROM problem ORDER BY ${order} LIMIT #{start}, #{limit}")
-    List<ListDTO> getListInRoot(ListServiceDTO listServiceDTO);
+    List<ProblemBrief> getListInRoot(ListConditionDTO listConditionDTO);
 
     @Select("SELECT COUNT(*) FROM problem")
-    Integer getAmountInRoot(ListServiceDTO listServiceDTO);
+    Integer getAmountInRoot(ListConditionDTO listConditionDTO);
 
     @Select("SELECT name, cnname, tags, difficulty, 0 AS accepted FROM problem WHERE cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%') ORDER BY ${order} LIMIT #{start}, #{limit}")
-    List<ListDTO> searchListInRoot(ListServiceDTO listServiceDTO);
+    List<ProblemBrief> searchListInRoot(ListConditionDTO listConditionDTO);
 
     @Select("SELECT COUNT(*) FROM problem WHERE cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%')")
-    Integer getSearchAmountInRoot(ListServiceDTO listServiceDTO);
+    Integer getSearchAmountInRoot(ListConditionDTO listConditionDTO);
 
     @Select("SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public > 0 AS publicProblem, solution, showsolution " +
             "FROM problem " +
             "WHERE name = #{name} AND public = 1")
-    FullInfoDTO getProblem(String name);
+    Problem getProblem(String name);
 
     @Select("SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public > 0 AS publicProblem, solution, showsolution " +
             "FROM problem " +
             "WHERE name = #{name}")
-    FullInfoDTO getProblemInRoot(String name);
+    Problem getProblemInRoot(String name);
 
     @Insert("INSERT INTO problem (name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public, solution, showsolution) VALUES (#{name}, #{cnname}, #{caseAmount}, #{difficulty}, #{tags}, #{authors}, #{createtime}, #{updateat}, #{content}, #{freq}, #{publicProblem}, #{solution}, #{showsolution})")
-    Integer insertProblem(FullInfoDTO fullInfoDTO);
+    Integer insertProblem(Problem problem);
 
     @Update("UPDATE problem SET cnname = #{cnname}, caseAmount = #{caseAmount}, difficulty = #{difficulty}, tags = #{tags}, authors = #{authors}, updateat = #{updateat}, content = #{content}, freq = #{freq}, public = #{publicProblem}, solution = #{solution}, showsolution = #{showsolution} WHERE name = #{name}")
-    Integer updateProblem(FullInfoDTO fullInfoDTO);
+    Integer updateProblem(Problem problem);
 
     @Delete("DELETE FROM problem WHERE name = #{name}")
     Integer deleteProblem(String name);

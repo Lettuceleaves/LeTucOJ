@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class TestCaseVO {
+public class TestTaskVO {
     List<String> answer;
     String msg;
 }

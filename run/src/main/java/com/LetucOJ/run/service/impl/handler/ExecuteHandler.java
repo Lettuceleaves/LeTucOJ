@@ -7,8 +7,8 @@ import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.RunErrorCode;
-import com.LetucOJ.run.model.TestCaseDTO;
-import com.LetucOJ.run.model.TestCaseVO;
+import com.LetucOJ.run.model.TestTaskDTO;
+import com.LetucOJ.run.model.TestTaskVO;
 import com.LetucOJ.run.service.Handler;
 import com.LetucOJ.run.tool.RunPath;
 import lombok.Data;
@@ -43,11 +43,11 @@ public class ExecuteHandler implements Handler {
     }
 
     @Override
-    public ResultVO<TestCaseVO> handle(TestCaseDTO testCaseDTO, int boxid, byte[] config) {
+    public ResultVO<TestTaskVO> handle(TestTaskDTO testTaskDTO, int boxid, byte[] config) {
 
-        String containerName = "box-" + testCaseDTO.getLanguage() + "-" + boxid + "-" + System.currentTimeMillis(); // 本次测试使用的沙盒名
-        String imageName = "run_" + RunPath.getSuffix(testCaseDTO.getLanguage()); // 本次测试使用的镜像名
-        String numTestCases = String.valueOf(testCaseDTO.getCaseFiles().size() - 1); // 本次测试的测试用例数量
+        String containerName = "box-" + testTaskDTO.getLanguage() + "-" + boxid + "-" + System.currentTimeMillis(); // 本次测试使用的沙盒名
+        String imageName = "run_" + RunPath.getSuffix(testTaskDTO.getLanguage()); // 本次测试使用的镜像名
+        String numTestCases = String.valueOf(testTaskDTO.getCaseFiles().size() - 1); // 本次测试的测试用例数量
 
         try {
 
@@ -57,17 +57,17 @@ public class ExecuteHandler implements Handler {
 
             // 语言专属的默认配置
             Map<String, Object> languageDefaults = (Map<String, Object>) configMap.get("language_defaults");
-            if (languageDefaults == null || !languageDefaults.containsKey(testCaseDTO.getLanguage())) {
-                Logger.log(Type.CLIENT, LogLevel.ERROR, "Language defaults missing or language not found: " + testCaseDTO.getLanguage() + "language_defaults");
+            if (languageDefaults == null || !languageDefaults.containsKey(testTaskDTO.getLanguage())) {
+                Logger.log(Type.CLIENT, LogLevel.ERROR, "Language defaults missing or language not found: " + testTaskDTO.getLanguage() + "language_defaults");
                 return Result.failure(RunErrorCode.VALIDATE_ERROR, null);
             }
 
-            Map<String, Object> langConfig = (Map<String, Object>) languageDefaults.get(testCaseDTO.getLanguage());
+            Map<String, Object> langConfig = (Map<String, Object>) languageDefaults.get(testTaskDTO.getLanguage());
 
             // 资源限制
             Integer memoryLimitMb = (Integer) langConfig.get("memory_limit_mb");
             if (memoryLimitMb == null) {
-                Logger.log(Type.CLIENT, LogLevel.ERROR, "Language defaults missing or language not found: " + testCaseDTO.getLanguage() + " memory_limit_mb");
+                Logger.log(Type.CLIENT, LogLevel.ERROR, "Language defaults missing or language not found: " + testTaskDTO.getLanguage() + " memory_limit_mb");
                 return Result.failure(RunErrorCode.VALIDATE_ERROR, null);
             }
 
@@ -88,7 +88,7 @@ public class ExecuteHandler implements Handler {
                     "-v", HOST_DIR + "/" + boxid + ":" + CONTAINER_PATH,
                     imageName,
                     numTestCases,
-                    testCaseDTO.getLanguage()
+                    testTaskDTO.getLanguage()
             );
 
 
@@ -145,7 +145,7 @@ public class ExecuteHandler implements Handler {
                             ? Files.readString(errTxt)
                             : "Runtime message, but err.txt missing";
                     Logger.log(Type.EXTERNAL, LogLevel.INFO, "Memory top point: " + errMsg);
-                    return Result.success(new TestCaseVO(results, null));
+                    return Result.success(new TestTaskVO(results, null));
                 }
                 case 1: { // 脚本内部的错误
                     return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
@@ -156,19 +156,19 @@ public class ExecuteHandler implements Handler {
                             ? Files.readString(compileErr)
                             : "Compilation message, but compile.txt missing";
                     Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Compilation error: " + errMsg);
-                    return Result.failure(BaseErrorCode.COMPILE_ERROR, new TestCaseVO(null, errMsg.substring(0, Math.min(1000, errMsg.length()))));
+                    return Result.failure(BaseErrorCode.COMPILE_ERROR, new TestTaskVO(null, errMsg.substring(0, Math.min(1000, errMsg.length()))));
                 }
                 case 3: { // 运行时错误
                     Path errTxt = Path.of(RunPath.getErrorPath(boxid));
                     String errMsg = Files.exists(errTxt)
                             ? Files.readString(errTxt)
                             : "Runtime message, but err.txt missing";
-                    return Result.failure(BaseErrorCode.RUNTIME_ERROR, new TestCaseVO(null, errMsg.substring(0, Math.min(1000, errMsg.length()))));
+                    return Result.failure(BaseErrorCode.RUNTIME_ERROR, new TestTaskVO(null, errMsg.substring(0, Math.min(1000, errMsg.length()))));
                 }
                 case 4: { // 超时
                     Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Runtime timeout from script.");
                     String errMsg = "Execution exceeded time limit";
-                    return Result.failure(BaseErrorCode.OUT_OF_TIME, new TestCaseVO(null, errMsg));
+                    return Result.failure(BaseErrorCode.OUT_OF_TIME, new TestTaskVO(null, errMsg));
                 }
                 case 5: { // 脚本内部的异常
                     Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Container ErrorCode 5: " + containerName);
@@ -181,7 +181,7 @@ public class ExecuteHandler implements Handler {
             }
         } catch (ClassCastException cce) {
             Logger.log(Type.SERVER, LogLevel.ERROR, cce.getMessage());
-            return Result.failure(RunErrorCode.VALIDATE_ERROR, new TestCaseVO(null, "Invalid data type in config.yaml for language '" + testCaseDTO.getLanguage() + "'. Check your configuration."));
+            return Result.failure(RunErrorCode.VALIDATE_ERROR, new TestTaskVO(null, "Invalid data type in config.yaml for language '" + testTaskDTO.getLanguage() + "'. Check your configuration."));
         } catch (Exception e) {
             Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
