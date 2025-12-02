@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SubmitRecord {
     private String userName;
-    private String cnname;
+    private String nickName;
     private String problemName;
     private String language;
     private String code;

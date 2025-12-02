@@ -49,13 +49,13 @@ public class ProblemController {
     }
 
     @GetMapping("/get_case")
-    public ResultVO<CaseFile> getCase(@RequestParam("qname") String qname, @RequestParam("id") Integer id) {
-        return dbService.getCase(qname, id);
+    public ResultVO<CaseFile> getCase(@RequestParam("problem_name") String problemName, @RequestParam("id") Integer id) {
+        return dbService.getCase(problemName, id);
     }
 
     @GetMapping("/configfile")
-    public ResultVO<byte[]> getConfigFile(@RequestParam("qname") String qname) {
-        return dbService.getConfigFile(qname);
+    public ResultVO<byte[]> getConfigFile(@RequestParam("problem_name") String problemName) {
+        return dbService.getConfigFile(problemName);
     }
 
     @PostMapping("/save_case")
