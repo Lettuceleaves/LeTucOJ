@@ -11,7 +11,7 @@ import com.LetucOJ.common.result.errorcode.PracticeErrorCode;
 import com.LetucOJ.practice.client.RunClient;
 import com.LetucOJ.practice.model.*;
 import com.LetucOJ.practice.model.DTO.*;
-import com.LetucOJ.practice.model.TestCaseDTO;
+import com.LetucOJ.practice.model.DTO.TestCaseDTO;
 import com.LetucOJ.practice.model.VO.ProblemListVO;
 import com.LetucOJ.practice.model.VO.SubmitRecordListVO;
 import com.LetucOJ.practice.model.VO.TestTaskVO;

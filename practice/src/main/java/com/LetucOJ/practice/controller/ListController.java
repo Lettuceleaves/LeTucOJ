@@ -2,11 +2,11 @@ package com.LetucOJ.practice.controller;
 
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.model.DTO.ListConditionDTO;
-import com.LetucOJ.practice.model.DTO.SubmitRecord;
 import com.LetucOJ.practice.model.VO.ProblemListVO;
 import com.LetucOJ.practice.model.VO.SubmitRecordListVO;
 import com.LetucOJ.practice.service.DBService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLDecoder;
@@ -14,9 +14,10 @@ import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/practice")
+@Data
+@AllArgsConstructor
 public class ListController {
 
-    @Autowired
     private DBService dbService;
 
     @GetMapping("/list")

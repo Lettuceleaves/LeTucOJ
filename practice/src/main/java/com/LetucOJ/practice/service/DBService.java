@@ -2,15 +2,12 @@ package com.LetucOJ.practice.service;
 
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.model.CaseFile;
-import com.LetucOJ.practice.model.DTO.SubmitRecord;
 import com.LetucOJ.practice.model.Problem;
 import com.LetucOJ.practice.model.DTO.ListConditionDTO;
-import com.LetucOJ.practice.model.TestCaseDTO;
+import com.LetucOJ.practice.model.DTO.TestCaseDTO;
 import com.LetucOJ.practice.model.VO.ProblemListVO;
 import com.LetucOJ.practice.model.VO.SubmitRecordListVO;
 import com.LetucOJ.practice.model.VO.TestTaskVO;
-
-import java.util.List;
 
 public interface DBService {
     ResultVO<ProblemListVO> getList(ListConditionDTO listConditionDTO, String user_name);

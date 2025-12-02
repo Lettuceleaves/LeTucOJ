@@ -1,4 +1,4 @@
-package com.LetucOJ.practice.model;
+package com.LetucOJ.practice.model.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

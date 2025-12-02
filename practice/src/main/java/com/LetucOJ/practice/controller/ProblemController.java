@@ -2,22 +2,20 @@ package com.LetucOJ.practice.controller;
 
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.model.CaseFile;
-import com.LetucOJ.practice.model.TestCaseDTO;
+import com.LetucOJ.practice.model.DTO.TestCaseDTO;
 import com.LetucOJ.practice.model.Problem;
 import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.service.DBService;
-import com.LetucOJ.practice.service.PracticeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/practice")
+@Data
+@AllArgsConstructor
 public class ProblemController {
 
-    @Autowired
-    private PracticeService practiceService;
-
-    @Autowired
     private DBService dbService;
 
     @GetMapping("/problem")

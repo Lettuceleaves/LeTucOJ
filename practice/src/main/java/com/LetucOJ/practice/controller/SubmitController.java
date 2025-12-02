@@ -5,21 +5,24 @@ import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.model.DTO.SubmitRecord;
+import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.PracticeService;
 import com.alibaba.fastjson.JSON;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/practice")
+@Data
+@AllArgsConstructor
 public class SubmitController {
 
-    @Autowired
     private PracticeService practiceService;
 
-    @Autowired
     private MybatisRepos mybatisRepos;
 
     @Resource
@@ -27,60 +30,45 @@ public class SubmitController {
 
     @PostMapping("/submit")
     @SubmitLimit
-    public ResultVO<String> submit(
-            @RequestParam("lang") String lang,
-            @RequestParam("pname") String pname,
-            @RequestParam("qname") String qname,
-            @RequestParam("cnname") String cnname,
+    public ResultVO<TestTaskVO> submit(
+            @RequestParam("language") String language,
+            @RequestParam("user_name") String userName,
+            @RequestParam("problem_name") String problemName,
+            @RequestParam("nick_name") String nickName,
             @RequestBody String code) throws Exception {
-        ResultVO<String> result = practiceService.submit(pname, qname, code, lang, false);
+        ResultVO<TestTaskVO> result = practiceService.submit(userName, problemName, code, language, false);
 
-        try {
-            SubmitRecord record = new SubmitRecord(
-                    pname,
-                    cnname,
-                    qname,
-                    lang,
-                    code,
-                    result.getCode() + " $ " + result.getData(),
-                    0L,
-                    0L,
-                    System.currentTimeMillis()
-            );
-
-            Message message = Message.builder()
-                    .topic("submission")
-                    .tag("submission")
-                    .key(pname)
-                    .body(JSON.toJSONString(record))
-                    .build();
-
-            mqProducer.send(message);
-
-        } catch (Exception ignored) {
-        }
-
-        return result;
+        return saveSubmitRecord(language, userName, problemName, nickName, code, result);
     }
 
     @PostMapping("/submitInRoot")
     @SubmitLimit
-    public ResultVO<String> submitInRoot(
-            @RequestParam("lang") String lang,
-            @RequestParam("pname") String pname,
-            @RequestParam("qname") String qname,
-            @RequestParam("cnname") String cnname,
-            @RequestBody String code) throws Exception {
+    public ResultVO<TestTaskVO> submitInRoot(
+            @RequestParam("language") String language,
+            @RequestParam("user_name") String userName,
+            @RequestParam("problem_name") String problemName,
+            @RequestParam("nick_name") String nickName,
+            @RequestBody String userCode) throws Exception {
 
-        ResultVO<String> result = practiceService.submit(pname, qname, code, lang, true);
+        ResultVO<TestTaskVO> result = practiceService.submit(userName, problemName, userCode, language, true);
 
+        return saveSubmitRecord(language, userName, problemName, nickName, userCode, result);
+    }
+
+    @Nullable
+    private ResultVO<TestTaskVO> saveSubmitRecord(String language,
+                                                  String userName,
+                                                  String problemName,
+                                                  String nickName,
+                                                  String userCode,
+                                                  ResultVO<TestTaskVO> result) {
         try {
             SubmitRecord record = new SubmitRecord(
-                    pname,
-                    cnname,
-                    qname,
-                    lang,
-                    code,
+                    userName,
+                    nickName,
+                    problemName,
+                    language,
+                    userCode,
                     result.getCode() + " $ " + result.getData(),
                     0L,
                     0L,
@@ -90,7 +78,7 @@ public class SubmitController {
             Message message = Message.builder()
                     .topic("submission")
                     .tag("submission")
-                    .key(pname)
+                    .key(userName)
                     .body(JSON.toJSONString(record))
                     .build();
 
