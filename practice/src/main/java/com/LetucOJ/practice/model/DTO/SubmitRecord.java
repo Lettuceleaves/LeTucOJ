@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RecordDTO {
+public class SubmitRecord {
     private String userName;
     private String cnname;
     private String problemName;

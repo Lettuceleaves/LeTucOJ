@@ -4,7 +4,7 @@ import com.LetucOJ.common.anno.SubmitLimit;
 import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.practice.model.DTO.RecordDTO;
+import com.LetucOJ.practice.model.DTO.SubmitRecord;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.PracticeService;
 import com.alibaba.fastjson.JSON;
@@ -27,16 +27,16 @@ public class SubmitController {
 
     @PostMapping("/submit")
     @SubmitLimit
-    public ResultVO submit(
+    public ResultVO<String> submit(
             @RequestParam("lang") String lang,
             @RequestParam("pname") String pname,
             @RequestParam("qname") String qname,
             @RequestParam("cnname") String cnname,
             @RequestBody String code) throws Exception {
-        ResultVO result = practiceService.submit(pname, qname, code, lang, false);
+        ResultVO<String> result = practiceService.submit(pname, qname, code, lang, false);
 
         try {
-            RecordDTO record = new RecordDTO(
+            SubmitRecord record = new SubmitRecord(
                     pname,
                     cnname,
                     qname,
@@ -57,7 +57,7 @@ public class SubmitController {
 
             mqProducer.send(message);
 
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return result;
@@ -65,17 +65,17 @@ public class SubmitController {
 
     @PostMapping("/submitInRoot")
     @SubmitLimit
-    public ResultVO submitInRoot(
+    public ResultVO<String> submitInRoot(
             @RequestParam("lang") String lang,
             @RequestParam("pname") String pname,
             @RequestParam("qname") String qname,
             @RequestParam("cnname") String cnname,
             @RequestBody String code) throws Exception {
 
-        ResultVO result = practiceService.submit(pname, qname, code, lang, true);
+        ResultVO<String> result = practiceService.submit(pname, qname, code, lang, true);
 
         try {
-            RecordDTO record = new RecordDTO(
+            SubmitRecord record = new SubmitRecord(
                     pname,
                     cnname,
                     qname,
@@ -96,7 +96,7 @@ public class SubmitController {
 
             mqProducer.send(message);
 
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return result;
     }

@@ -1,19 +1,24 @@
 package com.LetucOJ.practice.service.impl;
 
+import com.LetucOJ.common.log.LogLevel;
+import com.LetucOJ.common.log.Logger;
+import com.LetucOJ.common.log.Type;
 import com.LetucOJ.common.oss.MinioRepos;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.PracticeErrorCode;
 import com.LetucOJ.practice.client.RunClient;
-import com.LetucOJ.practice.model.Case;
+import com.LetucOJ.practice.model.*;
 import com.LetucOJ.practice.model.DTO.*;
-import com.LetucOJ.practice.model.Problem;
-import com.LetucOJ.practice.model.ProblemBrief;
-import com.LetucOJ.practice.model.ProblemStatus;
+import com.LetucOJ.practice.model.TestCaseDTO;
+import com.LetucOJ.practice.model.VO.ProblemListVO;
+import com.LetucOJ.practice.model.VO.SubmitRecordListVO;
+import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.DBService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,33 +26,32 @@ import java.sql.Date;
 import java.util.*;
 
 @Service
+@Data
+@AllArgsConstructor
 public class DBServiceImpl implements DBService {
 
-    @Autowired
     private MybatisRepos mybatisRepos;
 
-    @Autowired
     private MinioRepos minioRepos;
 
-    @Autowired
     private RunClient runClient;
 
-    public ResultVO getList(ListConditionDTO dto, String name) {
+    public ResultVO<ProblemListVO> getList(ListConditionDTO listConditionDTO, String name) {
 
         try {
 
-            if (dto.getStart() == null || dto.getLimit() == null) {
-                return Result.failure(BaseErrorCode.CLIENT_ERROR);
+            if (listConditionDTO.getStart() == null || listConditionDTO.getLimit() == null) {
+                return Result.failure(BaseErrorCode.CLIENT_ERROR, null);
             }
 
-            Integer amount = mybatisRepos.getAmount(dto);
-            List<ProblemBrief> list = mybatisRepos.getList(dto);
+            Integer amount = mybatisRepos.getAmount(listConditionDTO);
+            List<ProblemBrief> list = mybatisRepos.getList(listConditionDTO);
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
             } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
 
             for (ProblemBrief item : list) {
@@ -56,21 +60,19 @@ public class DBServiceImpl implements DBService {
                 }
             }
 
-            return Result.success(Map.of(
-                "list",   list,
-                "amount", amount
-            ));
+            return Result.success(new ProblemListVO(list, amount));
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
-    public ResultVO getListInRoot(ListConditionDTO dto, String name) {
+    public ResultVO<ProblemListVO> getListInRoot(ListConditionDTO dto, String name) {
 
         try {
 
             if (dto.getStart() == null || dto.getLimit() == null) {
-                return Result.failure(BaseErrorCode.CLIENT_ERROR);
+                return Result.failure(BaseErrorCode.CLIENT_ERROR, null);
             }
 
             Integer amount = mybatisRepos.getAmountInRoot(dto);
@@ -78,9 +80,9 @@ public class DBServiceImpl implements DBService {
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
             } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
 
             for (ProblemBrief item : list) {
@@ -89,21 +91,18 @@ public class DBServiceImpl implements DBService {
                 }
             }
 
-            return Result.success(
-                    Map.of(
-                            "list",   list,
-                            "amount", amount
-                    ));
+            return Result.success(new ProblemListVO(list, amount));
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
     @Override
-    public ResultVO searchList(ListConditionDTO dto, String name) {
+    public ResultVO<ProblemListVO> searchList(ListConditionDTO dto, String name) {
         try {
             if (dto.getStart() == null || dto.getLimit() == null) {
-                return Result.failure(BaseErrorCode.CLIENT_ERROR);
+                return Result.failure(BaseErrorCode.CLIENT_ERROR, null);
             }
 
             if (dto.getOrder() == null || dto.getOrder().isEmpty()) {
@@ -119,9 +118,9 @@ public class DBServiceImpl implements DBService {
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
             } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
 
             for (ProblemBrief item : list) {
@@ -130,21 +129,18 @@ public class DBServiceImpl implements DBService {
                 }
             }
 
-            return Result.success(
-                    Map.of(
-                            "list",   list,
-                            "amount", amount
-                    ));
+            return Result.success(new ProblemListVO(list, amount));
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
     @Override
-    public ResultVO searchListInRoot(ListConditionDTO dto, String name) {
+    public ResultVO<ProblemListVO> searchListInRoot(ListConditionDTO dto, String name) {
         try {
             if (dto.getStart() == null || dto.getLimit() == null) {
-                return Result.failure(BaseErrorCode.CLIENT_ERROR);
+                return Result.failure(BaseErrorCode.CLIENT_ERROR, null);
             }
 
             if (dto.getOrder() == null || dto.getOrder().isEmpty()) {
@@ -160,9 +156,9 @@ public class DBServiceImpl implements DBService {
             Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
 
             if (list == null || list.isEmpty()) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
             } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
 
             for (ProblemBrief item : list) {
@@ -171,24 +167,21 @@ public class DBServiceImpl implements DBService {
                 }
             }
 
-            return Result.success(
-                    Map.of(
-                            "list",   list,
-                            "amount", amount
-                    ));
+            return Result.success(new ProblemListVO(list, amount));
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
-    public ResultVO getProblem(String name) {
+    public ResultVO<Problem> getProblem(String name) {
 
         try {
 
             Problem dbDto = mybatisRepos.getProblem(name);
 
             if (dbDto == null) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
             } else if (dbDto.getShowsolution() == true) {
                 return Result.success(dbDto);
             } else {
@@ -196,26 +189,28 @@ public class DBServiceImpl implements DBService {
                 return Result.success(dbDto);
             }
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
-    public ResultVO getProblemInRoot(String name) {
+    public ResultVO<Problem> getProblemInRoot(String name) {
 
         try {
 
             Problem dbDto = mybatisRepos.getProblemInRoot(name);
 
             if (dbDto == null) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
             } else {
                 return Result.success(dbDto);
             }
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
-    public ResultVO insertProblem(Problem dto) {
+    public ResultVO<Void> insertProblem(Problem dto) {
         dto.setCreatetime(new Date(System.currentTimeMillis()));
 
         try {
@@ -226,11 +221,12 @@ public class DBServiceImpl implements DBService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
         } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
-    public ResultVO updateProblem(Problem dto) {
+    public ResultVO<Void> updateProblem(Problem dto) {
         try {
             Integer rows = mybatisRepos.updateProblem(dto);
 
@@ -240,39 +236,38 @@ public class DBServiceImpl implements DBService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
         } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
-    public ResultVO deleteProblem(String name) {
+    public ResultVO<Void> deleteProblem(String name) {
         return Result.failure(BaseErrorCode.SERVICE_ERROR);
     }
 
-    public ResultVO getCase(CaseInputDTO caseInputDTO) {
-        String input = caseInputDTO.getInput();
-        String code = caseInputDTO.getCode();
-        String name = caseInputDTO.getName();
-        if (input == null || code == null || name == null) {
-            return Result.failure(BaseErrorCode.CLIENT_ERROR);
+    public ResultVO<TestTaskVO> testCase(TestCaseDTO testCaseDTO, String language) {
+        String input = testCaseDTO.getInput();
+        String code = testCaseDTO.getCode();
+        String questionName = testCaseDTO.getQuestionName();
+        if (input == null || code == null || questionName == null) {
+            return Result.failure(BaseErrorCode.CLIENT_ERROR, null);
         }
-        Problem exist = mybatisRepos.getProblem(name);
+        Problem exist = mybatisRepos.getProblem(questionName);
         if (exist == null) {
-            return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
+            return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
         }
         List<String> inputs = new ArrayList<>();
-        inputs.add(code);
         inputs.add(input);
-        return runClient.run(inputs, "c", name);
+        return runClient.run(new TestTaskDTO(code, inputs, language, questionName));
     }
 
     @Transactional
-    public ResultVO submitCase(Case aCase) {
-        String name = aCase.getName();
-        String input = aCase.getInput();
-        String output = aCase.getOutput();
-        byte[] config = aCase.getConfig();
+    public ResultVO<Void> saveCase(CaseFile CaseFile) {
+        String name = CaseFile.getName();
+        String input = CaseFile.getInput();
+        String output = CaseFile.getOutput();
         try {
-            if (input == null || output == null || config == null) {
+            if (input == null || output == null) {
                 return Result.failure(BaseErrorCode.CLIENT_ERROR);
             }
             Integer result = mybatisRepos.incrementCaseAmount(name);
@@ -286,83 +281,74 @@ public class DBServiceImpl implements DBService {
             String bucketName = "letucoj";
             String inputObjectName = "problems" + "/" + name + "/input/" + problemStatus.getCaseAmount() + 1 + ".txt";
             String outputObjectName = "problems" + "/" + name + "/output/" + problemStatus.getCaseAmount() + 1 + ".txt";
-            String configObjectName = "problems" + "/" + name + "/config.yaml";
-            minioRepos.addFile(bucketName, configObjectName, config);
+//            String configObjectName = "problems" + "/" + name + "/config.yaml";
+//            minioRepos.addFile(bucketName, configObjectName, config);
             minioRepos.addFile(bucketName, inputObjectName, input.getBytes());
             minioRepos.addFile(bucketName, outputObjectName, output.getBytes());
             return Result.success();
         } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
     @Override
-    public ResultVO recordListByName(String pname, int start, int limit) {
+    public ResultVO<SubmitRecordListVO> submitRecordListByName(String userName, int start, int limit) {
         try {
-            List<RecordDTO> records = mybatisRepos.getRecordsByName(pname, start, limit);
-            Integer amount = mybatisRepos.getRecordsByNameCount(pname);
+            List<SubmitRecord> records = mybatisRepos.getRecordsByName(userName, start, limit);
+            Integer amount = mybatisRepos.getRecordsByNameCount(userName);
             if (records == null || records.isEmpty()) {
-                return Result.failure(PracticeErrorCode.NO_RECORD_FOUND);
+                return Result.failure(PracticeErrorCode.NO_RECORD_FOUND, null);
             } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
-            return Result.success(Map.of(
-                    "records",   records,
-                    "amount", amount
-            ));
+            return Result.success(new SubmitRecordListVO(records, amount));
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
     @Override
-    public ResultVO recordListAll(int start, int limit) {
+    public ResultVO<SubmitRecordListVO> submitRecordListAll(int start, int limit) {
         try {
-            List<RecordDTO> records = mybatisRepos.getAllRecords(start, limit);
+            List<SubmitRecord> records = mybatisRepos.getAllRecords(start, limit);
             Integer amount = mybatisRepos.getAllRecordsCount();
             if (records == null || records.isEmpty()) {
-                return Result.failure(PracticeErrorCode.NO_RECORD_FOUND);
+                return Result.failure(PracticeErrorCode.NO_RECORD_FOUND, null);
             } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
-            return Result.success(
-                    Map.of(
-                    "records",   records,
-                    "amount", amount
-                    ));
+            return Result.success(new SubmitRecordListVO(records, amount));
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
     @Override
-    public ResultVO getExistCase(String qname, Integer id) {
+    public ResultVO<CaseFile> getCase(String questionName, Integer id) {
         try {
-            byte[] inputFile = minioRepos.getFile("letucoj", "problems/" + qname + "/input/" + id + ".txt");
-            byte[] outputFile = minioRepos.getFile("letucoj", "problems/" + qname + "/output/" + id + ".txt");
+            byte[] inputFile = minioRepos.getFile("letucoj", "problems/" + questionName + "/input/" + id + ".txt");
+            byte[] outputFile = minioRepos.getFile("letucoj", "problems/" + questionName + "/output/" + id + ".txt");
             if (inputFile == null || outputFile == null) {
-                return Result.failure(PracticeErrorCode.CASE_NOT_EXIST);
+                return Result.failure(PracticeErrorCode.CASE_NOT_EXIST, null);
             }
-            Map<String, String> caseMap = new HashMap<>();
-            caseMap.put("input", new String(inputFile));
-            caseMap.put("output", new String(outputFile));
-            return Result.success(caseMap);
+            return Result.success(new CaseFile(questionName, new String(inputFile), new String(outputFile)));
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
     @Override
-    public ResultVO getConfigFile(String qname) {
+    public ResultVO<byte[]> getConfigFile(String qname) {
         try {
             byte[] configFile = minioRepos.getFile("letucoj", "problems/" + qname + "/config.yaml");
             if (configFile == null) {
-                return Result.failure(PracticeErrorCode.CONFIG_NOT_EXIST);
+                return Result.failure(PracticeErrorCode.CONFIG_NOT_EXIST, null);
             }
-            String configContent = new String(configFile);
-            return Result.success(configContent);
+            return Result.success(configFile);
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 }

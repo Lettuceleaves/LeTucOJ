@@ -1,8 +1,10 @@
 package com.LetucOJ.practice.controller;
 
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.practice.model.Case;
+import com.LetucOJ.practice.model.CaseFile;
+import com.LetucOJ.practice.model.TestCaseDTO;
 import com.LetucOJ.practice.model.Problem;
+import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.service.DBService;
 import com.LetucOJ.practice.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,49 +20,49 @@ public class ProblemController {
     @Autowired
     private DBService dbService;
 
-    @GetMapping("/full/get")
-    public ResultVO getProblem(@RequestParam("qname") String qname) throws Exception {
-        return dbService.getProblem(qname);
+    @GetMapping("/problem")
+    public ResultVO<Problem> getProblem(@RequestParam("problem_name") String problemName) throws Exception {
+        return dbService.getProblem(problemName);
     }
 
-    @GetMapping("/fullRoot/get")
-    public ResultVO getProblemInRoot(@RequestParam("qname") String qname) throws Exception {
-        return dbService.getProblemInRoot(qname);
+    @GetMapping("/problem_root")
+    public ResultVO<Problem> getProblemInRoot(@RequestParam("problem_name") String problemName) throws Exception {
+        return dbService.getProblemInRoot(problemName);
     }
 
-    @PostMapping("/fullRoot/insert")
-    public ResultVO insertProblem(@RequestBody Problem dto) throws Exception {
+    @PostMapping("/problem")
+    public ResultVO<Void> insertProblem(@RequestBody Problem dto) throws Exception {
         return dbService.insertProblem(dto);
     }
 
-    @PutMapping("/fullRoot/update")
-    public ResultVO updateProblem(@RequestBody Problem dto) throws Exception {
+    @PutMapping("/problem")
+    public ResultVO<Void> updateProblem(@RequestBody Problem dto) throws Exception {
         return dbService.updateProblem(dto);
     }
 
-    @DeleteMapping("/fullRoot/delete")
-    public ResultVO deleteProblem(@RequestParam("qname") String qname) throws Exception {
-        return dbService.deleteProblem(qname);
+    @DeleteMapping("/problem")
+    public ResultVO<Void> deleteProblem(@RequestParam("problem_name") String problemName) throws Exception {
+        return dbService.deleteProblem(problemName);
     }
 
-    @PostMapping("/getCase")
-    public ResultVO getCase(@RequestBody CaseInputDTO caseInputDTO) {
-        return dbService.getCase(caseInputDTO);
+    @PostMapping("/test_case")
+    public ResultVO<TestTaskVO> testCase(@RequestParam String language, @RequestBody TestCaseDTO testCaseDTO) {
+        return dbService.testCase(testCaseDTO, language);
     }
 
-    @GetMapping("/get_exist_case")
-    public ResultVO getExistCase(@RequestParam("qname") String qname, @RequestParam("id") Integer id) {
-        return dbService.getExistCase(qname, id);
+    @GetMapping("/get_case")
+    public ResultVO<CaseFile> getCase(@RequestParam("qname") String qname, @RequestParam("id") Integer id) {
+        return dbService.getCase(qname, id);
     }
 
-    @GetMapping("/config_file")
-    public ResultVO getConfigFile(@RequestParam("qname") String qname) {
+    @GetMapping("/configfile")
+    public ResultVO<byte[]> getConfigFile(@RequestParam("qname") String qname) {
         return dbService.getConfigFile(qname);
     }
 
-    @PostMapping("/submitCase")
-    public ResultVO submitCase(@RequestBody Case aCase) {
-        return dbService.submitCase(aCase);
+    @PostMapping("/save_case")
+    public ResultVO<Void> saveCase(@RequestBody CaseFile CaseFile) {
+        return dbService.saveCase(CaseFile);
     }
 
 }

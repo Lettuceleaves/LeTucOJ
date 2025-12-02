@@ -2,7 +2,7 @@ package com.LetucOJ.practice.repos;
 
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.oss.MinioRepos;
-import com.LetucOJ.practice.model.DTO.RecordDTO;
+import com.LetucOJ.practice.model.DTO.SubmitRecord;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import jakarta.annotation.Resource;
@@ -52,7 +52,7 @@ public class RocketMQSubmissionConsumer implements RocketMQListener<Message> {
         String body = message.getBody();
 
         try {
-            RecordDTO record = JSON.parseObject(body, RecordDTO.class);
+            SubmitRecord record = JSON.parseObject(body, SubmitRecord.class);
 
             if (record == null) {
                 System.err.println("consumer record null: " + body);

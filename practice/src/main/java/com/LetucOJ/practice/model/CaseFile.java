@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Case {
+public class CaseFile {
     private String name;
     private String input;
     private String output;
-    private byte[] config;
 }

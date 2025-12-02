@@ -66,19 +66,19 @@ public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
     Integer deleteProblem(String name);
 
     @Select("SELECT * FROM record ORDER BY submitTime DESC LIMIT #{start}, #{limit}")
-    List<RecordDTO> getAllRecords(int start, int limit);
+    List<SubmitRecord> getAllRecords(int start, int limit);
 
     @Select("SELECT COUNT(*) FROM record")
     Integer getAllRecordsCount();
 
     @Select("SELECT * FROM record WHERE userName = #{userName} ORDER BY submitTime DESC LIMIT #{start}, #{limit}")
-    List<RecordDTO> getRecordsByName(String userName, int start, int limit);
+    List<SubmitRecord> getRecordsByName(String userName, int start, int limit);
 
     @Select("SELECT COUNT(*) FROM record WHERE userName = #{userName}")
     Integer getRecordsByNameCount(String userName);
 
     @Insert("INSERT INTO record (userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime) VALUES (#{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})")
-    Integer insertRecord(RecordDTO recordDTO);
+    Integer insertRecord(SubmitRecord submitRecord);
 
     @Select("SELECT problem_name FROM correct WHERE user_name = #{userName}")
     Set<String> getCorrectByName(String userName);
