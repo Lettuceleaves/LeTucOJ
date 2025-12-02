@@ -1,8 +1,10 @@
 com\LetucOJ\run\service\impl\RunServiceImpl.class
 com\LetucOJ\run\runApplication.class
+com\LetucOJ\run\model\TestCaseVO.class
 com\LetucOJ\run\service\Handler.class
 com\LetucOJ\run\controller\RunController.class
 com\LetucOJ\run\service\impl\handler\ExecuteHandler.class
 com\LetucOJ\run\service\impl\handler\FileWriteHandler.class
 com\LetucOJ\run\tool\RunPath.class
+com\LetucOJ\run\model\TestCaseDTO.class
 com\LetucOJ\run\service\RunService.class

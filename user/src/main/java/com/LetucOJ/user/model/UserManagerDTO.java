@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserManagerDTO {
-
     @TableField("user_name")
     private String userName;
     private String cnname;

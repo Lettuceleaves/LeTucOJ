@@ -44,12 +44,13 @@ public class UserServiceImpl implements UserService {
     private String fromEmail;
 
     @Override
-    public ResultVO register(RegisterRequestDTO dto) {
+    public ResultVO<Void> register(RegisterRequestDTO dto) {
         String username = dto.getUsername();
         String cnname = dto.getCnname();
         String rawPwd = dto.getPassword();
 
         Pattern usernamePattern = Pattern.compile("^[A-Za-z]{2,10}\\d{12}$");
+
         if (!usernamePattern.matcher(username).matches()) {
             return Result.failure(UserErrorCode.PARAM_FORMAT_ERROR);
         }
@@ -62,7 +63,7 @@ public class UserServiceImpl implements UserService {
         if (!passwordPattern.matcher(rawPwd).matches()) {
             return Result.failure(UserErrorCode.PARAM_FORMAT_ERROR);
         }
-        System.out.println(username);
+
         UserInfoDTO existingUser = userMybatisRepos.getUserFullInfo(username);
 
         if (existingUser != null) {
@@ -76,58 +77,58 @@ public class UserServiceImpl implements UserService {
             Integer result = userMybatisRepos.saveUserInfo(userManagerDTO);
 
             if (!result.equals(1)) {
-                System.out.println(result);
+                Logger.log(Type.SERVER, LogLevel.ERROR, result.toString());
                 return Result.failure(UserErrorCode.REGISTER_FAILED);
             }
             return Result.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(UserErrorCode.REGISTER_FAILED);
         }
     }
 
     @Override
-    public ResultVO login(RegisterRequestDTO dto) {
+    public ResultVO<JwtInfoVO> login(RegisterRequestDTO dto) {
         String username = dto.getUsername();
         String rawPwd = dto.getPassword();
         try {
             long version = System.currentTimeMillis();
             UserManagerDTO userManagerDTO = userMybatisRepos.getPasswordByUserName(username);
             if (userManagerDTO == null || !PasswordUtil.matches(rawPwd, userManagerDTO.getPassword())) {
-                return Result.failure(UserErrorCode.NAME_OR_CODE_WRONG);
+                return Result.failure(UserErrorCode.NAME_OR_CODE_WRONG, null);
             } else if (userManagerDTO.getStatus() == 0) {
-                return Result.failure(UserErrorCode.NOT_ENABLE);
+                return Result.failure(UserErrorCode.NOT_ENABLE, null);
             }
             String cnname = userManagerDTO.getCnname();
-            System.out.println(cnname);
             JwtInfoVO jwtInfoVO = new JwtInfoVO(username, cnname, userManagerDTO.getRole(), version);
             return Result.success(jwtInfoVO);
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
     @Override
-    public ResultVO refreshToken(String userName) {
+    public ResultVO<JwtInfoVO> refreshToken(String userName) {
         try {
             long version = System.currentTimeMillis();
             UserManagerDTO userManagerDTO = userMybatisRepos.getPasswordByUserName(userName);
             if (userManagerDTO == null ) {
-                return Result.failure(UserErrorCode.NAME_OR_CODE_WRONG);
+                return Result.failure(UserErrorCode.NAME_OR_CODE_WRONG, null);
             } else if (userManagerDTO.getStatus() == 0) {
-                return Result.failure(UserErrorCode.NOT_ENABLE);
+                return Result.failure(UserErrorCode.NOT_ENABLE, null);
             }
             String cnname = userManagerDTO.getCnname();
-            System.out.println(cnname);
             JwtInfoVO jwtInfoVO = new JwtInfoVO(userName, cnname, userManagerDTO.getRole(), version);
             return Result.success(jwtInfoVO);
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
     @Override
-    public ResultVO activateAccount(String userName) {
+    public ResultVO<Void> activateAccount(String userName) {
         try {
             Integer rows = userMybatisRepos.activateUser(userName);
             if (rows != null && rows == 1) {
@@ -136,70 +137,74 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
         } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
     @Override
-    public ResultVO deactivateAccount(String userName) {
+    public ResultVO<Void> deactivateAccount(String userName) {
         try {
             Integer rows = userMybatisRepos.deactivateUser(userName);
-            ResultVO res = logout(userName);
+            ResultVO<Void> res = logout(userName);
             if (rows != null && rows == 1 && res.getCode().equals("0")) {
                 return Result.success();
             } else {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
         } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
     @Override
-    public ResultVO logout(String username) {
+    public ResultVO<Void> logout(String username) {
         try {
-            // redisTemplate.opsForValue().set("black:" + username, "1", Duration.ofSeconds(ttl));
             Redis.mapPutDuration("black:" + username, "0", 7 * 24 * 60 * 60);
             return Result.success();
         } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
     @Override
-    public ResultVO getAllUsers() {
+    public ResultVO<List<UserManagerDTO>> getAllUsers() {
         try {
             List<UserManagerDTO> list = userMybatisRepos.getUserListByRole("USER");
             if (list == null || list.isEmpty()) {
-                return Result.failure(UserErrorCode.NO_USER);
+                return Result.failure(UserErrorCode.NO_USER, null);
             }
             for (UserManagerDTO user : list) {
                 user.setPassword(null); // Clear password for security
             }
             return Result.success(list);
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
     @Override
-    public ResultVO getAllManagers() {
+    public ResultVO<List<UserManagerDTO>> getAllManagers() {
         try {
             List<UserManagerDTO> list = userMybatisRepos.getUserListByRole("MANAGER");
             if (list == null || list.isEmpty()) {
-                return Result.failure(UserErrorCode.NO_MANAGER);
+                return Result.failure(UserErrorCode.NO_MANAGER, null);
             }
             for (UserManagerDTO user : list) {
                 user.setPassword(null); // Clear password for security
             }
             return Result.success(list);
         } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
     @Override
-    public ResultVO promoteToManager(String userName) {
+    public ResultVO<Void> promoteToManager(String userName) {
         try {
             Integer rows = userMybatisRepos.setUserToManager(userName);
             if (rows != null && rows == 1) {
@@ -208,35 +213,37 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
         } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
     @Override
-    public ResultVO demoteToUser(String userName) {
+    public ResultVO<Void> demoteToUser(String userName) {
         try {
             Integer rows = userMybatisRepos.setManagerToUser(userName);
-            ResultVO res = logout(userName);
+            ResultVO<Void> res = logout(userName);
             if (rows != null && rows == 1 && res.getCode().equals("0")) {
                 return Result.success();
             } else {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
         } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
 
     @Override
-    public ResultVO getUserRankings() {
+    public ResultVO<Object> getUserRankings() {
         List<Map<String, Object>> corrects = userMybatisRepos.listCorrect();
         List<UserManagerDTO> users = userMybatisRepos.getUserListByRole("USER");
 
         if (corrects == null || corrects.isEmpty()) {
-            return Result.failure(UserErrorCode.NO_RANK);
+            return Result.failure(UserErrorCode.NO_RANK, null);
         }
         if (users == null || users.isEmpty()) {
-            return Result.failure(UserErrorCode.NO_USER);
+            return Result.failure(UserErrorCode.NO_USER, null);
         }
 
         Map<String, Integer> scoreMap = userMybatisRepos.points()
@@ -294,7 +301,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultVO updateUserFullInfo(UserInfoDTO userInfoDTO) {
+    public ResultVO<Void> updateUserFullInfo(UserInfoDTO userInfoDTO) {
         if (userInfoDTO == null || userInfoDTO.getUserName() == null) {
             return Result.failure(UserErrorCode.EMPTY_PARAMETER);
         }
@@ -306,32 +313,32 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultVO getBackground(String username) {
+    public ResultVO<byte[]> getBackground(String username) {
         String bucketName = "letucoj";
         String objectName = "user/" + username + "/background.txt";
         try {
             byte[] data = minioRepos.getFile(bucketName, objectName);
             return Result.success(data);
         } catch (Exception e) {
-            return Result.failure(UserErrorCode.NO_BACKGROUND);
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
+            return Result.failure(UserErrorCode.NO_BACKGROUND, null);
         }
     }
 
     @Override
-    public ResultVO getUserFullInfo(String username) {
-        System.out.println(username);
+    public ResultVO<UserInfoDTO> getUserFullInfo(String username) {
         if (username == null) {
-            return Result.failure(UserErrorCode.EMPTY_PARAMETER);
+            return Result.failure(UserErrorCode.EMPTY_PARAMETER, null);
         }
         UserInfoDTO userInfoDTO = userMybatisRepos.getUserFullInfo(username);
         if (userInfoDTO == null) {
-            return Result.failure(UserErrorCode.NO_USER);
+            return Result.failure(UserErrorCode.NO_USER, null);
         }
         return Result.success(userInfoDTO);
     }
 
     @Override
-    public ResultVO updateBackground(String username, byte[] data) {
+    public ResultVO<Void> updateBackground(String username, byte[] data) {
         String bucketName = "letucoj";
         String objectName = "user/" + username + "/background.txt";
         try {
@@ -343,19 +350,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultVO getHeadPortrait(String username) {
+    public ResultVO<byte[]> getHeadPortrait(String username) {
         String bucketName = "letucoj";
         String objectName = "user/" + username + "/headPortrait.txt";
         try {
             byte[] data = minioRepos.getFile(bucketName, objectName);
             return Result.success(data);
         } catch (Exception e) {
-            return Result.failure(UserErrorCode.NO_HEADPORTRAIT);
+            return Result.failure(UserErrorCode.NO_HEADPORTRAIT, null);
         }
     }
 
     @Override
-    public ResultVO updateHeadPortrait(String username, byte[] data) {
+    public ResultVO<Void> updateHeadPortrait(String username, byte[] data) {
         String bucketName = "letucoj";
         String objectName = "user/" + username + "/headPortrait.txt";
         try {
@@ -367,34 +374,33 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultVO getHeatmap(String username, int year) {
+    public ResultVO<byte[]> getHeatmap(String username, int year) {
         String bucketName = "letucoj";
         String objectName = "user/" + username + "/heatmap/" + year + ".json";
         if (!minioRepos.isObjectExist(bucketName, objectName)) {
-            return Result.failure(UserErrorCode.NO_HEATMAP);
+            return Result.failure(UserErrorCode.NO_HEATMAP, null);
         }
         byte[] data = minioRepos.getFile(bucketName, objectName);
         return Result.success(data);
     }
 
     @Override
-    public ResultVO getSecretKey(String username) {
+    public ResultVO<String> getSecretKey(String username) {
         UserInfoDTO userInfoDTO = userMybatisRepos.getUserFullInfo(username);
         if (userInfoDTO == null) {
-            return Result.failure(UserErrorCode.NO_USER);
+            return Result.failure(UserErrorCode.NO_USER, null);
         }
         String email = userInfoDTO.getEmail();
         if (email == null || email.isEmpty()) {
-            return Result.failure(UserErrorCode.NO_EMAIL);
+            return Result.failure(UserErrorCode.NO_EMAIL, null);
         }
         String secretKey = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail); // 设置发件人
-            message.setTo(email);       // 设置收件人
-            message.setSubject("您在 LetucOJ 的密钥 (Your Secret Key for LetucOJ)"); // 设置邮件主题
+            message.setFrom(fromEmail);
+            message.setTo(email);
+            message.setSubject("您在 LetucOJ 的密钥 (Your Secret Key for LetucOJ)");
 
-            // 构造邮件正文内容
             String messageText = "尊敬的 " + username + ",\n\n"
                     + "您请求的密钥如下:\n\n"
                     + "密钥 (Secret Key): " + secretKey + "\n\n"
@@ -403,35 +409,25 @@ public class UserServiceImpl implements UserService {
                     + "LetucOJ 团队";
             message.setText(messageText);
 
-            // 发送邮件
             mailSender.send(message);
-
-            // 在这里，您通常需要将 secretKey 与用户关联并进行缓存或保存
-            // 例如: userSecretKeyCache.put(username, secretKey);
 
             Redis.mapPutDuration(username, secretKey, 120); // 2分钟过期
 
             return Result.success("密钥已成功发送至您的邮箱: " + email);
 
         } catch (MailException e) {
-            // 捕获邮件发送异常，返回通用错误
-            e.printStackTrace(); // 在服务器日志中打印详细错误，方便调试
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR, "邮件发送失败，请稍后重试。");
         }
     }
 
     @Override
-    public ResultVO changePassword(String username, String secretKey, String newPassword) {
+    public ResultVO<Void> changePassword(String username, String secretKey, String newPassword) {
         String cachedKey = Redis.mapGet(username);
         if (cachedKey == null || !cachedKey.equals(secretKey)) {
             Logger.log(Type.SERVER, LogLevel.WARN, "Password change failed for user " + username + ": invalid secret key.");
             return Result.failure(UserErrorCode.SECRET_KEY_INVALID);
         }
-
-//        Pattern passwordPattern = Pattern.compile("^[A-Za-z0-9]{6,20}$");
-//        if (!passwordPattern.matcher(newPassword).matches()) {
-//            return Result.failure(UserErrorCode.PARAM_FORMAT_ERROR);
-//        }
 
         String encodedPwd = PasswordUtil.encrypt(newPassword);
         try {
@@ -441,6 +437,7 @@ public class UserServiceImpl implements UserService {
             }
             return Result.success();
         } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR);
         }
     }
