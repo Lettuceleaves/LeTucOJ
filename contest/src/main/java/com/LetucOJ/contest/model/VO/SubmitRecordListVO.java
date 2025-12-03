@@ -1,6 +1,6 @@
-package com.LetucOJ.practice.model.VO;
+package com.LetucOJ.contest.model.VO;
 
-import com.LetucOJ.practice.model.DTO.SubmitRecordDTO;
+import com.LetucOJ.contest.model.DTO.SubmitRecordDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package com.LetucOJ.contest.model;
+package com.LetucOJ.contest.model.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

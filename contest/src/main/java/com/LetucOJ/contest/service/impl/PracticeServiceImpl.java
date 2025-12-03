@@ -6,13 +6,15 @@ import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.ContestErrorCode;
 import com.LetucOJ.contest.client.RunClient;
-import com.LetucOJ.contest.model.BoardDTO;
-import com.LetucOJ.contest.model.ContestInfoDTO;
-import com.LetucOJ.contest.model.ProblemStatusDTO;
+import com.LetucOJ.contest.model.Contest;
+import com.LetucOJ.contest.model.DTO.BoardDTO;
+import com.LetucOJ.contest.model.DTO.ProblemStatusDTO;
+import com.LetucOJ.contest.model.VO.TestTaskVO;
 import com.LetucOJ.contest.repos.MybatisRepos;
 import com.LetucOJ.contest.service.DBService;
 import com.LetucOJ.contest.service.PracticeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -23,44 +25,40 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
+@Data
+@AllArgsConstructor
 public class PracticeServiceImpl implements PracticeService {
 
-    @Autowired
     private RunClient runClient;
 
-    @Autowired
     private MinioRepos minioRepos;
 
-    @Autowired
     private MybatisRepos mybatisRepos;
 
-    @Autowired
     private DBService dbService;
 
-    public ResultVO submit(String userName, String cnname, String questionName, String contestName, String code, String lang, boolean root) throws Exception {
+    public ResultVO<TestTaskVO> submit(String userName, String cnname, String questionName, String contestName, String code, String lang, boolean root) throws Exception {
         try {
-
-            // 合法性检验
 
             List<String> inputs = new ArrayList<>();
             inputs.add(code);
 
-            ContestInfoDTO contestInfo = mybatisRepos.getContest(contestName);
+            Contest contestInfo = mybatisRepos.getContest(contestName);
 
-            ResultVO attended = dbService.getUserStatus(userName, contestName);
+            ResultVO<Void> attended = dbService.attended(userName, contestName);
             if (!attended.getCode().equals("0") && !root) {
-                return Result.failure(ContestErrorCode.USER_NOT_ATTEND);
+                return Result.failure(ContestErrorCode.USER_NOT_ATTEND, null);
             }
 
             if (contestInfo == null) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             } else if (!contestInfo.isPublicContest() && !root) {
-                return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC);
+                return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC, null);
             }
 
             Integer score = mybatisRepos.getScoreByContestAndProblem(contestName, questionName);
             if (score == null || score == 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
 
             if (!root) {
@@ -73,12 +71,12 @@ public class PracticeServiceImpl implements PracticeService {
                 if (start != null && end != null) {
                     if (now.isBefore(start)) {
                         long secondsToStart = Duration.between(now, start).getSeconds();
-                        return Result.failure(ContestErrorCode.CONTEST_NOT_START, secondsToStart);
+                        return Result.failure(ContestErrorCode.CONTEST_NOT_START, null);
                     } else if (now.isAfter(end)) {
-                        return Result.failure(ContestErrorCode.CONTEST_FINISHED);
+                        return Result.failure(ContestErrorCode.CONTEST_FINISHED, null);
                     }
                 } else {
-                    return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                    return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
                 }
             }
 
@@ -86,16 +84,16 @@ public class PracticeServiceImpl implements PracticeService {
 
             ProblemStatusDTO problemStatus = mybatisRepos.getStatus(questionName);
             if (problemStatus == null) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST);
+                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
             } else if (problemStatus.getCaseAmount() <= 0) {
-                return Result.failure(BaseErrorCode.NO_CASE_EXIST);
+                return Result.failure(BaseErrorCode.NO_CASE_EXIST, null);
             }
 
             byte[][] inputBytesArrays;
             try {
                 inputBytesArrays = getCases(questionName, problemStatus.getCaseAmount(), 0);
             } catch (RuntimeException e) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
             for (byte[] inputBytes : inputBytesArrays) {
                 inputs.add(new String(inputBytes));
@@ -105,13 +103,13 @@ public class PracticeServiceImpl implements PracticeService {
             try {
                 outputBytesArray = getCases(questionName, problemStatus.getCaseAmount(), 1);
             } catch (RuntimeException e) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
 
 
             // 运行用户代码
 
-            ResultVO runResult = runClient.run(inputs, lang, questionName);
+            ResultVO<TestTaskVO> runResult = runClient.run(inputs, lang, questionName);
 
 
             // 处理运行结果
@@ -123,15 +121,15 @@ public class PracticeServiceImpl implements PracticeService {
             }
             expectedOutputs = getExpectedOutputs(outputBytesArray);
 
-            ResultVO resultVO = checkAnswer(expectedOutputs, ((List<String>) runResult.getData()).toArray(new String[expectedOutputs.length]));
+            ResultVO<TestTaskVO> resultVO = checkAnswer(expectedOutputs, runResult.getData().getAnswer().toArray(new String[expectedOutputs.length]));
 
             int getScore;
             if (contestInfo.getMode().equals("add")) {
-                getScore = resultVO.getCode().equals("0") ? score : (int) ( ( (float) resultVO.getData() / (float) expectedOutputs.length) * (float) score);
+                getScore = resultVO.getCode().equals("0") ? score : (int) ( ( (float) Integer.getInteger(resultVO.getData().getMsg()) / (float) expectedOutputs.length) * (float) score);
             } else if (contestInfo.getMode().equals("all")) {
                 getScore = resultVO.getCode().equals("0") ? score : 0;
             } else {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
 
             BoardDTO boardDTO = mybatisRepos.getContestBoardByUserAndProblem(contestName, userName, questionName);
@@ -140,38 +138,37 @@ public class PracticeServiceImpl implements PracticeService {
                 Integer res = mybatisRepos.insertContestBoard(boardDTO);
                 if (res == null || res <= 0) {
                     System.out.println("failed to insert board");
-                    return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                    return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
                 }
             } else {
                 boardDTO.setScore(Math.max(boardDTO.getScore(), getScore));
                 Integer res = mybatisRepos.updateContestBoard(boardDTO);
                 if (res == null || res <= 0) {
                     System.out.println("failed to update board");
-                    return Result.failure(BaseErrorCode.SERVICE_ERROR);
+                    return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
                 }
             }
             if (resultVO.getCode().equals("0")) {
-                return Result.success();
+                return Result.success(null);
             } else {
-                Integer caseIndex = (Integer) resultVO.getData();
-                return Result.failure(BaseErrorCode.WRONG_ANSWER, "wrong in case " + (caseIndex + 1));
+                return Result.failure(BaseErrorCode.WRONG_ANSWER, new TestTaskVO(null, "wrong in case " + resultVO.getData().getMsg()));
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
-    private ResultVO checkAnswer(String[] expected, String[] actual) {
+    private ResultVO<TestTaskVO> checkAnswer(String[] expected, String[] actual) {
         if (expected.length != actual.length) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
         for (int i = 0; i < expected.length; i++) {
             if (!expected[i].equals(actual[i])) {
-                return Result.failure(BaseErrorCode.WRONG_ANSWER, i);
+                return Result.failure(BaseErrorCode.WRONG_ANSWER, new TestTaskVO(null, String.valueOf(i)));
             }
         }
-        return Result.success();
+        return Result.success(null);
     }
 
     private String[] getExpectedOutputs(byte[][] outputBytesArray) {
@@ -188,13 +185,13 @@ public class PracticeServiceImpl implements PracticeService {
             byte[] file;
             String bucketName = "letucoj";
             try {
+                String objectName;
                 if (type == 1) {
-                    String objectName = "problems/" + problemId + "/output/" + i + ".txt";
-                    file = minioRepos.getFile(bucketName, objectName);
+                    objectName = "problems/" + problemId + "/output/" + i + ".txt";
                 } else {
-                    String objectName = "problems/" + problemId + "/input/" + i + ".txt";
-                    file = minioRepos.getFile(bucketName, objectName);
+                    objectName = "problems/" + problemId + "/input/" + i + ".txt";
                 }
+                file = minioRepos.getFile(bucketName, objectName);
                 if (file == null) {
                     throw new Exception("practice/getCases: File " + i + " not found");
                 }

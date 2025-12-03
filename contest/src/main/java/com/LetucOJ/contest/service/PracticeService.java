@@ -1,7 +1,8 @@
 package com.LetucOJ.contest.service;
 
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.contest.model.VO.TestTaskVO;
 
 public interface PracticeService {
-    ResultVO submit(String userName, String cnname, String questionName, String contestName, String code, String lang, boolean root) throws Exception;
+    ResultVO<TestTaskVO> submit(String userName, String cnname, String questionName, String contestName, String code, String lang, boolean root) throws Exception;
 }

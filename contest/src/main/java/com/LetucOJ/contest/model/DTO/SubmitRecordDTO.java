@@ -1,4 +1,4 @@
-package com.LetucOJ.practice.model.DTO;
+package com.LetucOJ.contest.model.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SubmitRecord {
+public class SubmitRecordDTO {
     private String userName;
     private String nickName;
     private String problemName;

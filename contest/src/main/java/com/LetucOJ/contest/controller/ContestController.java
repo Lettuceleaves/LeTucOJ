@@ -1,11 +1,12 @@
 package com.LetucOJ.contest.controller;
 
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.contest.model.ContestInfoDTO;
-import com.LetucOJ.contest.model.ContestProblemDTO;
+import com.LetucOJ.contest.model.Contest;
+import com.LetucOJ.contest.model.DTO.ContestProblemDTO;
 import com.LetucOJ.contest.service.DBService;
 import com.LetucOJ.contest.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.parsing.Problem;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,53 +19,47 @@ public class ContestController {
     @Autowired
     private DBService dbService;
 
-    @GetMapping("/full/getProblem")
-    public ResultVO getProblem(@RequestParam("qname") String qname, @RequestParam("ctname") String contestName, @RequestParam("pname") String pname) throws Exception {
-        return dbService.getProblem(qname, contestName, pname);
+    @GetMapping("/problem")
+    public ResultVO<Problem> getProblem(@RequestParam("user_name") String userName,
+                                        @RequestParam("contest_name") String contestName,
+                                        @RequestParam("problem_name") String problemName,
+                                        @RequestParam("role") String role) throws Exception {
+        return dbService.getProblem(userName, contestName, problemName, role);
     }
 
-    @GetMapping("/full/getProblemInRoot")
-    public ResultVO getProblemInRoot(@RequestParam("qname") String qname, @RequestParam("ctname") String contestName) throws Exception {
-        return dbService.getProblemInRoot(qname, contestName);
+    @GetMapping("/contest")
+    public ResultVO<Contest> getContest(@RequestParam("contest_name") String contestName,
+                                        @RequestParam("role") String role) throws Exception {
+        return dbService.getContest(contestName, role);
     }
 
-    @GetMapping("/full/getContest")
-    public ResultVO getContest(@RequestParam("ctname") String ctname) throws Exception {
-        return dbService.getContest(ctname);
-    }
-
-    @GetMapping("/full/getContestInRoot")
-    public ResultVO getContestInRoot(@RequestParam("ctname") String ctname) throws Exception {
-        return dbService.getContestInRoot(ctname);
-    }
-
-    @PostMapping("/insertContest")
-    public ResultVO insertContest(@RequestBody ContestInfoDTO dto) throws Exception {
+    @PostMapping("/contest")
+    public ResultVO<Void> insertContest(@RequestBody Contest dto) throws Exception {
         return dbService.insertContest(dto);
     }
 
-    @PutMapping("/updateContest")
-    public ResultVO updateContest(@RequestBody ContestInfoDTO dto) throws Exception {
+    @PutMapping("/contest")
+    public ResultVO<Void> updateContest(@RequestBody Contest dto) throws Exception {
         return dbService.updateContest(dto);
     }
 
-    @PostMapping("/insertProblem")
-    public ResultVO insertProblem(@RequestBody ContestProblemDTO dto) throws Exception {
+    @PostMapping("/problem")
+    public ResultVO<Void> insertProblem(@RequestBody ContestProblemDTO dto) throws Exception {
         return dbService.insertProblem(dto);
     }
 
-    @DeleteMapping("/deleteProblem")
-    public ResultVO deleteProblem(@RequestBody ContestProblemDTO dto) throws Exception {
+    @DeleteMapping("/problem")
+    public ResultVO<Void> deleteProblem(@RequestBody ContestProblemDTO dto) throws Exception {
         return dbService.deleteProblem(dto);
     }
 
     @PostMapping("/attend")
-    public ResultVO attendContest(@RequestParam("pname") String pname, @RequestParam("cnname") String cnname, @RequestParam("ctname") String contestName) throws Exception {
-        return dbService.attend(pname, cnname, contestName);
+    public ResultVO<Void> attendContest(@RequestParam("user_name") String userName, @RequestParam("nick_name") String nickName, @RequestParam("ctname") String contestName) throws Exception {
+        return dbService.attend(userName, nickName, contestName);
     }
 
-    @GetMapping("/inContest")
-    public ResultVO inContest(@RequestParam("pname") String pname, @RequestParam("ctname") String contestName) throws Exception {
-        return dbService.getUserStatus(pname, contestName);
+    @GetMapping("/attended")
+    public ResultVO<Void> inContest(@RequestParam("user_name") String userName, @RequestParam("contestName") String contestName) throws Exception {
+        return dbService.attended(userName, contestName);
     }
 }

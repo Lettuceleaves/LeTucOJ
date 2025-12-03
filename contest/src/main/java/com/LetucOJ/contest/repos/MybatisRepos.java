@@ -1,8 +1,7 @@
 package com.LetucOJ.contest.repos;
 
-import com.LetucOJ.common.anno.LanguageConfigDO;
 import com.LetucOJ.contest.model.*;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.LetucOJ.contest.model.DTO.*;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -10,7 +9,7 @@ import java.util.List;
 
 @Repository
 @Mapper
-public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
+public interface MybatisRepos {
 
     @Select("SELECT public > 0 as ispublic, showsolution, caseAmount FROM problem WHERE name = #{name}")
     ProblemStatusDTO getStatus(String name);
@@ -18,19 +17,19 @@ public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
     @Select("SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public > 0 AS publicProblem, solution, showsolution " +
             "FROM problem " +
             "WHERE name = #{name}")
-    FullInfoDTO getProblem(String name);
+    Problem getProblem(String name);
 
-    @Select("SELECT * FROM contest")
-    List<ContestInfoDTO> getContestList();
+    @Select("SELECT name, cnname, mode, start, end, public FROM contest")
+    List<ContestBrief> getContestList();
 
     @Select("SELECT name, cnname, mode, start, end, public > 0 AS publicContest, note FROM contest WHERE name = #{name}")
-    ContestInfoDTO getContest(String name);
+    Contest getContest(String name);
 
     @Insert("INSERT INTO contest " +
             "(name, cnname, mode, start, end, public, note) " +
             "VALUES " +
             "(#{name}, #{cnname}, #{mode}, #{start}, #{end}, #{publicContest}, #{note})")
-    Integer insertContest(ContestInfoDTO contestInfoDTO);
+    Integer insertContest(Contest contest);
 
     @Update("UPDATE contest SET " +
             "cnname   = #{cnname}, " +
@@ -40,10 +39,10 @@ public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
             "public   = #{publicContest}, " +
             "note     = #{note} " +
             "WHERE name = #{name}")
-    Integer updateContest(ContestInfoDTO contestInfoDTO);
+    Integer updateContest(Contest contest);
 
     @Select("SELECT * FROM contest_problem WHERE contest_name = #{contestName}")
-    List<ContestProblemDTO> getProblemList(@Param("contestName") String contestName);
+    List<ProblemBrief> getProblemList(@Param("contestName") String contestName);
 
     @Insert("INSERT INTO contest_problem " +
             "(contest_name, problem_name, score) " +

@@ -295,7 +295,7 @@ public class DBServiceImpl implements DBService {
     @Override
     public ResultVO<SubmitRecordListVO> submitRecordListByName(String userName, int start, int limit) {
         try {
-            List<SubmitRecord> records = mybatisRepos.getRecordsByName(userName, start, limit);
+            List<SubmitRecordDTO> records = mybatisRepos.getRecordsByName(userName, start, limit);
             Integer amount = mybatisRepos.getRecordsByNameCount(userName);
             if (records == null || records.isEmpty()) {
                 return Result.failure(PracticeErrorCode.NO_RECORD_FOUND, null);
@@ -312,7 +312,7 @@ public class DBServiceImpl implements DBService {
     @Override
     public ResultVO<SubmitRecordListVO> submitRecordListAll(int start, int limit) {
         try {
-            List<SubmitRecord> records = mybatisRepos.getAllRecords(start, limit);
+            List<SubmitRecordDTO> records = mybatisRepos.getAllRecords(start, limit);
             Integer amount = mybatisRepos.getAllRecordsCount();
             if (records == null || records.isEmpty()) {
                 return Result.failure(PracticeErrorCode.NO_RECORD_FOUND, null);
