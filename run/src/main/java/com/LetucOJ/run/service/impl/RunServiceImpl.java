@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -50,11 +51,11 @@ public class RunServiceImpl implements RunService {
             byte[] config = minioRepos.getFile("letucoj", "system_files/problems/" + testTaskDTO.getProblemName() + "/config.yaml");
             List<byte[]> inputs = new ArrayList<>();
             for (int i = 0; i < amount; i++) {
-                inputs.add(minioRepos.getFile("letucoj", "system_files/problems/" + testTaskDTO.getProblemName() + "input-" + i + ".txt"));
+                inputs.add(minioRepos.getFile("letucoj", "system_files/problems/" + testTaskDTO.getProblemName() + "/input/" + i + ".txt"));
             }
             List<byte[]> outputs = new ArrayList<>();
             for (int i = 0; i < amount; i++) {
-                outputs.add(minioRepos.getFile("letucoj", "system_files/problems/" + testTaskDTO.getProblemName() + "output-" + i + ".txt"));
+                outputs.add(minioRepos.getFile("letucoj", "system_files/problems/" + testTaskDTO.getProblemName() + "/output/" + i + ".txt"));
             }
 
             // 创建沙盒环境
@@ -113,24 +114,23 @@ public class RunServiceImpl implements RunService {
                 Map<String, Object> configMap = yaml.load(new ByteArrayInputStream(config));
 
                 // 语言专属的默认配置
-                Map<String, Integer> languageDefaults = Convert.toMap(String.class, Integer.class, configMap.get("language_defaults"));
+                Map<String, Object> languageDefaults = Convert.toMap(String.class, Object.class, configMap.get("language_defaults"));
                 if (languageDefaults == null || !languageDefaults.containsKey(testTaskDTO.getLanguage())) {
                     Logger.log(Type.CLIENT, LogLevel.ERROR, "Language defaults missing or language not found: " + testTaskDTO.getLanguage() + "language_defaults");
                     return Result.failure(RunErrorCode.VALIDATE_ERROR, null);
                 }
 
                 // 该语言的默认配置
-                Map<String, Integer> langConfig = Convert.toMap(String.class, Integer.class, languageDefaults);
-
+                Map<String, Object> specificLangConfig = Convert.toMap(String.class, Object.class, languageDefaults.get(testTaskDTO.getLanguage()));
                 // 内存限制
-                Integer memoryLimitMb = langConfig.get("memory_limit_mb");
+                Integer memoryLimitMb = Convert.toInt(specificLangConfig.get("memory_limit_mb"));
                 if (memoryLimitMb == null) {
                     Logger.log(Type.CLIENT, LogLevel.ERROR, "Language defaults missing or language not found: " + testTaskDTO.getLanguage() + " memory_limit_mb");
                     return Result.failure(RunErrorCode.VALIDATE_ERROR, null);
                 }
 
                 // CPU 核心数 默认为 0.5
-                Object cpusObj = langConfig.get("cpus");
+                Object cpusObj = specificLangConfig.get("cpus");
                 String cpusLimit = (cpusObj != null) ? cpusObj.toString() : "0.5";
 
                 // docker指令
@@ -183,11 +183,12 @@ public class RunServiceImpl implements RunService {
                     case 0: { // 正常完成
                         String errMsg = Files.readString(errTxt);
                         Logger.log(Type.EXTERNAL, LogLevel.INFO, "Memory top point: " + errMsg);
-                        for (int i = 0; i <= amount; i++) {
+                        for (int i = 0; i < amount; i++) {
                             Path outTxt = Path.of(RunPath.getOutputPath(boxId, i));
                             if (!Files.exists(outTxt)) throw new RuntimeException("Output file not found after execution in: " + boxDir + " name: " + testTaskDTO.getProblemName() + " lang: " + testTaskDTO.getLanguage());
                             String answer = Files.readString(outTxt);
                             if (!answer.trim().equals(new String(outputs.get(i), StandardCharsets.UTF_8).trim())) {
+                                Logger.log(Type.EXTERNAL, LogLevel.INFO, "Expect: " + new String(outputs.get(i)) + ", found: " + answer.trim());
                                 return Result.failure(BaseErrorCode.WRONG_ANSWER, i);
                             }
                         }
@@ -230,7 +231,7 @@ public class RunServiceImpl implements RunService {
                 Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
                 return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             } finally {
-            forceCleanup(boxId);
+//            forceCleanup(boxId);
             }
 
         } catch (Exception e) {

@@ -39,7 +39,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # 2. 循环运行每个测试用例
-for i in $(seq 1 $N); do
+for i in $(seq 0 $((N-1))); do
     # 检查输入文件是否存在
     if [ ! -f "in_$i.txt" ]; then
         echo "5" > status.txt
