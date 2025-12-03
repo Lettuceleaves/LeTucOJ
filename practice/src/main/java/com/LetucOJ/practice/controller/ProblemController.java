@@ -4,7 +4,6 @@ import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.model.CaseFile;
 import com.LetucOJ.practice.model.DTO.TestCaseDTO;
 import com.LetucOJ.practice.model.Problem;
-import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.service.DBService;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.LetucOJ.practice.model.DTO;
+package com.LetucOJ.contest.model.DTO;
 
 public class TestTaskDTO {
     String problemName;

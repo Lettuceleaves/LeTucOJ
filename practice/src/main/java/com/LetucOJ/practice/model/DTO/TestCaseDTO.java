@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TestCaseDTO {
-    private String questionName;
+    private String problemName;
     private String code;
     private String input;
 }

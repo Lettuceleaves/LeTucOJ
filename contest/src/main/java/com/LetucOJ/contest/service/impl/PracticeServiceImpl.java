@@ -9,7 +9,6 @@ import com.LetucOJ.contest.client.RunClient;
 import com.LetucOJ.contest.model.Contest;
 import com.LetucOJ.contest.model.DTO.BoardDTO;
 import com.LetucOJ.contest.model.DTO.ProblemStatusDTO;
-import com.LetucOJ.contest.model.VO.TestTaskVO;
 import com.LetucOJ.contest.repos.MybatisRepos;
 import com.LetucOJ.contest.service.DBService;
 import com.LetucOJ.contest.service.PracticeService;
@@ -37,7 +36,7 @@ public class PracticeServiceImpl implements PracticeService {
 
     private DBService dbService;
 
-    public ResultVO<TestTaskVO> submit(String userName, String cnname, String questionName, String contestName, String code, String lang, boolean root) throws Exception {
+    public ResultVO<TestTaskVO> submit(String userName, String cnname, String problemName, String contestName, String code, String lang, boolean root) throws Exception {
         try {
 
             List<String> inputs = new ArrayList<>();
@@ -56,7 +55,7 @@ public class PracticeServiceImpl implements PracticeService {
                 return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC, null);
             }
 
-            Integer score = mybatisRepos.getScoreByContestAndProblem(contestName, questionName);
+            Integer score = mybatisRepos.getScoreByContestAndProblem(contestName, problemName);
             if (score == null || score == 0) {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
@@ -82,7 +81,7 @@ public class PracticeServiceImpl implements PracticeService {
 
             // 获取测试数据
 
-            ProblemStatusDTO problemStatus = mybatisRepos.getStatus(questionName);
+            ProblemStatusDTO problemStatus = mybatisRepos.getStatus(problemName);
             if (problemStatus == null) {
                 return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
             } else if (problemStatus.getCaseAmount() <= 0) {
@@ -91,7 +90,7 @@ public class PracticeServiceImpl implements PracticeService {
 
             byte[][] inputBytesArrays;
             try {
-                inputBytesArrays = getCases(questionName, problemStatus.getCaseAmount(), 0);
+                inputBytesArrays = getCases(problemName, problemStatus.getCaseAmount(), 0);
             } catch (RuntimeException e) {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
@@ -101,7 +100,7 @@ public class PracticeServiceImpl implements PracticeService {
             String[] expectedOutputs;
             byte[][] outputBytesArray;
             try {
-                outputBytesArray = getCases(questionName, problemStatus.getCaseAmount(), 1);
+                outputBytesArray = getCases(problemName, problemStatus.getCaseAmount(), 1);
             } catch (RuntimeException e) {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
@@ -109,7 +108,7 @@ public class PracticeServiceImpl implements PracticeService {
 
             // 运行用户代码
 
-            ResultVO<TestTaskVO> runResult = runClient.run(inputs, lang, questionName);
+            ResultVO<TestTaskVO> runResult = runClient.run(inputs, lang, problemName);
 
 
             // 处理运行结果
@@ -132,9 +131,9 @@ public class PracticeServiceImpl implements PracticeService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
 
-            BoardDTO boardDTO = mybatisRepos.getContestBoardByUserAndProblem(contestName, userName, questionName);
+            BoardDTO boardDTO = mybatisRepos.getContestBoardByUserAndProblem(contestName, userName, problemName);
             if (boardDTO == null) {
-                boardDTO = new BoardDTO(contestName, userName, cnname, questionName, getScore, 1, LocalDateTime.now());
+                boardDTO = new BoardDTO(contestName, userName, cnname, problemName, getScore, 1, LocalDateTime.now());
                 Integer res = mybatisRepos.insertContestBoard(boardDTO);
                 if (res == null || res <= 0) {
                     System.out.println("failed to insert board");

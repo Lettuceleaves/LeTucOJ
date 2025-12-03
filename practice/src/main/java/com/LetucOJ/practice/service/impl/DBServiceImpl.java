@@ -14,7 +14,6 @@ import com.LetucOJ.practice.model.DTO.*;
 import com.LetucOJ.practice.model.DTO.TestCaseDTO;
 import com.LetucOJ.practice.model.VO.ProblemListVO;
 import com.LetucOJ.practice.model.VO.SubmitRecordListVO;
-import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.DBService;
 import lombok.AllArgsConstructor;
@@ -248,17 +247,17 @@ public class DBServiceImpl implements DBService {
     public ResultVO<TestTaskVO> testCase(TestCaseDTO testCaseDTO, String language) {
         String input = testCaseDTO.getInput();
         String code = testCaseDTO.getCode();
-        String questionName = testCaseDTO.getQuestionName();
-        if (input == null || code == null || questionName == null) {
+        String problemName = testCaseDTO.getProblemName();
+        if (input == null || code == null || problemName == null) {
             return Result.failure(BaseErrorCode.CLIENT_ERROR, null);
         }
-        Problem exist = mybatisRepos.getProblem(questionName);
+        Problem exist = mybatisRepos.getProblem(problemName);
         if (exist == null) {
             return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
         }
         List<String> inputs = new ArrayList<>();
         inputs.add(input);
-        return runClient.run(new TestTaskDTO(code, inputs, language, questionName));
+        return runClient.run(new TestTaskDTO(code, inputs, language, problemName));
     }
 
     @Transactional
@@ -326,14 +325,14 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
-    public ResultVO<CaseFile> getCase(String questionName, Integer id) {
+    public ResultVO<CaseFile> getCase(String problemName, Integer id) {
         try {
-            byte[] inputFile = minioRepos.getFile("letucoj", "problems/" + questionName + "/input/" + id + ".txt");
-            byte[] outputFile = minioRepos.getFile("letucoj", "problems/" + questionName + "/output/" + id + ".txt");
+            byte[] inputFile = minioRepos.getFile("letucoj", "problems/" + problemName + "/input/" + id + ".txt");
+            byte[] outputFile = minioRepos.getFile("letucoj", "problems/" + problemName + "/output/" + id + ".txt");
             if (inputFile == null || outputFile == null) {
                 return Result.failure(PracticeErrorCode.CASE_NOT_EXIST, null);
             }
-            return Result.success(new CaseFile(questionName, new String(inputFile), new String(outputFile)));
+            return Result.success(new CaseFile(problemName, new String(inputFile), new String(outputFile)));
         } catch (Exception e) {
             return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }

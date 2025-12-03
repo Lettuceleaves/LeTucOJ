@@ -5,7 +5,6 @@ import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.model.DTO.SubmitRecordDTO;
-import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.PracticeService;
 import com.alibaba.fastjson.JSON;

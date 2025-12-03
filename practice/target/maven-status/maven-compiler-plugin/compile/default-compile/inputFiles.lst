@@ -1,7 +1,6 @@
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\ProblemStatus.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\VO\ProblemListVO.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\CaseFile.java
-E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\DTO\SubmitRecord.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\VO\SubmitRecordListVO.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\DTO\TestTaskDTO.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\VO\TestTaskVO.java
@@ -9,6 +8,7 @@ E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\PracticeApplicat
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\service\PracticeService.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\controller\ProblemController.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\ProblemBrief.java
+E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\DTO\SubmitRecordDTO.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\controller\ListController.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\DTO\ListConditionDTO.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\service\DBService.java

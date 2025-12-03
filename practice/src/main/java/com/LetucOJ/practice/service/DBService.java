@@ -7,7 +7,6 @@ import com.LetucOJ.practice.model.DTO.ListConditionDTO;
 import com.LetucOJ.practice.model.DTO.TestCaseDTO;
 import com.LetucOJ.practice.model.VO.ProblemListVO;
 import com.LetucOJ.practice.model.VO.SubmitRecordListVO;
-import com.LetucOJ.practice.model.VO.TestTaskVO;
 
 public interface DBService {
     ResultVO<ProblemListVO> getList(ListConditionDTO listConditionDTO, String user_name);

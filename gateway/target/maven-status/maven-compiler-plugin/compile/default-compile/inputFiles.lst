@@ -10,6 +10,7 @@ E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\tool\SecurityConfi
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\Redis.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\result\ResultVO.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\config\AuthSetting.java
+E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\model\JwtInfoVO.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\config\RedisConfig.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\tool\JwtFilter.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\tool\JwtUtil.java

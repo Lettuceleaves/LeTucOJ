@@ -5,6 +5,7 @@ com\LetucOJ\practice\repos\RocketMQSubmissionConsumer$1.class
 com\LetucOJ\practice\repos\RocketMQSubmissionConsumer.class
 com\LetucOJ\practice\model\DTO\TestTaskDTO.class
 com\LetucOJ\practice\model\VO\SubmitRecordListVO.class
+com\LetucOJ\practice\model\DTO\SubmitRecordDTO.class
 com\LetucOJ\practice\model\DTO\ListConditionDTO.class
 com\LetucOJ\practice\service\impl\PracticeServiceImpl.class
 com\LetucOJ\practice\model\VO\ProblemListVO.class
@@ -20,5 +21,4 @@ com\LetucOJ\practice\model\DTO\TestCaseDTO.class
 com\LetucOJ\practice\client\RunClient.class
 com\LetucOJ\practice\controller\ListController.class
 com\LetucOJ\practice\service\impl\DBServiceImpl.class
-com\LetucOJ\practice\model\DTO\SubmitRecord.class
 com\LetucOJ\practice\service\DBService.class
