@@ -3,10 +3,10 @@ package com.LetucOJ.contest.controller;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.contest.model.Contest;
 import com.LetucOJ.contest.model.DTO.ContestProblemDTO;
+import com.LetucOJ.contest.model.Problem;
 import com.LetucOJ.contest.service.DBService;
 import com.LetucOJ.contest.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.parsing.Problem;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

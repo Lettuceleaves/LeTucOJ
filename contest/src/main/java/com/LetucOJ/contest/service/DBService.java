@@ -11,10 +11,10 @@ import com.LetucOJ.contest.model.VO.ContestProblemListVO;
 public interface DBService {
     ResultVO<ContestProblemListVO> getProblemList(String contestName, String role);
     ResultVO<ContestListVO> getContestList();
-    ResultVO<Problem> getProblem(String name, String contestName, String userName);
+    ResultVO<Problem> getProblem(String name, String contestName, String userName, String role);
     ResultVO<Void> deleteProblem(ContestProblemDTO dto);
     ResultVO<BoardVO> getBoard(String contestName, String role);
-    ResultVO<Contest> getContest(String ctname);
+    ResultVO<Contest> getContest(String ctname, String role);
     ResultVO<Void> insertContest(Contest dto);
     ResultVO<Void> updateContest(Contest dto);
     ResultVO<Void> insertProblem(ContestProblemDTO dto);

@@ -80,7 +80,7 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
-    public ResultVO<Problem> getProblem(String name, String contestName, String userName) {
+    public ResultVO<Problem> getProblem(String name, String contestName, String userName, String role) {
         try {
 
             ResultVO<Void> attended = attended(userName, contestName);
@@ -147,7 +147,7 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
-    public ResultVO<Contest> getContest(String ctname) {
+    public ResultVO<Contest> getContest(String ctname, String role) {
 
         try {
 
