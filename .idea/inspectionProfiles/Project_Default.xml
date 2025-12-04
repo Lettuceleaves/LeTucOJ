@@ -21,6 +21,7 @@
           <option value="cnname" />
           <option value="contestName" />
           <option value="X-New-Token" />
+          <option value="X-Task-Id" />
         </set>
       </option>
     </inspection_tool>

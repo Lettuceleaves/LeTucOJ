@@ -28,13 +28,13 @@ public class ProblemController {
     }
 
     @PostMapping("/problem")
-    public ResultVO<Void> insertProblem(@RequestBody Problem dto) throws Exception {
-        return dbService.insertProblem(dto);
+    public ResultVO<Void> insertProblem(@RequestBody Problem problem) throws Exception {
+        return dbService.insertProblem(problem);
     }
 
     @PutMapping("/problem")
-    public ResultVO<Void> updateProblem(@RequestBody Problem dto) throws Exception {
-        return dbService.updateProblem(dto);
+    public ResultVO<Void> updateProblem(@RequestBody Problem problem) throws Exception {
+        return dbService.updateProblem(problem);
     }
 
     @DeleteMapping("/problem")
@@ -43,7 +43,7 @@ public class ProblemController {
     }
 
     @PostMapping("/test_case")
-    public ResultVO<TestTaskVO> testCase(@RequestParam String language, @RequestBody TestCaseDTO testCaseDTO) {
+    public ResultVO<Integer> testCase(@RequestParam String language, @RequestBody TestCaseDTO testCaseDTO) {
         return dbService.testCase(testCaseDTO, language);
     }
 

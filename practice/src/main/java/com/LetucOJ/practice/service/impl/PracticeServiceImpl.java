@@ -31,7 +31,7 @@ public class PracticeServiceImpl implements PracticeService {
 
     private MybatisRepos mybatisRepos;
 
-    public ResultVO<TestTaskVO> submit(String userName, String problemName, String code, String language, boolean root) throws Exception {
+    public ResultVO<Integer> submit(String userName, String problemName, String code, String language, boolean root) throws Exception {
         try {
             List<String> inputs = new ArrayList<>();
 
@@ -91,7 +91,7 @@ public class PracticeServiceImpl implements PracticeService {
                 .toArray(String[]::new));
     }
 
-    private ResultVO<TestTaskVO> checkAnswer(List<String> expected, List<String> actual) {
+    private ResultVO<Integer> checkAnswer(List<String> expected, List<String> actual) {
         if (expected.size() != actual.size()) {
             return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }

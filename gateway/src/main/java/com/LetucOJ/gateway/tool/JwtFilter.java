@@ -1,5 +1,6 @@
 package com.LetucOJ.gateway.tool;
 
+import cn.hutool.core.util.IdUtil;
 import com.LetucOJ.gateway.Redis;
 import com.LetucOJ.gateway.result.Result;
 import com.LetucOJ.gateway.result.errorcode.BaseErrorCode;
@@ -60,6 +61,9 @@ public class JwtFilter implements WebFilter {
             "/contest/attend", "/contest/submit", "/contest/submitInRoot", "/practice/submit", "/practice/submitInRoot"
     );
 
+    private static final List<String> ROLE_REQUIRED = List.of(
+    );
+
     @NotNull
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, @NotNull WebFilterChain chain) {
@@ -67,68 +71,78 @@ public class JwtFilter implements WebFilter {
 
         System.out.println("------" + "Method:" + exchange.getRequest().getMethod() + " " + exchange + " " + chain);
 
+        // 默认放过OPTIONS方法
         if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod()) || isStatic(path) || WHITELIST.contains(path)) {
             return chain.filter(exchange);
         }
 
+        // 没有JWT，直接UNAUTHORIZED
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
 
+        // 获取token内容
         String token = authHeader.substring(BEARER_PREFIX.length());
 
         Claims claims;
         try {
             claims = JwtUtil.parseToken(token);
         } catch (JwtException ex) {
-            String body = Result.failure(BaseErrorCode.NEED_LOGIN).toJsonString();
-            byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-
-            ServerHttpResponse resp = exchange.getResponse();
-
-            resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-            resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET,POST,PUT,DELETE,OPTIONS");
-            resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "Authorization,Content-Type");
-            resp.getHeaders().set(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
-
-            resp.setStatusCode(HttpStatus.OK);
-            resp.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-            resp.getHeaders().setContentLength(bytes.length);
-
-            return resp.writeWith(
-                    Mono.just(resp.bufferFactory().wrap(bytes))
-            );
+            return writeErrorResponse(exchange);
         }
 
-        if (Redis.mapGet("black:" + claims.getSubject()) != null && !"/user/login".equals(path)) {
+        // 黑名单拦截
+        if (Redis.mapGet("black:" + claims.getSubject()) != null) {
             return JwtUtil.writeErrorResponse(exchange, GatewayErrorCode.USER_BLOCKED);
         }
 
-        ServerWebExchange mutated = exchange;
-        URI originalUri = exchange.getRequest().getURI();
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(originalUri);
+        // uri构造器
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(exchange.getRequest().getURI());
 
-        String pname = claims.getSubject();
-        if (NAME_REQUIRED.contains(path)) {
-            uriBuilder.replaceQueryParam("pname", pname);
-        }
-        exchange.getAttributes().put("username", pname);
-
-        String cnname = claims.get("cnname", String.class);
-        if (CNNAME_REQUIRED.contains(path)) {
-            uriBuilder.replaceQueryParam("cnname", cnname);
-        }
-
-        if (NAME_REQUIRED.contains(path) || CNNAME_REQUIRED.contains(path)) {
-            URI updatedUri = uriBuilder.build().encode().toUri();
-            mutated = exchange.mutate()
-                    .request(r -> r.uri(updatedUri))
-                    .build();
-        }
-
+        String userName = claims.getSubject();
+        String nickName = claims.get("nick_name", String.class);
         String role = claims.get("role", String.class);
+        String taskId = IdUtil.getSnowflakeNextIdStr();
+
+        // 保存用户名上下文
+        exchange.getAttributes().put("user_name", userName);
+        exchange.getAttributes().put("TaskId", taskId);
+
+        // 修改http标志位
+        boolean shouldMutate = false;
+
+        if (NAME_REQUIRED.contains(path)) {
+            uriBuilder.replaceQueryParam("user_name", userName);
+            shouldMutate = true;
+        }
+
+        if (CNNAME_REQUIRED.contains(path)) {
+            uriBuilder.replaceQueryParam("nick_name", nickName);
+            shouldMutate = true;
+        }
+
+        if (ROLE_REQUIRED.contains(path)) {
+            uriBuilder.replaceQueryParam("role", role);
+            shouldMutate = true;
+        }
+
+        URI finalUri = shouldMutate ? uriBuilder.build().encode().toUri() : null;
+
+        ServerWebExchange mutated = exchange.mutate()
+                .request(r -> {
+                    // 添加 TaskId 到 Header
+                    r.headers(h -> h.add("X-Task-Id", taskId));
+
+                    //如果需要修改参数，则更新 URI
+                    if (finalUri != null) {
+                        r.uri(finalUri);
+                    }
+                })
+                .build();
+
+        // 把信息传递给Spring Gateway，方便调用者方法进行拦截
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 claims.getSubject(), null,
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role)));
@@ -136,5 +150,20 @@ public class JwtFilter implements WebFilter {
         return chain.filter(mutated)
                 .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
 
+    }
+
+    private Mono<Void> writeErrorResponse(ServerWebExchange exchange) {
+        ServerHttpResponse response = exchange.getResponse();
+
+        // 设置响应类型
+        response.setStatusCode(HttpStatus.OK);
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        // 生成 JSON 数据
+        String body = Result.failure(BaseErrorCode.NEED_LOGIN).toJsonString();
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+
+        // 写入响应
+        return response.writeWith(Mono.just(response.bufferFactory().wrap(bytes)));
     }
 }
