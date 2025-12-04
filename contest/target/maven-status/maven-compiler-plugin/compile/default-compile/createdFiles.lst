@@ -6,6 +6,7 @@ com\LetucOJ\contest\model\VO\BoardVO.class
 com\LetucOJ\contest\model\VO\ContestProblemListVO.class
 com\LetucOJ\contest\model\DTO\SubmitRecordDTO.class
 com\LetucOJ\contest\model\Problem.class
+com\LetucOJ\contest\tool\TimeChecker.class
 com\LetucOJ\contest\model\DTO\RecordDTO.class
 com\LetucOJ\contest\model\VO\SubmitRecordListVO.class
 com\LetucOJ\contest\controller\ListController.class
@@ -23,4 +24,5 @@ com\LetucOJ\contest\model\DTO\FullInfoDTO.class
 com\LetucOJ\contest\model\VO\TestTaskVO.class
 com\LetucOJ\contest\model\ProblemStatus.class
 com\LetucOJ\contest\model\DTO\ContestProblemDTO.class
+com\LetucOJ\contest\model\DTO\TestTaskDTO.class
 com\LetucOJ\contest\client\RunClient.class

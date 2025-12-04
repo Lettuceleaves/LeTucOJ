@@ -4,6 +4,7 @@ import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.model.CaseFile;
 import com.LetucOJ.practice.model.DTO.TestCaseDTO;
 import com.LetucOJ.practice.model.Problem;
+import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.service.DBService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -43,7 +44,7 @@ public class ProblemController {
     }
 
     @PostMapping("/test_case")
-    public ResultVO<Integer> testCase(@RequestParam String language, @RequestBody TestCaseDTO testCaseDTO) {
+    public ResultVO<TestTaskVO> testCase(@RequestParam String language, @RequestBody TestCaseDTO testCaseDTO) {
         return dbService.testCase(testCaseDTO, language);
     }
 

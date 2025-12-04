@@ -11,6 +11,7 @@ import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.RunErrorCode;
 import com.LetucOJ.run.model.TestTaskDTO;
+import com.LetucOJ.run.model.TestTaskVO;
 import com.LetucOJ.run.service.RunService;
 import com.LetucOJ.run.tool.DockerCmdBuilder;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +43,7 @@ public class RunServiceImpl implements RunService {
     public static final String CONTAINER_PATH = "/submission"; // 容器文件挂载位置
 
     @Override
-    public ResultVO<Integer> run(TestTaskDTO testTaskDTO) {
+    public ResultVO<TestTaskVO> runTestTask(TestTaskDTO testTaskDTO) {
         int boxId = RunPath.borrowBoxId();
         int amount = testTaskDTO.getCaseAmount();
         try {
@@ -155,7 +155,7 @@ public class RunServiceImpl implements RunService {
                     } catch (Exception e) {
                         Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Killing container: " + containerName + e.getMessage());
                     }
-                    return Result.failure(BaseErrorCode.OUT_OF_TIME, null);
+                    return Result.failure(RunErrorCode.OUT_OF_TIME, null);
                 }
 
                 // 结果状态文件意外缺失
@@ -183,13 +183,15 @@ public class RunServiceImpl implements RunService {
                     case 0: { // 正常完成
                         String errMsg = Files.readString(errTxt);
                         Logger.log(Type.EXTERNAL, LogLevel.INFO, "Memory top point: " + errMsg);
+
+                        // 对比答案
                         for (int i = 0; i < amount; i++) {
                             Path outTxt = Path.of(RunPath.getOutputPath(boxId, i));
                             if (!Files.exists(outTxt)) throw new RuntimeException("Output file not found after execution in: " + boxDir + " name: " + testTaskDTO.getProblemName() + " lang: " + testTaskDTO.getLanguage());
                             String answer = Files.readString(outTxt);
                             if (!answer.trim().equals(new String(outputs.get(i), StandardCharsets.UTF_8).trim())) {
-                                Logger.log(Type.EXTERNAL, LogLevel.INFO, "Expect: " + new String(outputs.get(i)) + ", found: " + answer.trim());
-                                return Result.failure(BaseErrorCode.WRONG_ANSWER, i);
+                                Logger.log(Type.EXTERNAL, LogLevel.INFO, "Expect: " + new String(outputs.get(i)) + "\nFound: " + answer.trim());
+                                return Result.failure(RunErrorCode.WRONG_ANSWER, new TestTaskVO(i, "Expect: " + new String(outputs.get(i)) + ", found: " + answer.trim()));
                             }
                         }
                         return Result.success(null);
@@ -203,25 +205,25 @@ public class RunServiceImpl implements RunService {
                                 ? Files.readString(compileErr)
                                 : "Compilation message, but compile.txt missing";
                         Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Compilation error: " + errMsg);
-                        return Result.failure(BaseErrorCode.COMPILE_ERROR, null);
+                        return Result.failure(RunErrorCode.COMPILE_ERROR, new TestTaskVO(0, errMsg));
                     }
                     case 3: { // 运行时错误
                         String errMsg = Files.readString(errTxt);
                         Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Runtime Error" + errMsg);
-                        return Result.failure(BaseErrorCode.RUNTIME_ERROR, null);
+                        return Result.failure(RunErrorCode.RUNTIME_ERROR, new TestTaskVO(0, errMsg));
                     }
                     case 4: { // 超时
                         Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Runtime timeout from script.");
                         String errMsg = "Execution exceeded time limit";
-                        return Result.failure(BaseErrorCode.OUT_OF_TIME, null);
+                        return Result.failure(RunErrorCode.OUT_OF_TIME, null);
                     }
                     case 5: { // 脚本内部的异常
                         Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Container ErrorCode 5: " + containerName);
-                        return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
+                        return Result.failure(RunErrorCode.SERVICE_ERROR, null);
                     }
                     default: {
                         Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Container ErrorCode != 5: " + containerName);
-                        return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
+                        return Result.failure(RunErrorCode.SERVICE_ERROR, null);
                     }
                 }
             } catch (ClassCastException cce) {
@@ -229,14 +231,14 @@ public class RunServiceImpl implements RunService {
                 return Result.failure(RunErrorCode.VALIDATE_ERROR, null);
             } catch (Exception e) {
                 Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
+                return Result.failure(RunErrorCode.SERVICE_ERROR, null);
             } finally {
-//            forceCleanup(boxId);
+                forceCleanup(boxId);
             }
 
         } catch (Exception e) {
             Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
+            return Result.failure(RunErrorCode.SERVICE_ERROR, null);
         } finally {
             RunPath.returnBoxId();
         }

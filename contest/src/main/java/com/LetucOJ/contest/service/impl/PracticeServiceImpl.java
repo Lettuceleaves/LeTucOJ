@@ -5,23 +5,22 @@ import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.ContestErrorCode;
+import com.LetucOJ.common.result.errorcode.RunErrorCode;
 import com.LetucOJ.contest.client.RunClient;
 import com.LetucOJ.contest.model.Contest;
 import com.LetucOJ.contest.model.DTO.BoardDTO;
 import com.LetucOJ.contest.model.DTO.ProblemStatusDTO;
+import com.LetucOJ.contest.model.DTO.TestTaskDTO;
+import com.LetucOJ.contest.model.VO.TestTaskVO;
 import com.LetucOJ.contest.repos.MybatisRepos;
 import com.LetucOJ.contest.service.DBService;
 import com.LetucOJ.contest.service.PracticeService;
+import com.LetucOJ.contest.tool.TimeChecker;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Service
 @Data
@@ -36,51 +35,35 @@ public class PracticeServiceImpl implements PracticeService {
 
     private DBService dbService;
 
-    public ResultVO<TestTaskVO> submit(String userName, String cnname, String problemName, String contestName, String code, String lang, boolean root) throws Exception {
+    public ResultVO<TestTaskVO> submit(String userName, String nickName, String problemName, String contestName, String code, String language, String role) throws Exception {
         try {
 
-            List<String> inputs = new ArrayList<>();
-            inputs.add(code);
-
-            Contest contestInfo = mybatisRepos.getContest(contestName);
+            Contest contest = mybatisRepos.getContest(contestName);
 
             ResultVO<Void> attended = dbService.attended(userName, contestName);
-            if (!attended.getCode().equals("0") && !root) {
+            if (!attended.getCode().equals("0") && role.equals("USER")) {
                 return Result.failure(ContestErrorCode.USER_NOT_ATTEND, null);
             }
 
-            if (contestInfo == null) {
+            if (contest == null) {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-            } else if (!contestInfo.isPublicContest() && !root) {
+            } else if (!contest.isPublicContest() && role.equals("USER")) {
                 return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC, null);
             }
 
-            Integer score = mybatisRepos.getScoreByContestAndProblem(contestName, problemName);
-            if (score == null || score == 0) {
+            Integer totalScore = mybatisRepos.getScoreByContestAndProblem(contestName, problemName);
+            if (totalScore == null || totalScore == 0) {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             }
 
-            if (!root) {
-                LocalDateTime now = LocalDateTime.now();
-                LocalDateTime start = contestInfo.getStart();
-                LocalDateTime end = contestInfo.getEnd();
-                System.out.println(now);
-                System.out.println(start);
-                System.out.println(end);
-                if (start != null && end != null) {
-                    if (now.isBefore(start)) {
-                        long secondsToStart = Duration.between(now, start).getSeconds();
-                        return Result.failure(ContestErrorCode.CONTEST_NOT_START, null);
-                    } else if (now.isAfter(end)) {
-                        return Result.failure(ContestErrorCode.CONTEST_FINISHED, null);
-                    }
-                } else {
-                    return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
+            if (role.equals("USER")) {
+                ResultVO<TestTaskVO> check = TimeChecker.checkTime(contest);
+                if (!check.getCode().equals("0")) {
+                    return check;
                 }
             }
 
-            // 获取测试数据
-
+            // 检测题目是否存在
             ProblemStatusDTO problemStatus = mybatisRepos.getStatus(problemName);
             if (problemStatus == null) {
                 return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
@@ -88,117 +71,91 @@ public class PracticeServiceImpl implements PracticeService {
                 return Result.failure(BaseErrorCode.NO_CASE_EXIST, null);
             }
 
-            byte[][] inputBytesArrays;
-            try {
-                inputBytesArrays = getCases(problemName, problemStatus.getCaseAmount(), 0);
-            } catch (RuntimeException e) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-            }
-            for (byte[] inputBytes : inputBytesArrays) {
-                inputs.add(new String(inputBytes));
-            }
-            String[] expectedOutputs;
-            byte[][] outputBytesArray;
-            try {
-                outputBytesArray = getCases(problemName, problemStatus.getCaseAmount(), 1);
-            } catch (RuntimeException e) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-            }
-
-
             // 运行用户代码
+            ResultVO<TestTaskVO> runResult = runClient.runTestTask(new TestTaskDTO(problemName, language, code, problemStatus.getCaseAmount()));
 
-            ResultVO<TestTaskVO> runResult = runClient.run(inputs, lang, problemName);
-
-
-            // 处理运行结果
-
-
-            System.out.println(runResult.getCode());
-            if (!runResult.getCode().equals("0")) {
+            // 处理运行结果，后续只需要处理正确/错误结果，编译错误，运行时错误，超时，系统错误就直接返回
+            if (!runResult.getCode().equals("0") && !runResult.getCode().equals(RunErrorCode.WRONG_ANSWER.code())) {
                 return runResult;
             }
-            expectedOutputs = getExpectedOutputs(outputBytesArray);
 
-            ResultVO<TestTaskVO> resultVO = checkAnswer(expectedOutputs, runResult.getData().getAnswer().toArray(new String[expectedOutputs.length]));
+            int userScore = totalScore;
 
-            int getScore;
-            if (contestInfo.getMode().equals("add")) {
-                getScore = resultVO.getCode().equals("0") ? score : (int) ( ( (float) Integer.getInteger(resultVO.getData().getMsg()) / (float) expectedOutputs.length) * (float) score);
-            } else if (contestInfo.getMode().equals("all")) {
-                getScore = resultVO.getCode().equals("0") ? score : 0;
-            } else {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
+            // 回答错误，根据赛制扣分
+            if (runResult.getCode().equals(RunErrorCode.WRONG_ANSWER.code())) {
+                if ("ACM".equals(contest.getMode())) {
+                    userScore = 0;
+                } else if ("IO".equals(contest.getMode())) {
+                    TestTaskVO taskData = runResult.getData();
+                    int passedCases = (taskData != null) ? taskData.getFailAt() : 0;
+                    int totalCases = problemStatus.getCaseAmount();
+                    double ratio = (double) passedCases / totalCases;
+                    userScore = (int) Math.ceil(ratio * totalScore);
+                } else {
+                    return Result.failure(ContestErrorCode.SERVICE_ERROR, null);
+                }
             }
 
             BoardDTO boardDTO = mybatisRepos.getContestBoardByUserAndProblem(contestName, userName, problemName);
+
+            boolean isCurrentAc = runResult.getCode().equals("0");
+            int statusAc = 1; // 已通过
+            int statusUnsolved = 0; // 未通过
+
             if (boardDTO == null) {
-                boardDTO = new BoardDTO(contestName, userName, cnname, problemName, getScore, 1, LocalDateTime.now());
+                boardDTO = new BoardDTO();
+                boardDTO.setContestName(contestName);
+                boardDTO.setUserName(userName);
+                boardDTO.setNickName(nickName);
+                boardDTO.setProblemName(problemName);
+                boardDTO.setScore(userScore);
+                boardDTO.setTryCount(1); // 第一次尝试
+                boardDTO.setCreateTime(LocalDateTime.now());
+
+                if (isCurrentAc) {
+                    boardDTO.setStatus(statusAc);
+                } else {
+                    boardDTO.setStatus(statusUnsolved);
+                }
+
                 Integer res = mybatisRepos.insertContestBoard(boardDTO);
                 if (res == null || res <= 0) {
-                    System.out.println("failed to insert board");
                     return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
                 }
+
             } else {
-                boardDTO.setScore(Math.max(boardDTO.getScore(), getScore));
+                if ("ACM".equals(contest.getMode())) {
+                    if (boardDTO.getStatus() == statusAc) {
+                        return Result.success(null);
+                    }
+
+                    if (isCurrentAc) {
+                        boardDTO.setScore(userScore);
+                        boardDTO.setStatus(statusAc);
+                        boardDTO.setTryCount(boardDTO.getTryCount() + 1); // 尝试次数+1
+                         boardDTO.setAcTime(LocalDateTime.now());
+                    }
+                    else {
+                        boardDTO.setTryCount(boardDTO.getTryCount() + 1); // 仅增加错误次数
+                    }
+
+                } else {
+                    boardDTO.setScore(Math.max(boardDTO.getScore(), userScore));
+                    if (boardDTO.getScore() == totalScore) {
+                        boardDTO.setStatus(statusAc);
+                    }
+                    boardDTO.setTryCount(boardDTO.getTryCount() + 1);
+                }
                 Integer res = mybatisRepos.updateContestBoard(boardDTO);
                 if (res == null || res <= 0) {
-                    System.out.println("failed to update board");
                     return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
                 }
-            }
-            if (resultVO.getCode().equals("0")) {
-                return Result.success(null);
-            } else {
-                return Result.failure(BaseErrorCode.WRONG_ANSWER, new TestTaskVO(null, "wrong in case " + resultVO.getData().getMsg()));
+                return runResult;
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
-    }
-
-    private ResultVO<TestTaskVO> checkAnswer(String[] expected, String[] actual) {
-        if (expected.length != actual.length) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-        }
-        for (int i = 0; i < expected.length; i++) {
-            if (!expected[i].equals(actual[i])) {
-                return Result.failure(BaseErrorCode.WRONG_ANSWER, new TestTaskVO(null, String.valueOf(i)));
-            }
-        }
-        return Result.success(null);
-    }
-
-    private String[] getExpectedOutputs(byte[][] outputBytesArray) {
-        return Arrays.stream(outputBytesArray)
-                .map(bytes -> new String(bytes, StandardCharsets.UTF_8))
-                .flatMap(s -> Arrays.stream(s.split("\\R")))
-                .toArray(String[]::new);
-    }
-
-    private byte[][] getCases(String problemId, int amount, int type) {
-
-        byte[][] cases = new byte[amount][];
-        for (int i = 1; i <= amount; i++) {
-            byte[] file;
-            String bucketName = "letucoj";
-            try {
-                String objectName;
-                if (type == 1) {
-                    objectName = "problems/" + problemId + "/output/" + i + ".txt";
-                } else {
-                    objectName = "problems/" + problemId + "/input/" + i + ".txt";
-                }
-                file = minioRepos.getFile(bucketName, objectName);
-                if (file == null) {
-                    throw new Exception("practice/getCases: File " + i + " not found");
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("practice/getCases: Error retrieving file " + i + ": " + e.getMessage());
-            }
-            cases[i - 1] = file;
-        }
-        return cases;
+        return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
     }
 }

@@ -14,5 +14,4 @@ E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\model\JwtInfoVO.ja
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\config\RedisConfig.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\tool\JwtFilter.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\tool\JwtUtil.java
-E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\tool\RoleRedirectFilter.java
 E:\projects\LeTucOJ\gateway\src\main\java\com\LetucOJ\gateway\result\Result.java

@@ -12,9 +12,11 @@ import java.time.LocalDateTime;
 public class BoardDTO {
     private String contestName;
     private String userName;
-    private String userCnname;
+    private String nickName;
     private String problemName;
     private int score;
-    private int times;
-    private LocalDateTime lastSubmit;
+    private int tryCount;
+    private int status;
+    private LocalDateTime createTime;
+    private LocalDateTime acTime;
 }

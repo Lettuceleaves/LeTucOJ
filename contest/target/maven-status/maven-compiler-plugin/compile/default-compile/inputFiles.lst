@@ -6,11 +6,13 @@ E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\VO\ContestLi
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\DTO\RecordDTO.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\service\DBService.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\Contest.java
+E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\tool\TimeChecker.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\ProblemBrief.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\ProblemStatus.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\repos\MybatisRepos.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\DTO\FullInfoDTO.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\VO\BoardVO.java
+E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\model\DTO\TestTaskDTO.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\controller\ContestController.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\controller\ListController.java
 E:\projects\LeTucOJ\contest\src\main\java\com\LetucOJ\contest\PracticeApplication.java

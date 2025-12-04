@@ -14,6 +14,7 @@ import com.LetucOJ.practice.model.DTO.*;
 import com.LetucOJ.practice.model.DTO.TestCaseDTO;
 import com.LetucOJ.practice.model.VO.ProblemListVO;
 import com.LetucOJ.practice.model.VO.SubmitRecordListVO;
+import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.DBService;
 import lombok.AllArgsConstructor;
@@ -255,9 +256,7 @@ public class DBServiceImpl implements DBService {
         if (exist == null) {
             return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
         }
-        List<String> inputs = new ArrayList<>();
-        inputs.add(input);
-        return runClient.run(new TestTaskDTO(code, inputs, language, problemName));
+        return runClient.runTestCase(new TestCaseDTO(problemName, code, input));
     }
 
     @Transactional

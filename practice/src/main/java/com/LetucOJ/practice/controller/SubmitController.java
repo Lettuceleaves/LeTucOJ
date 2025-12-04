@@ -5,6 +5,7 @@ import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.practice.model.DTO.SubmitRecordDTO;
+import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.repos.MybatisRepos;
 import com.LetucOJ.practice.service.PracticeService;
 import com.alibaba.fastjson.JSON;
@@ -34,24 +35,11 @@ public class SubmitController {
             @RequestParam("user_name") String userName,
             @RequestParam("problem_name") String problemName,
             @RequestParam("nick_name") String nickName,
+            @RequestParam("role") String role,
             @RequestBody String code) throws Exception {
-        ResultVO<TestTaskVO> result = practiceService.submit(userName, problemName, code, language, false);
+        ResultVO<TestTaskVO> result = practiceService.submit(userName, problemName, code, language, role);
 
         return saveSubmitRecord(language, userName, problemName, nickName, code, result);
-    }
-
-    @PostMapping("/submitInRoot")
-    @SubmitLimit
-    public ResultVO<TestTaskVO> submitInRoot(
-            @RequestParam("language") String language,
-            @RequestParam("user_name") String userName,
-            @RequestParam("problem_name") String problemName,
-            @RequestParam("nick_name") String nickName,
-            @RequestBody String userCode) throws Exception {
-
-        ResultVO<TestTaskVO> result = practiceService.submit(userName, problemName, userCode, language, true);
-
-        return saveSubmitRecord(language, userName, problemName, nickName, userCode, result);
     }
 
     @Nullable

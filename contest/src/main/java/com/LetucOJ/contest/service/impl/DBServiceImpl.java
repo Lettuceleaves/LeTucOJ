@@ -46,16 +46,16 @@ public class DBServiceImpl implements DBService {
     @Override
     public ResultVO<ContestProblemListVO> getProblemList(String contestName, String role) {
         try {
-            Contest dbDtoContest = mybatisRepos.getContest(contestName);
+            Contest contest = mybatisRepos.getContest(contestName);
 
-            if (!dbDtoContest.isPublicContest()) {
+            if (!contest.isPublicContest()) {
                 return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC, null);
             }
 
             // check time
             LocalDateTime now = LocalDateTime.now();
-            LocalDateTime start = dbDtoContest.getStart();
-            LocalDateTime end   = dbDtoContest.getEnd();
+            LocalDateTime start = contest.getStart();
+            LocalDateTime end   = contest.getEnd();
             if (start != null && end != null) {
                 if (now.isBefore(start)) {
                     return Result.failure(ContestErrorCode.CONTEST_NOT_START, null);
