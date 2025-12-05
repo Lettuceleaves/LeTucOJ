@@ -50,6 +50,7 @@ public class DBServiceImpl implements DBService {
     public ResultVO<ContestProblemListVO> getProblemList(String contestName, String role) {
         return executeSafe(() -> {
             Contest contest = mybatisRepos.getContest(contestName);
+
             // 校验比赛是否公开
             if (!contest.isPublicContest()) {
                 return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC, null);
@@ -57,9 +58,11 @@ public class DBServiceImpl implements DBService {
 
             // 校验比赛时间
             ResultVO<Void> timeCheck = checkContestTime(contest);
-            if (!timeCheck.isSuccess()) {
-                // 泛型转换，虽然data是null，但类型需要匹配
-                return Result.failure(timeCheck.getErrorCode(), null);
+
+            if (!"0".equals(timeCheck.getCode())) {
+                @SuppressWarnings("unchecked")
+                ResultVO<ContestProblemListVO> failResult = (ResultVO<ContestProblemListVO>) (ResultVO<?>) timeCheck;
+                return failResult;
             }
 
             List<ProblemBrief> list = mybatisRepos.getProblemList(contestName);
@@ -74,21 +77,19 @@ public class DBServiceImpl implements DBService {
     @Override
     public ResultVO<Problem> getProblem(String name, String contestName, String userName, String role) {
         return executeSafe(() -> {
-            // 1. 检查是否已参赛
+            // 检查是否已参赛
             ResultVO<Void> attended = attended(userName, contestName);
-            if (!attended.isSuccess()) {
-                // 原代码有 System.out.println，建议改为日志或删除
-                // Logger.log(Type.SERVER, LogLevel.WARN, "User not in contest: " + attended.getCode());
+            if (!"0".equals(attended.getCode())) {
                 return Result.failure(ContestErrorCode.USER_NOT_IN_CONTEST, null);
             }
 
-            // 2. 检查比赛是否公开
+            // 检查比赛是否公开
             Contest dbDtoContest = mybatisRepos.getContest(contestName);
             if (!dbDtoContest.isPublicContest()) {
                 return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC, null);
             }
 
-            // 3. 获取题目
+            // 获取题目
             Problem dbDto = mybatisRepos.getProblem(name);
             if (dbDto == null) {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
@@ -150,15 +151,13 @@ public class DBServiceImpl implements DBService {
 
     @Override
     public ResultVO<Void> updateContest(Contest dto) {
-        return executeSafe(() -> {
-            // 原代码有 System.out.println(dto); 建议移除或改为 debug 日志
-            return checkDbRows(mybatisRepos.updateContest(dto), BaseErrorCode.SERVICE_ERROR);
-        });
+        return executeSafe(() -> checkDbRows(mybatisRepos.updateContest(dto), BaseErrorCode.SERVICE_ERROR));
     }
 
     @Override
     public ResultVO<Void> insertProblem(ContestProblemDTO dto) {
         return executeSafe(() -> {
+
             // 参数校验
             if (dto == null) {
                 return Result.failure(ContestErrorCode.EMPTY_DATA);
@@ -172,7 +171,7 @@ public class DBServiceImpl implements DBService {
                 return Result.failure(ContestErrorCode.INVALID_PARAM);
             }
 
-            // 执行插入 (保持原逻辑：插入失败返回 PROBLEM_NOT_EXIST)
+            // 执行插入
             return checkDbRows(mybatisRepos.insertProblem(dto), BaseErrorCode.PROBLEM_NOT_EXIST);
         });
     }
@@ -183,7 +182,6 @@ public class DBServiceImpl implements DBService {
             if (dto == null) {
                 return Result.failure(ContestErrorCode.EMPTY_DATA);
             }
-            // 保持原逻辑：必须 rows == 1 才算成功
             Integer rows = mybatisRepos.deleteProblem(dto.getContestName(), dto.getProblemName());
             if (rows != null && rows == 1) {
                 return Result.success();
@@ -216,9 +214,7 @@ public class DBServiceImpl implements DBService {
         try {
             return action.get();
         } catch (Exception e) {
-            // 如果项目中引入了 Logger，建议取消下面的注释
-            // Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            e.printStackTrace(); // 兜底日志
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
@@ -236,6 +232,7 @@ public class DBServiceImpl implements DBService {
 
     /**
      * 提取比赛时间检查逻辑
+     * 返回 ResultVO<Void>，成功时 data 为 null，code 为 "0"
      */
     private ResultVO<Void> checkContestTime(Contest contest) {
         LocalDateTime now = LocalDateTime.now();

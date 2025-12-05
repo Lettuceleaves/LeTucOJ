@@ -41,7 +41,6 @@ public class DBServiceImpl implements DBService {
             if (listConditionDTO.getStart() == null || listConditionDTO.getLimit() == null) {
                 return Result.failure(PracticeErrorCode.CLIENT_ERROR, null);
             }
-            // 传入获取总数的逻辑
             return doGetProblemList(listConditionDTO, name, role,
                     () -> mybatisRepos.getAmount(listConditionDTO));
         });
@@ -61,7 +60,6 @@ public class DBServiceImpl implements DBService {
                 listConditionDTO.setOrder("lang");
             }
 
-            // 传入获取搜索总数的逻辑
             return doGetProblemList(listConditionDTO, name, role,
                     () -> mybatisRepos.getSearchAmount(listConditionDTO));
         });
