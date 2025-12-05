@@ -3,6 +3,7 @@ package com.LetucOJ.common.log;
 import java.time.format.DateTimeFormatter;
 import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
+import com.LetucOJ.common.trace.TraceContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ public class Logger {
         }
 
         String payload = "[" + level.message() + ": " + type.message() + "] " + "(" + time() + ")" + " " + info;
-        Message message = new Message("log", "log", "0", payload, time(), 0);
+        Message message = new Message("log", "log", TraceContext.getTraceId(), payload, time(), 0);
         System.out.println("send: " + message);
         staticMessageQueueProducer.send(message);
     }
