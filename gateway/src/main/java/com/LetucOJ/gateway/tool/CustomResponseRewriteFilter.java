@@ -1,10 +1,13 @@
 package com.LetucOJ.gateway.tool;
 
-import com.LetucOJ.gateway.Redis;
+import com.LetucOJ.common.cache.Redis;
+import com.LetucOJ.common.log.LogLevel;
+import com.LetucOJ.common.log.Logger;
+import com.LetucOJ.common.log.Type;
+import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
 import com.LetucOJ.gateway.client.UserClient;
 import com.LetucOJ.gateway.model.JwtInfoVO;
-import com.LetucOJ.gateway.result.ResultVO;
-import com.LetucOJ.gateway.result.errorcode.GatewayErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;

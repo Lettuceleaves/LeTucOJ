@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SubmitLimit {
     String keyPrefix() default "SUBMIT_LIMIT_";
+    String taskId() default "defaultTaskId";
     int limit() default 10;
     int delayLevel() default 3;
 }

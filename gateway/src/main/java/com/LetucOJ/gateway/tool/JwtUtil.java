@@ -1,8 +1,8 @@
 package com.LetucOJ.gateway.tool;
 
-import com.LetucOJ.gateway.result.Result;
-import com.LetucOJ.gateway.result.errorcode.ErrorCode;
-import com.LetucOJ.gateway.result.errorcode.GatewayErrorCode;
+import com.LetucOJ.common.result.Result;
+import com.LetucOJ.common.result.errorcode.ErrorCode;
+import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.*;
@@ -25,12 +25,12 @@ public class JwtUtil {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static String generateToken(String username, String cnname, String role) {
+    public static String generateToken(String userName, String nickName, String role) {
         return Jwts.builder()
                 .issuer("LetucOJ")
-                .subject(username)
+                .subject(userName)
                 .expiration((new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)))
-                .claim("cnname", cnname)
+                .claim("cnname", nickName)
                 .claim("role", role)
                 .signWith(KEY)
                 .compact();

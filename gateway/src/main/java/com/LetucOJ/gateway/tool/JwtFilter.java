@@ -1,12 +1,15 @@
 package com.LetucOJ.gateway.tool;
 
 import cn.hutool.core.util.IdUtil;
-import com.LetucOJ.gateway.Redis;
-import com.LetucOJ.gateway.result.Result;
-import com.LetucOJ.gateway.result.errorcode.BaseErrorCode;
-import com.LetucOJ.gateway.result.errorcode.GatewayErrorCode;
+import cn.hutool.json.JSONUtil;
+import com.LetucOJ.common.cache.Redis;
+import com.LetucOJ.common.result.Result;
+import com.LetucOJ.common.result.errorcode.BaseErrorCode;
+import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
+import com.LetucOJ.common.trace.TraceContext;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -17,7 +20,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -30,7 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
-@Component
+@Slf4j
 public class JwtFilter implements WebFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
@@ -104,11 +106,10 @@ public class JwtFilter implements WebFilter {
         String userName = claims.getSubject();
         String nickName = claims.get("nick_name", String.class);
         String role = claims.get("role", String.class);
-        String taskId = IdUtil.getSnowflakeNextIdStr();
+
 
         // 保存用户名上下文
         exchange.getAttributes().put("user_name", userName);
-        exchange.getAttributes().put("TaskId", taskId);
 
         // 修改http标志位
         boolean shouldMutate = false;
@@ -130,12 +131,10 @@ public class JwtFilter implements WebFilter {
 
         URI finalUri = shouldMutate ? uriBuilder.build().encode().toUri() : null;
 
+
+
         ServerWebExchange mutated = exchange.mutate()
                 .request(r -> {
-                    // 添加 TaskId 到 Header
-                    r.headers(h -> h.add("X-Task-Id", taskId));
-
-                    //如果需要修改参数，则更新 URI
                     if (finalUri != null) {
                         r.uri(finalUri);
                     }
@@ -160,7 +159,7 @@ public class JwtFilter implements WebFilter {
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
         // 生成 JSON 数据
-        String body = Result.failure(BaseErrorCode.NEED_LOGIN).toJsonString();
+        String body = JSONUtil.toJsonStr(Result.failure(BaseErrorCode.NEED_LOGIN));
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
 
         // 写入响应

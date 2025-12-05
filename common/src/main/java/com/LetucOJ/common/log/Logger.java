@@ -3,16 +3,18 @@ package com.LetucOJ.common.log;
 import java.time.format.DateTimeFormatter;
 import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.stereotype.Component;
-import javax.annotation.PostConstruct; // 导入 @PostConstruct
+import javax.annotation.PostConstruct;
 
 @Component
+@Data
+@AllArgsConstructor
 public class Logger {
 
     private static MessageQueueProducer staticMessageQueueProducer;
 
-    @Autowired
     private MessageQueueProducer messageQueueProducer;
 
     @PostConstruct

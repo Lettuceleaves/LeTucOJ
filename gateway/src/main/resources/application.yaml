@@ -10,6 +10,9 @@ spring:
     redis:
       host: redis
       port: 6379
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
   cloud:
     gateway:
       routes:

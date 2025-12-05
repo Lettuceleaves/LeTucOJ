@@ -13,6 +13,7 @@ public enum BaseErrorCode implements ErrorCode {
     PROBLEM_NOT_EXIST("B010002", "题目不存在"),
     NO_CASE_EXIST("B010003", "没有测试案例"),
     NOT_SUPPORT("B010004", "功能暂不开放"),
+    TASKID_MISSED("B010005", "taskId缺失"),
 
     // ========== 一级宏观错误码 调用第三方服务出错 ==========
     REMOTE_ERROR("C010001", "调用第三方服务出错");

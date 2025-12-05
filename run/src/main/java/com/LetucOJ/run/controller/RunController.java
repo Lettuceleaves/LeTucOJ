@@ -21,7 +21,7 @@ public class RunController {
     }
 
     @PostMapping("/case")
-    public ResultVO<TestCaseDTO> runTestCase(@RequestBody TestCaseDTO testTaskDTO) {
-        return null;
+    public ResultVO<TestTaskVO> runTestCase(@RequestBody TestCaseDTO testCaseDTO) {
+        return runService.runTestCase(testCaseDTO);
     }
 }

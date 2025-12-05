@@ -4,9 +4,8 @@ import cn.hutool.core.lang.Singleton;
 import cn.hutool.json.JSONUtil;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.mq.impl.RocketMQProducer;
-import com.LetucOJ.common.unique.TaskIdContext;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -25,13 +24,15 @@ import java.util.Map;
 @Aspect
 @Component
 @RequiredArgsConstructor
+@Data
+@AllArgsConstructor
 public class SubmitLimitAspect {
 
-    private final RocketMQProducer rocketMQProducer;
+    private RocketMQProducer rocketMQProducer;
 
-    private final StringRedisTemplate stringRedisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
-    private final LangMybatisRepos langMybatisRepos;
+    private LangMybatisRepos langMybatisRepos;
 
     private boolean retry = false;
 
@@ -53,7 +54,7 @@ public class SubmitLimitAspect {
     @Around("@annotation(com.LetucOJ.common.anno.SubmitLimit)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         SubmitLimit submitLimit = getSubmitLimit(joinPoint);
-        String uniqueKey = submitLimit.keyPrefix() + TaskIdContext.getTaskId();
+        String uniqueKey = submitLimit.keyPrefix() + submitLimit.taskId();
         DefaultRedisScript<Long> buildLuaScript = Singleton.get(LUA_PATH, () -> {
             DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
             redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(LUA_PATH)));
@@ -110,11 +111,7 @@ public class SubmitLimitAspect {
     }
 
     private void loadLanguageConfig(String lang) {
-        LambdaQueryWrapper<LanguageConfigDO> queryWrapper = Wrappers.lambdaQuery(LanguageConfigDO.class)
-                .eq(LanguageConfigDO::getLang, lang)
-                .or()
-                .eq(LanguageConfigDO::getLang, "total");
-        List<LanguageConfigDO> configs = langMybatisRepos.selectList(queryWrapper);
+        List<LanguageConfigDO> configs = langMybatisRepos.selectList(lang);
         for (LanguageConfigDO config : configs) {
             System.out.println(config.getLang() + " " + config.getMemPerRun());
             stringRedisTemplate.execute(

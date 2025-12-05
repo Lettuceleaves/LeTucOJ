@@ -1,11 +1,13 @@
 package com.LetucOJ.common.cache;
 
+import lombok.Data;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.Nullable;
 
 import java.time.Duration;
 
 /** 静态工具，封装最常用 set/get 以及 Set 操作 */
+@Data
 public final class Redis {
 
     private static StringRedisTemplate template;

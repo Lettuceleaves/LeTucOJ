@@ -1,6 +1,10 @@
 package com.LetucOJ.gateway.tool;
 
+import com.LetucOJ.common.log.LogLevel;
+import com.LetucOJ.common.log.Logger;
+import com.LetucOJ.common.log.Type;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -15,14 +19,13 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
  * 网关安全配置类
  * 负责定义 URL 访问权限、关闭 CSRF、以及配置 JWT 过滤器
  */
+@Slf4j
 @Configuration
 @EnableWebFluxSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @Order(10)
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final JwtFilter jwtFilter;
 
     // =================================================================================
     // 1. 定义白名单路径 (无需登录即可访问)
@@ -134,9 +137,7 @@ public class SecurityConfig {
                         // 5. 其他所有请求必须认证
                         .anyExchange().authenticated()
                 )
-
-                // 在认证过滤器之前添加自定义 JWT 过滤器
-                .addFilterBefore(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .addFilterBefore(new JwtFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
     }
 }

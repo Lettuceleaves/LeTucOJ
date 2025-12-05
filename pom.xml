@@ -58,7 +58,7 @@
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
         <jwt.version>0.12.6</jwt.version>
         <openfeign.version>4.1.1</openfeign.version>
-        <rocketmq.version>2.3.0</rocketmq.version>
+        <rocketmq.version>2.3.1</rocketmq.version>
         <hutool-all.version>5.8.27</hutool-all.version>
         <snowflake.version>1.2.0</snowflake.version>
         <thread-local.version>2.2.0</thread-local.version>

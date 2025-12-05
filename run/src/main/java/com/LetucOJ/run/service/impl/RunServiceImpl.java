@@ -10,6 +10,7 @@ import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.RunErrorCode;
+import com.LetucOJ.run.model.TestCaseDTO;
 import com.LetucOJ.run.model.TestTaskDTO;
 import com.LetucOJ.run.model.TestTaskVO;
 import com.LetucOJ.run.service.RunService;
@@ -242,6 +243,11 @@ public class RunServiceImpl implements RunService {
         } finally {
             RunPath.returnBoxId();
         }
+    }
+
+    @Override
+    public ResultVO<TestTaskVO> runTestCase(TestCaseDTO testCaseDTO) {
+        return null;
     }
 
 

@@ -1,8 +1,6 @@
 package com.LetucOJ.user.controller;
 
-import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.common.unique.TaskIdContext;
 import com.LetucOJ.user.model.JwtInfoVO;
 import com.LetucOJ.user.model.RegisterRequestDTO;
 import com.LetucOJ.user.model.UserInfoDTO;
@@ -102,10 +100,5 @@ public class UserController {
     @PutMapping("/password")
     public ResultVO<Void> changePassword(@RequestParam("pname") String pname, @RequestParam("secret_key" ) String secretKey, @RequestParam("new_password") String newPassword) {
         return userService.changePassword(pname, secretKey, newPassword);
-    }
-
-    @PostMapping("/test")
-    public ResultVO<Object> testEndpoint() {
-        return Result.success(TaskIdContext.getTaskId());
     }
 }

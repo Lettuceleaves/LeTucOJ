@@ -1,6 +1,5 @@
 package com.LetucOJ.user;
 
-import com.LetucOJ.common.unique.TaskIdContext;
 import lombok.AllArgsConstructor;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.CommandLineRunner;
@@ -22,9 +21,8 @@ public class AuthApplication implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         try {
-            TaskIdContext.setTaskId("test-task-id");
             testSubmit.test("java", "userName", "problemName");
         } catch (Exception e) {
             System.out.println(e.getMessage());
