@@ -10,12 +10,9 @@ import com.LetucOJ.practice.model.VO.SubmitRecordListVO;
 import com.LetucOJ.practice.model.VO.TestTaskVO;
 
 public interface DBService {
-    ResultVO<ProblemListVO> getList(ListConditionDTO listConditionDTO, String user_name);
-    ResultVO<ProblemListVO> getListInRoot(ListConditionDTO listConditionDTO, String user_name);
-    ResultVO<ProblemListVO> searchList(ListConditionDTO listConditionDTO, String user_name);
-    ResultVO<ProblemListVO> searchListInRoot(ListConditionDTO dto, String user_name);
-    ResultVO<Problem> getProblem(String user_name);
-    ResultVO<Problem> getProblemInRoot(String user_name);
+    ResultVO<ProblemListVO> getList(ListConditionDTO listConditionDTO, String user_name, String role);
+    ResultVO<ProblemListVO> searchList(ListConditionDTO listConditionDTO, String user_name, String role);
+    ResultVO<Problem> getProblem(String user_name, String role);
     ResultVO<Void> insertProblem(Problem problem);
     ResultVO<Void> updateProblem(Problem problem);
     ResultVO<Void> deleteProblem(String user_name);

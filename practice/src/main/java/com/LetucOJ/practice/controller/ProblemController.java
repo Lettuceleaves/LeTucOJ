@@ -19,13 +19,8 @@ public class ProblemController {
     private DBService dbService;
 
     @GetMapping("/problem")
-    public ResultVO<Problem> getProblem(@RequestParam("problem_name") String problemName) throws Exception {
-        return dbService.getProblem(problemName);
-    }
-
-    @GetMapping("/problem_root")
-    public ResultVO<Problem> getProblemInRoot(@RequestParam("problem_name") String problemName) throws Exception {
-        return dbService.getProblemInRoot(problemName);
+    public ResultVO<Problem> getProblem(@RequestParam("problem_name") String problemName, String role) throws Exception {
+        return dbService.getProblem(problemName, role);
     }
 
     @PostMapping("/problem")

@@ -23,29 +23,16 @@ public class ListController {
     private DBService dbService;
 
     @GetMapping("/list")
-    public ResultVO<ProblemListVO> getList(@ModelAttribute ListConditionDTO listConditionDTO, @RequestParam("user_name") String problemName) {
+    public ResultVO<ProblemListVO> getList(@ModelAttribute ListConditionDTO listConditionDTO, @RequestParam("user_name") String problemName, @RequestParam("role") String role) {
         listConditionDTO.setLike(recursiveDecode(listConditionDTO.getLike()));
-        return dbService.getList(listConditionDTO, problemName);
-    }
-
-    @GetMapping("/list_root")
-    public ResultVO<ProblemListVO> getListInRoot(@ModelAttribute ListConditionDTO listConditionDTO, @RequestParam("user_name") String problemName) {
-        listConditionDTO.setLike(recursiveDecode(listConditionDTO.getLike()));
-        return dbService.getListInRoot(listConditionDTO, problemName);
+        return dbService.getList(listConditionDTO, problemName, role);
     }
 
     @GetMapping("/list_search")
-    public ResultVO<ProblemListVO> searchList(@ModelAttribute ListConditionDTO listConditionDTO, @RequestParam("user_name") String problemName) {
+    public ResultVO<ProblemListVO> searchList(@ModelAttribute ListConditionDTO listConditionDTO, @RequestParam("user_name") String problemName, @RequestParam("role") String role) {
         listConditionDTO.setLike(recursiveDecode(listConditionDTO.getLike()));
-        return dbService.searchList(listConditionDTO, problemName);
+        return dbService.searchList(listConditionDTO, problemName, role);
     }
-
-    @GetMapping("/list_search_root")
-    public ResultVO<ProblemListVO> searchListInRoot(@ModelAttribute ListConditionDTO listConditionDTO, @RequestParam("user_name") String problemName) {
-        listConditionDTO.setLike(recursiveDecode(listConditionDTO.getLike()));
-        return dbService.searchListInRoot(listConditionDTO, problemName);
-    }
-
     @GetMapping("/list_record/self")
     public ResultVO<SubmitRecordListVO> submitRecordListSelf(@RequestParam("user_name") String problemName, @RequestParam("start") int start, @RequestParam("limit") int limit) {
         return dbService.submitRecordListByName(problemName, start, limit);

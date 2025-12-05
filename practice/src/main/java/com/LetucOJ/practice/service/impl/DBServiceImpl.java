@@ -24,227 +24,80 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.util.*;
+import java.util.function.Supplier;
 
 @Service
 @Data
 @AllArgsConstructor
 public class DBServiceImpl implements DBService {
 
-    private MybatisRepos mybatisRepos;
+    private final MybatisRepos mybatisRepos;
+    private final MinioRepos minioRepos;
+    private final RunClient runClient;
 
-    private MinioRepos minioRepos;
+    @Override
+    public ResultVO<ProblemListVO> getList(ListConditionDTO listConditionDTO, String name, String role) {
+        return executeSafe(() -> {
+            if (listConditionDTO.getStart() == null || listConditionDTO.getLimit() == null) {
+                return Result.failure(PracticeErrorCode.CLIENT_ERROR, null);
+            }
+            // 传入获取总数的逻辑
+            return doGetProblemList(listConditionDTO, name, role,
+                    () -> mybatisRepos.getAmount(listConditionDTO));
+        });
+    }
 
-    private RunClient runClient;
-
-    public ResultVO<ProblemListVO> getList(ListConditionDTO listConditionDTO, String name) {
-
-        try {
-
+    @Override
+    public ResultVO<ProblemListVO> searchList(ListConditionDTO listConditionDTO, String name, String role) {
+        return executeSafe(() -> {
             if (listConditionDTO.getStart() == null || listConditionDTO.getLimit() == null) {
                 return Result.failure(BaseErrorCode.CLIENT_ERROR, null);
             }
 
-            Integer amount = mybatisRepos.getAmount(listConditionDTO);
-            List<ProblemBrief> list = mybatisRepos.getList(listConditionDTO);
-            Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
-
-            if (list == null || list.isEmpty()) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
-            } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
+            // 设置默认排序逻辑
+            String order = listConditionDTO.getOrder();
+            if (order == null || order.isEmpty() ||
+                    (!Objects.equals(order, "lang") && !Objects.equals(order, "difficulty") && !Objects.equals(order, "cnname"))) {
+                listConditionDTO.setOrder("lang");
             }
 
-            for (ProblemBrief item : list) {
-                if (acceptedSet.contains(item.getName())) {
-                    item.setAccepted(1);
-                }
-            }
-
-            return Result.success(new ProblemListVO(list, amount));
-        } catch (Exception e) {
-            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-        }
-    }
-
-    public ResultVO<ProblemListVO> getListInRoot(ListConditionDTO dto, String name) {
-
-        try {
-
-            if (dto.getStart() == null || dto.getLimit() == null) {
-                return Result.failure(BaseErrorCode.CLIENT_ERROR, null);
-            }
-
-            Integer amount = mybatisRepos.getAmountInRoot(dto);
-            List<ProblemBrief> list = mybatisRepos.getListInRoot(dto);
-            Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
-
-            if (list == null || list.isEmpty()) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
-            } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-            }
-
-            for (ProblemBrief item : list) {
-                if (acceptedSet.contains(item.getName())) {
-                    item.setAccepted(1);
-                }
-            }
-
-            return Result.success(new ProblemListVO(list, amount));
-        } catch (Exception e) {
-            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-        }
+            // 传入获取搜索总数的逻辑
+            return doGetProblemList(listConditionDTO, name, role,
+                    () -> mybatisRepos.getSearchAmount(listConditionDTO));
+        });
     }
 
     @Override
-    public ResultVO<ProblemListVO> searchList(ListConditionDTO dto, String name) {
-        try {
-            if (dto.getStart() == null || dto.getLimit() == null) {
-                return Result.failure(BaseErrorCode.CLIENT_ERROR, null);
-            }
-
-            if (dto.getOrder() == null || dto.getOrder().isEmpty()) {
-                dto.setOrder("lang");
-            }
-
-            if (!Objects.equals(dto.getOrder(), "lang") && !Objects.equals(dto.getOrder(), "difficulty") && !Objects.equals(dto.getOrder(), "cnname")) {
-                dto.setOrder("lang");
-            }
-
-            Integer amount = mybatisRepos.getSearchAmount(dto);
-            List<ProblemBrief> list = mybatisRepos.searchList(dto);
-            Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
-
-            if (list == null || list.isEmpty()) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
-            } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-            }
-
-            for (ProblemBrief item : list) {
-                if (acceptedSet.contains(item.getName())) {
-                    item.setAccepted(1);
-                }
-            }
-
-            return Result.success(new ProblemListVO(list, amount));
-        } catch (Exception e) {
-            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-        }
-    }
-
-    @Override
-    public ResultVO<ProblemListVO> searchListInRoot(ListConditionDTO dto, String name) {
-        try {
-            if (dto.getStart() == null || dto.getLimit() == null) {
-                return Result.failure(BaseErrorCode.CLIENT_ERROR, null);
-            }
-
-            if (dto.getOrder() == null || dto.getOrder().isEmpty()) {
-                dto.setOrder("lang");
-            }
-
-            if (!Objects.equals(dto.getOrder(), "lang") && !Objects.equals(dto.getOrder(), "difficulty") && !Objects.equals(dto.getOrder(), "cnname")) {
-                dto.setOrder("lang");
-            }
-
-            Integer amount = mybatisRepos.getSearchAmountInRoot(dto);
-            List<ProblemBrief> list = mybatisRepos.searchListInRoot(dto);
-            Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
-
-            if (list == null || list.isEmpty()) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
-            } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-            }
-
-            for (ProblemBrief item : list) {
-                if (acceptedSet.contains(item.getName())) {
-                    item.setAccepted(1);
-                }
-            }
-
-            return Result.success(new ProblemListVO(list, amount));
-        } catch (Exception e) {
-            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-        }
-    }
-
-    public ResultVO<Problem> getProblem(String name) {
-
-        try {
-
+    public ResultVO<Problem> getProblem(String name, String role) {
+        return executeSafe(() -> {
             Problem dbDto = mybatisRepos.getProblem(name);
-
             if (dbDto == null) {
                 return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
-            } else if (dbDto.getShowsolution() == true) {
-                return Result.success(dbDto);
-            } else {
+            } else if (!Boolean.TRUE.equals(dbDto.getShowsolution())) {
                 dbDto.setSolution("题解已隐藏");
-                return Result.success(dbDto);
             }
-        } catch (Exception e) {
-            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-        }
+            return Result.success(dbDto);
+        });
     }
 
-    public ResultVO<Problem> getProblemInRoot(String name) {
-
-        try {
-
-            Problem dbDto = mybatisRepos.getProblemInRoot(name);
-
-            if (dbDto == null) {
-                return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
-            } else {
-                return Result.success(dbDto);
-            }
-        } catch (Exception e) {
-            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-        }
-    }
+    @Override
     public ResultVO<Void> insertProblem(Problem dto) {
         dto.setCreatetime(new Date(System.currentTimeMillis()));
-
-        try {
-            Integer rows = mybatisRepos.insertProblem(dto);
-            if (rows != null && rows > 0) {
-                return Result.success();
-            } else {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
-            }
-        } catch (Exception e) {
-            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
-        }
+        return executeDbUpdate(() -> mybatisRepos.insertProblem(dto));
     }
 
+    @Override
     public ResultVO<Void> updateProblem(Problem dto) {
-        try {
-            Integer rows = mybatisRepos.updateProblem(dto);
-
-            if (rows != null && rows > 0) {
-                return Result.success();
-            } else {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR);
-            }
-        } catch (Exception e) {
-            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
-        }
+        return executeDbUpdate(() -> mybatisRepos.updateProblem(dto));
     }
 
+    @Override
     public ResultVO<Void> deleteProblem(String name) {
+        // 原逻辑直接返回错误
         return Result.failure(BaseErrorCode.SERVICE_ERROR);
     }
 
+    @Override
     public ResultVO<TestTaskVO> testCase(TestCaseDTO testCaseDTO, String language) {
         String input = testCaseDTO.getInput();
         String code = testCaseDTO.getCode();
@@ -259,12 +112,14 @@ public class DBServiceImpl implements DBService {
         return runClient.runTestCase(new TestCaseDTO(problemName, code, input));
     }
 
+    @Override
     @Transactional
     public ResultVO<Void> saveCase(CaseFile CaseFile) {
-        String name = CaseFile.getName();
-        String input = CaseFile.getInput();
-        String output = CaseFile.getOutput();
-        try {
+        return executeSafe(() -> {
+            String name = CaseFile.getName();
+            String input = CaseFile.getInput();
+            String output = CaseFile.getOutput();
+
             if (input == null || output == null) {
                 return Result.failure(BaseErrorCode.CLIENT_ERROR);
             }
@@ -277,76 +132,127 @@ public class DBServiceImpl implements DBService {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR);
             }
             String bucketName = "letucoj";
-            String inputObjectName = "problems" + "/" + name + "/input/" + problemStatus.getCaseAmount() + 1 + ".txt";
-            String outputObjectName = "problems" + "/" + name + "/output/" + problemStatus.getCaseAmount() + 1 + ".txt";
-//            String configObjectName = "problems" + "/" + name + "/config.yaml";
-//            minioRepos.addFile(bucketName, configObjectName, config);
+            String inputObjectName = "problems" + "/" + name + "/input/" + (problemStatus.getCaseAmount() + 1) + ".txt";
+            String outputObjectName = "problems" + "/" + name + "/output/" + (problemStatus.getCaseAmount() + 1) + ".txt";
+
             minioRepos.addFile(bucketName, inputObjectName, input.getBytes());
             minioRepos.addFile(bucketName, outputObjectName, output.getBytes());
             return Result.success();
-        } catch (Exception e) {
-            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR);
-        }
+        });
     }
 
     @Override
     public ResultVO<SubmitRecordListVO> submitRecordListByName(String userName, int start, int limit) {
-        try {
-            List<SubmitRecordDTO> records = mybatisRepos.getRecordsByName(userName, start, limit);
-            Integer amount = mybatisRepos.getRecordsByNameCount(userName);
-            if (records == null || records.isEmpty()) {
-                return Result.failure(PracticeErrorCode.NO_RECORD_FOUND, null);
-            } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-            }
-            return Result.success(new SubmitRecordListVO(records, amount));
-        } catch (Exception e) {
-            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-        }
+        return executeSafe(() -> doGetSubmitRecordList(
+                () -> mybatisRepos.getRecordsByName(userName, start, limit),
+                () -> mybatisRepos.getRecordsByNameCount(userName)
+        ));
     }
 
     @Override
     public ResultVO<SubmitRecordListVO> submitRecordListAll(int start, int limit) {
-        try {
-            List<SubmitRecordDTO> records = mybatisRepos.getAllRecords(start, limit);
-            Integer amount = mybatisRepos.getAllRecordsCount();
-            if (records == null || records.isEmpty()) {
-                return Result.failure(PracticeErrorCode.NO_RECORD_FOUND, null);
-            } else if (amount == null || amount < 0) {
-                return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-            }
-            return Result.success(new SubmitRecordListVO(records, amount));
-        } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-        }
+        return executeSafe(() -> doGetSubmitRecordList(
+                () -> mybatisRepos.getAllRecords(start, limit),
+                mybatisRepos::getAllRecordsCount
+        ));
     }
 
     @Override
     public ResultVO<CaseFile> getCase(String problemName, Integer id) {
-        try {
+        return executeSafe(() -> {
             byte[] inputFile = minioRepos.getFile("letucoj", "problems/" + problemName + "/input/" + id + ".txt");
             byte[] outputFile = minioRepos.getFile("letucoj", "problems/" + problemName + "/output/" + id + ".txt");
             if (inputFile == null || outputFile == null) {
                 return Result.failure(PracticeErrorCode.CASE_NOT_EXIST, null);
             }
             return Result.success(new CaseFile(problemName, new String(inputFile), new String(outputFile)));
-        } catch (Exception e) {
-            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
-        }
+        });
     }
 
     @Override
     public ResultVO<byte[]> getConfigFile(String qname) {
-        try {
+        return executeSafe(() -> {
             byte[] configFile = minioRepos.getFile("letucoj", "problems/" + qname + "/config.yaml");
             if (configFile == null) {
                 return Result.failure(PracticeErrorCode.CONFIG_NOT_EXIST, null);
             }
             return Result.success(configFile);
+        });
+    }
+
+    // ================= 私有辅助方法 =================
+
+    /**
+     * 统一处理 try-catch-log 逻辑
+     */
+    private <T> ResultVO<T> executeSafe(Supplier<ResultVO<T>> action) {
+        try {
+            return action.get();
         } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
+    }
+
+    /**
+     * 提取 getList 和 searchList 的公共核心逻辑
+     */
+    private ResultVO<ProblemListVO> doGetProblemList(ListConditionDTO condition, String name, String role, Supplier<Integer> countSupplier) {
+        Integer amount = countSupplier.get();
+
+        List<ProblemBrief> list;
+        if ("USER".equals(role)) {
+            list = mybatisRepos.getList(condition);
+        } else {
+            list = mybatisRepos.getListInRoot(condition);
+        }
+
+        // 校验逻辑
+        if (list == null || list.isEmpty()) {
+            return Result.failure(BaseErrorCode.PROBLEM_NOT_EXIST, null);
+        } else if (amount == null || amount < 0) {
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
+        }
+
+        // 处理 AC 状态
+        Set<String> acceptedSet = mybatisRepos.getCorrectByName(name);
+        if (acceptedSet != null && !acceptedSet.isEmpty()) {
+            for (ProblemBrief item : list) {
+                if (acceptedSet.contains(item.getName())) {
+                    item.setAccepted(1);
+                }
+            }
+        }
+
+        return Result.success(new ProblemListVO(list, amount));
+    }
+
+    /**
+     * 提取 insert 和 update 的公共数据库操作逻辑
+     */
+    private ResultVO<Void> executeDbUpdate(Supplier<Integer> dbAction) {
+        return executeSafe(() -> {
+            Integer rows = dbAction.get();
+            if (rows != null && rows > 0) {
+                return Result.success();
+            } else {
+                return Result.failure(BaseErrorCode.SERVICE_ERROR);
+            }
+        });
+    }
+
+    /**
+     * 提取 submitRecordListByName 和 submitRecordListAll 的公共逻辑
+     */
+    private ResultVO<SubmitRecordListVO> doGetSubmitRecordList(Supplier<List<SubmitRecordDTO>> recordsSupplier, Supplier<Integer> countSupplier) {
+        List<SubmitRecordDTO> records = recordsSupplier.get();
+        Integer amount = countSupplier.get();
+
+        if (records == null || records.isEmpty()) {
+            return Result.failure(PracticeErrorCode.NO_RECORD_FOUND, null);
+        } else if (amount == null || amount < 0) {
+            return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
+        }
+        return Result.success(new SubmitRecordListVO(records, amount));
     }
 }

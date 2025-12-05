@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor // 推荐：使用构造器注入代替 @Autowired
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserMybatisRepos userMybatisRepos;
@@ -47,37 +47,32 @@ public class UserServiceImpl implements UserService {
     private static final String BACKGROUND_FILE = "background.txt";
     private static final String HEAD_PORTRAIT_FILE = "headPortrait.txt";
 
-    // =================================================================================
-    // 核心业务接口实现
-    // =================================================================================
+    // ================= 核心业务接口实现 =================
 
     @Override
     public ResultVO<Void> register(RegisterRequestDTO dto) {
-        return executeSafely(() -> {
-            if (!USERNAME_PATTERN.matcher(dto.getUsername()).matches() ||
-                    !PASSWORD_PATTERN.matcher(dto.getPassword()).matches() ||
-                    dto.getCnname() == null || dto.getCnname().isEmpty() || dto.getCnname().length() > 20) {
+        return executeSafe(() -> {
+            // 1. 参数校验
+            if (!isValidRegisterParams(dto)) {
                 return Result.failure(UserErrorCode.PARAM_FORMAT_ERROR);
             }
 
+            // 2. 查重
             if (userMybatisRepos.getUserFullInfo(dto.getUsername()) != null) {
                 return Result.failure(UserErrorCode.USERNAME_ALREADY_EXISTS);
             }
 
+            // 3. 执行注册
             String encodedPwd = PasswordUtil.encrypt(dto.getPassword());
             UserManagerDTO newUser = new UserManagerDTO(dto.getUsername(), dto.getCnname(), encodedPwd, "USER", 1);
 
-            Integer result = userMybatisRepos.saveUserInfo(newUser);
-            if (!Integer.valueOf(1).equals(result)) {
-                return Result.failure(UserErrorCode.REGISTER_FAILED);
-            }
-            return Result.success();
+            return checkDbRows(userMybatisRepos.saveUserInfo(newUser), UserErrorCode.REGISTER_FAILED);
         });
     }
 
     @Override
     public ResultVO<JwtInfoVO> login(RegisterRequestDTO dto) {
-        return executeSafely(() -> authenticate(dto.getUsername(), dto.getPassword(), true));
+        return executeSafe(() -> authenticate(dto.getUsername(), dto.getPassword(), true));
     }
 
     @Override
@@ -97,7 +92,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVO<Void> logout(String username) {
-        return executeSafely(() -> {
+        return executeSafe(() -> {
             Redis.mapPutDuration("black:" + username, "0", 7 * 24 * 60 * 60);
             return Result.success();
         });
@@ -105,12 +100,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVO<List<UserManagerDTO>> getAllUsers() {
-        return getUsersInternal("USER", UserErrorCode.NO_USER);
+        return getUsersByRole("USER", UserErrorCode.NO_USER);
     }
 
     @Override
     public ResultVO<List<UserManagerDTO>> getAllManagers() {
-        return getUsersInternal("MANAGER", UserErrorCode.NO_MANAGER);
+        return getUsersByRole("MANAGER", UserErrorCode.NO_MANAGER);
     }
 
     @Override
@@ -125,8 +120,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVO<UserInfoDTO> getUserFullInfo(String username) {
-        if (username == null) return Result.failure(UserErrorCode.EMPTY_PARAMETER, null);
-        return executeSafely(() -> {
+        return executeSafe(() -> {
+            if (username == null) return Result.failure(UserErrorCode.EMPTY_PARAMETER, null);
             UserInfoDTO info = userMybatisRepos.getUserFullInfo(username);
             return info != null ? Result.success(info) : Result.failure(UserErrorCode.NO_USER, null);
         });
@@ -134,12 +129,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVO<Void> updateUserFullInfo(UserInfoDTO userInfoDTO) {
-        if (userInfoDTO == null || userInfoDTO.getUserName() == null) {
-            return Result.failure(UserErrorCode.EMPTY_PARAMETER);
-        }
-        return executeSafely(() -> {
-            Integer res = userMybatisRepos.updateUserInfo(userInfoDTO);
-            return (res != null && res == 1) ? Result.success() : Result.failure(BaseErrorCode.SERVICE_ERROR);
+        return executeSafe(() -> {
+            if (userInfoDTO == null || userInfoDTO.getUserName() == null) {
+                return Result.failure(UserErrorCode.EMPTY_PARAMETER);
+            }
+            return checkDbRows(userMybatisRepos.updateUserInfo(userInfoDTO), BaseErrorCode.SERVICE_ERROR);
         });
     }
 
@@ -147,27 +141,27 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVO<byte[]> getBackground(String username) {
-        return getFileInternal(username, BACKGROUND_FILE, UserErrorCode.NO_BACKGROUND);
+        return getFileSafe(username, BACKGROUND_FILE, UserErrorCode.NO_BACKGROUND);
     }
 
     @Override
     public ResultVO<Void> updateBackground(String username, byte[] data) {
-        return updateFileInternal(username, BACKGROUND_FILE, data);
+        return updateFileSafe(username, BACKGROUND_FILE, data);
     }
 
     @Override
     public ResultVO<byte[]> getHeadPortrait(String username) {
-        return getFileInternal(username, HEAD_PORTRAIT_FILE, UserErrorCode.NO_HEADPORTRAIT);
+        return getFileSafe(username, HEAD_PORTRAIT_FILE, UserErrorCode.NO_HEADPORTRAIT);
     }
 
     @Override
     public ResultVO<Void> updateHeadPortrait(String username, byte[] data) {
-        return updateFileInternal(username, HEAD_PORTRAIT_FILE, data);
+        return updateFileSafe(username, HEAD_PORTRAIT_FILE, data);
     }
 
     @Override
     public ResultVO<byte[]> getHeatmap(String username, int year) {
-        return executeSafely(() -> {
+        return executeSafe(() -> {
             String objectName = "user/" + username + "/heatmap/" + year + ".json";
             if (!minioRepos.isObjectExist(BUCKET_NAME, objectName)) {
                 return Result.failure(UserErrorCode.NO_HEATMAP, null);
@@ -180,10 +174,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVO<String> getSecretKey(String username) {
-        return executeSafely(() -> {
+        return executeSafe(() -> {
             UserInfoDTO user = userMybatisRepos.getUserFullInfo(username);
             if (user == null) return Result.failure(UserErrorCode.NO_USER, null);
-            if (user.getEmail() == null || user.getEmail().isEmpty()) return Result.failure(UserErrorCode.NO_EMAIL, null);
+            if (isEmpty(user.getEmail())) return Result.failure(UserErrorCode.NO_EMAIL, null);
 
             String secretKey = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
             sendSecretKeyEmail(user.getEmail(), username, secretKey);
@@ -195,22 +189,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVO<Void> changePassword(String username, String secretKey, String newPassword) {
-        return executeSafely(() -> {
+        return executeSafe(() -> {
             String cachedKey = Redis.mapGet(username);
             if (!Objects.equals(cachedKey, secretKey)) {
                 Logger.log(Type.SERVER, LogLevel.WARN, "Password change failed: invalid key for " + username);
                 return Result.failure(UserErrorCode.SECRET_KEY_INVALID);
             }
-            Integer res = userMybatisRepos.updatePassword(username, PasswordUtil.encrypt(newPassword));
-            return (res != null && res == 1) ? Result.success() : Result.failure(BaseErrorCode.SERVICE_ERROR);
+            return checkDbRows(
+                    userMybatisRepos.updatePassword(username, PasswordUtil.encrypt(newPassword)),
+                    BaseErrorCode.SERVICE_ERROR
+            );
         });
     }
 
-    // --- 排行榜 (逻辑较重，单独保留但简化内部逻辑) ---
+    // --- 排行榜逻辑 ---
 
     @Override
     public ResultVO<Object> getUserRankings() {
-        return executeSafely(() -> {
+        return executeSafe(() -> {
             List<Map<String, Object>> corrects = userMybatisRepos.listCorrect();
             List<UserManagerDTO> users = userMybatisRepos.getUserListByRole("USER");
 
@@ -223,7 +219,7 @@ public class UserServiceImpl implements UserService {
                             m -> m.get("name").toString().trim(),
                             m -> Integer.parseInt(m.get("difficulty").toString())));
 
-            // 2. 计算用户统计数据 (分数和通过数)
+            // 2. 计算聚合数据
             Map<String, Integer> userTotalScore = new HashMap<>();
             Map<String, Integer> userPassCount = new HashMap<>();
 
@@ -236,26 +232,14 @@ public class UserServiceImpl implements UserService {
                 userTotalScore.merge(uName, problemScores.getOrDefault(pName, 0), Integer::sum);
             }
 
-            // 3. 构建用户详细信息并排序 (Top 20)
+            // 3. 构建并排序
             Map<String, UserManagerDTO> userMap = users.stream()
                     .collect(Collectors.toMap(UserManagerDTO::getUserName, Function.identity()));
 
             List<Map<String, Object>> topList = userTotalScore.entrySet().stream()
                     .filter(entry -> userMap.containsKey(entry.getKey()))
-                    .map(entry -> {
-                        String uname = entry.getKey();
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("userName", uname);
-                        map.put("cnname", userMap.get(uname).getCnname());
-                        map.put("count", userPassCount.get(uname));
-                        map.put("totalScore", entry.getValue());
-                        return map;
-                    })
-                    .sorted((a, b) -> {
-                        int cmp = Integer.compare((int) b.get("totalScore"), (int) a.get("totalScore")); // 分数降序
-                        if (cmp != 0) return cmp;
-                        return ((String) a.get("userName")).compareTo((String) b.get("userName")); // 名字升序
-                    })
+                    .map(entry -> buildRankItem(entry, userMap.get(entry.getKey()), userPassCount))
+                    .sorted(this::compareRank)
                     .limit(20)
                     .collect(Collectors.toList());
 
@@ -263,98 +247,75 @@ public class UserServiceImpl implements UserService {
         });
     }
 
-    // =================================================================================
-    // ⚠️ 核心重构：通用模板与辅助方法 (Private Helpers)
-    // =================================================================================
+
+    // ================= 私有辅助方法 (核心重构部分) =================
 
     /**
-     * [设计模式：模板方法/策略]
-     * 统一处理 try-catch，日志记录和服务端错误返回。
-     * 所有业务逻辑只需要关注成功时的处理和特定的业务失败。
+     * 核心环绕执行方法：统一异常处理
      */
-    private <T> ResultVO<T> executeSafely(Supplier<ResultVO<T>> action) {
+    private <T> ResultVO<T> executeSafe(Supplier<ResultVO<T>> action) {
         try {
             return action.get();
         } catch (Exception e) {
             Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage() != null ? e.getMessage() : "Unknown Error");
-            // 泛型强制转换，虽然 unsafe 但在 Result.failure 里通常是 null 数据
             return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
     }
 
+    // 为了兼容你原来的代码调用习惯，保留 executeSafely 这个名字作为别名，或者你可以把上面的改成 executeSafely
+    private <T> ResultVO<T> executeSafely(Supplier<ResultVO<T>> action) {
+        return executeSafe(action);
+    }
+
     /**
-     * 统一的认证逻辑 (登录 & 刷新 Token)
+     * 统一数据库受影响行数检查
+     */
+    private ResultVO<Void> checkDbRows(Integer rows, ErrorCode failCode) {
+        if (rows != null && rows > 0) {
+            return Result.success();
+        }
+        return Result.failure(failCode);
+    }
+
+    /**
+     * 认证逻辑抽取
      */
     private ResultVO<JwtInfoVO> authenticate(String username, String rawPassword, boolean checkPassword) {
         UserManagerDTO user = userMybatisRepos.getPasswordByUserName(username);
-
-        // 1. 账号不存在
         if (user == null) {
             return Result.failure(UserErrorCode.NAME_OR_CODE_WRONG, null);
         }
-        // 2. 密码错误 (仅登录时检查)
         if (checkPassword && !PasswordUtil.matches(rawPassword, user.getPassword())) {
             return Result.failure(UserErrorCode.NAME_OR_CODE_WRONG, null);
         }
-        // 3. 账号被禁用
         if (user.getStatus() == 0) {
             return Result.failure(UserErrorCode.NOT_ENABLE, null);
         }
-
         JwtInfoVO jwt = new JwtInfoVO(username, user.getCnname(), user.getRole(), System.currentTimeMillis());
         return Result.success(jwt);
     }
 
     /**
-     * 统一的 MinIO 文件获取逻辑
-     */
-    private ResultVO<byte[]> getFileInternal(String username, String fileName, ErrorCode failCode) {
-        return executeSafely(() -> {
-            String objectName = "user/" + username + "/" + fileName;
-            try {
-                return Result.success(minioRepos.getFile(BUCKET_NAME, objectName));
-            } catch (Exception e) {
-                // 这里捕获 MinIO 特定异常并返回业务错误码
-                return Result.failure(failCode, null);
-            }
-        });
-    }
-
-    /**
-     * 统一的 MinIO 文件上传逻辑
-     */
-    private ResultVO<Void> updateFileInternal(String username, String fileName, byte[] data) {
-        return executeSafely(() -> {
-            String objectName = "user/" + username + "/" + fileName;
-            minioRepos.addFile(BUCKET_NAME, objectName, data);
-            return Result.success();
-        });
-    }
-
-    /**
-     * 统一的用户状态变更逻辑 (激活/冻结/提权/降级)
-     * @param operation DB操作函数 (Mybatis Mapper的方法引用)
-     * @param needLogout 是否需要强制登出
+     * 状态变更模板方法
      */
     private ResultVO<Void> handleStatusChange(String username, Function<String, Integer> operation, boolean needLogout) {
-        return executeSafely(() -> {
+        return executeSafe(() -> {
             Integer rows = operation.apply(username);
-            boolean success = (rows != null && rows == 1);
-
-            if (success && needLogout) {
-                ResultVO<Void> logoutRes = logout(username);
-                success = "0".equals(logoutRes.getCode());
+            if (rows != null && rows == 1) {
+                if (needLogout) {
+                    logout(username); // 强制登出
+                }
+                return Result.success();
             }
-
-            return success ? Result.success() : Result.failure(BaseErrorCode.SERVICE_ERROR);
+            return Result.failure(BaseErrorCode.SERVICE_ERROR);
         });
     }
 
     /**
-     * 统一的用户列表获取逻辑
+     * 根据角色获取用户列表
      */
-    private ResultVO<List<UserManagerDTO>> getUsersInternal(String role, ErrorCode emptyError) {
-        return executeSafely(() -> {
+    private ResultVO<List<UserManagerDTO>> getUsersByRole(String role, ErrorCode emptyError) {
+        return executeSafe(() -> {
             List<UserManagerDTO> list = userMybatisRepos.getUserListByRole(role);
             if (isEmpty(list)) {
                 return Result.failure(emptyError, null);
@@ -364,19 +325,69 @@ public class UserServiceImpl implements UserService {
         });
     }
 
+    /**
+     * 安全获取文件
+     */
+    private ResultVO<byte[]> getFileSafe(String username, String fileName, ErrorCode failCode) {
+        return executeSafe(() -> {
+            try {
+                String objectName = "user/" + username + "/" + fileName;
+                return Result.success(minioRepos.getFile(BUCKET_NAME, objectName));
+            } catch (Exception e) {
+                return Result.failure(failCode, null);
+            }
+        });
+    }
+
+    /**
+     * 安全上传文件
+     */
+    private ResultVO<Void> updateFileSafe(String username, String fileName, byte[] data) {
+        return executeSafe(() -> {
+            String objectName = "user/" + username + "/" + fileName;
+            minioRepos.addFile(BUCKET_NAME, objectName, data);
+            return Result.success();
+        });
+    }
+
+    // --- 业务辅助工具 ---
+
+    private boolean isValidRegisterParams(RegisterRequestDTO dto) {
+        return USERNAME_PATTERN.matcher(dto.getUsername()).matches() &&
+                PASSWORD_PATTERN.matcher(dto.getPassword()).matches() &&
+                dto.getCnname() != null && !dto.getCnname().isEmpty() && dto.getCnname().length() <= 20;
+    }
+
     private void sendSecretKeyEmail(String email, String username, String secretKey) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);
         message.setTo(email);
-        message.setSubject("您在 LetucOJ 的密钥 (Your Secret Key for LetucOJ)");
-        message.setText(String.format("尊敬的 %s,\n\n您请求的密钥如下:\n\n密钥 (Secret Key): %s\n\n请使用此密钥继续操作。\n\n祝好,\nLetucOJ 团队", username, secretKey));
+        message.setSubject("您在 LetucOJ 的密钥");
+        message.setText(String.format("尊敬的 %s,\n\n您请求的密钥如下:\n\n密钥: %s\n\n请使用此密钥继续操作。", username, secretKey));
         mailSender.send(message);
     }
 
-    // --- 工具函数 ---
+    private Map<String, Object> buildRankItem(Map.Entry<String, Integer> entry, UserManagerDTO user, Map<String, Integer> passCounts) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("userName", entry.getKey());
+        map.put("cnname", user.getCnname());
+        map.put("count", passCounts.get(entry.getKey()));
+        map.put("totalScore", entry.getValue());
+        return map;
+    }
+
+    private int compareRank(Map<String, Object> a, Map<String, Object> b) {
+        int scoreCompare = Integer.compare((int) b.get("totalScore"), (int) a.get("totalScore")); // 分数降序
+        if (scoreCompare != 0) return scoreCompare;
+        return ((String) a.get("userName")).compareTo((String) b.get("userName")); // 名字升序
+    }
 
     private boolean isEmpty(Collection<?> collection) {
         return collection == null || collection.isEmpty();
+    }
+
+    private boolean isEmpty(String str) {
+        return str == null || str.isEmpty();
     }
 
     private String safeString(Object... objs) {
