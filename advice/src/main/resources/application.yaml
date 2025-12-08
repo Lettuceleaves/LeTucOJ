@@ -14,8 +14,8 @@ spring:
     import: "optional:classpath:default.yaml"
   ai:
     openai:
-      api-key: sk-329d4906e81c484a9c05f3f9aaa26b60
-      base-url: https://api.deepseek.com
+      api-key: ${AI_API} // sk-329d4906e81c484a9c05f3f9aaa26b60
+      base-url: ${AI_URL} // https://api.deepseek.com
       chat:
         options:
           model: deepseek-chat

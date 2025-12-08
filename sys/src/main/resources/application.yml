@@ -8,8 +8,8 @@ spring:
     name: sys
   datasource:
     url: jdbc:mysql://mysql:3306/letucoj?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: 430103535
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 #logging:
@@ -30,6 +30,6 @@ mybatis-plus:
 mysql:
   host: mysql
   port: 3306
-  user: letuc
-  password: 430103535
+  user: ${DB_USERNAME}
+  password: ${DB_PASSWORD}
 
