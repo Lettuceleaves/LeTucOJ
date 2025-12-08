@@ -18,6 +18,6 @@ public interface DBService {
     ResultVO<Void> insertContest(Contest dto);
     ResultVO<Void> updateContest(Contest dto);
     ResultVO<Void> insertProblem(ContestProblemDTO dto);
-    ResultVO<Void> attend(String name, String cnname, String contestName);
+    ResultVO<Void> attend(String name, String cnname, String contestName, String password);
     ResultVO<Void> attended(String name, String contestName);
 }

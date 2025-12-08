@@ -17,4 +17,5 @@ public class Contest {
     LocalDateTime  end;
     boolean publicContest;
     String note;
+    String password;
 }

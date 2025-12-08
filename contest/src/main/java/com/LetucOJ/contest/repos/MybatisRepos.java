@@ -22,13 +22,13 @@ public interface MybatisRepos {
     @Select("SELECT name, cnname, mode, start, end, public FROM contest")
     List<ContestBrief> getContestList();
 
-    @Select("SELECT name, cnname, mode, start, end, public > 0 AS publicContest, note FROM contest WHERE name = #{name}")
+    @Select("SELECT name, cnname, mode, start, end, public > 0 AS publicContest, note, password FROM contest WHERE name = #{name}")
     Contest getContest(String name);
 
     @Insert("INSERT INTO contest " +
-            "(name, cnname, mode, start, end, public, note) " +
+            "(name, cnname, mode, start, end, public, note, password) " +
             "VALUES " +
-            "(#{name}, #{cnname}, #{mode}, #{start}, #{end}, #{publicContest}, #{note})")
+            "(#{name}, #{cnname}, #{mode}, #{start}, #{end}, #{publicContest}, #{note}, #{password})")
     Integer insertContest(Contest contest);
 
     @Update("UPDATE contest SET " +
@@ -37,7 +37,8 @@ public interface MybatisRepos {
             "start    = #{start}, " +
             "end      = #{end}, " +
             "public   = #{publicContest}, " +
-            "note     = #{note} " +
+            "note     = #{note}, " +
+            "password = #{password} " +
             "WHERE name = #{name}")
     Integer updateContest(Contest contest);
 

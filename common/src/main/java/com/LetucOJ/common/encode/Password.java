@@ -1,10 +1,9 @@
-// PasswordUtil.java
-package com.LetucOJ.user.util;
+package com.LetucOJ.common.encode;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public class PasswordUtil {
+public class Password {
     private static final PasswordEncoder ENCODER = new BCryptPasswordEncoder();
     public static String encrypt(String rawPassword) {
         return ENCODER.encode(rawPassword);

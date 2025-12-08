@@ -6,6 +6,7 @@ public enum ContestErrorCode implements ErrorCode {
     CLIENT_ERROR("A020001", "用户端错误"),
     EMPTY_DATA("A020002", "数据不能为空"),
     INVALID_PARAM("A020003", "参数不合法"),
+    WRONG_PASSWORD("A020004", "密码错误"),
 
     // ========== 模块错误码 系统执行出错 ==========
     SERVICE_ERROR("B020001", "系统执行出错"),

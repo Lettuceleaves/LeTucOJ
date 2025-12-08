@@ -1,6 +1,7 @@
 package com.LetucOJ.user.service.impl;
 
 import com.LetucOJ.common.cache.Redis;
+import com.LetucOJ.common.encode.Password;
 import com.LetucOJ.common.log.LogLevel;
 import com.LetucOJ.common.log.Logger;
 import com.LetucOJ.common.log.Type;
@@ -16,7 +17,6 @@ import com.LetucOJ.user.model.UserInfoDTO;
 import com.LetucOJ.user.model.UserManagerDTO;
 import com.LetucOJ.user.repos.UserMybatisRepos;
 import com.LetucOJ.user.service.UserService;
-import com.LetucOJ.user.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // 3. 执行注册
-            String encodedPwd = PasswordUtil.encrypt(dto.getPassword());
+            String encodedPwd = Password.encrypt(dto.getPassword());
             UserManagerDTO newUser = new UserManagerDTO(dto.getUsername(), dto.getCnname(), encodedPwd, "USER", 1);
 
             return checkDbRows(userMybatisRepos.saveUserInfo(newUser), UserErrorCode.REGISTER_FAILED);
@@ -196,7 +196,7 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(UserErrorCode.SECRET_KEY_INVALID);
             }
             return checkDbRows(
-                    userMybatisRepos.updatePassword(username, PasswordUtil.encrypt(newPassword)),
+                    userMybatisRepos.updatePassword(username, Password.encrypt(newPassword)),
                     BaseErrorCode.SERVICE_ERROR
             );
         });
@@ -285,7 +285,7 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             return Result.failure(UserErrorCode.NAME_OR_CODE_WRONG, null);
         }
-        if (checkPassword && !PasswordUtil.matches(rawPassword, user.getPassword())) {
+        if (checkPassword && !Password.matches(rawPassword, user.getPassword())) {
             return Result.failure(UserErrorCode.NAME_OR_CODE_WRONG, null);
         }
         if (user.getStatus() == 0) {

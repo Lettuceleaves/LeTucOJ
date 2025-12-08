@@ -1,5 +1,6 @@
 package com.LetucOJ.contest.service.impl;
 
+import com.LetucOJ.common.encode.Password;
 import com.LetucOJ.common.log.LogLevel;
 import com.LetucOJ.common.log.Logger;
 import com.LetucOJ.common.log.Type;
@@ -135,18 +136,18 @@ public class DBServiceImpl implements DBService {
             } else if (!dbDto.isPublicContest()) {
                 return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC, null);
             }
+            dbDto.setPassword("");
             return Result.success(dbDto);
         });
     }
 
     @Override
     public ResultVO<Void> insertContest(Contest dto) {
-        return executeSafe(() -> {
-            if (dto == null) {
-                return Result.failure(BaseErrorCode.CLIENT_ERROR);
-            }
-            return checkDbRows(mybatisRepos.insertContest(dto), BaseErrorCode.SERVICE_ERROR);
-        });
+        if (dto.getPassword().isEmpty()) {
+            return Result.failure(ContestErrorCode.EMPTY_DATA);
+        }
+        dto.setPassword(Password.encrypt(dto.getPassword()));
+        return executeSafe(() -> checkDbRows(mybatisRepos.insertContest(dto), BaseErrorCode.SERVICE_ERROR));
     }
 
     @Override
@@ -192,11 +193,14 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
-    public ResultVO<Void> attend(String name, String cnname, String contestName) {
+    public ResultVO<Void> attend(String name, String cnname, String contestName, String password) {
         return executeSafe(() -> {
-            Contest dbDtoContest = mybatisRepos.getContest(contestName);
-            if (!dbDtoContest.isPublicContest()) {
+            Contest contest = mybatisRepos.getContest(contestName);
+            if (!contest.isPublicContest()) {
                 return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC);
+            }
+            if (!Password.matches(contest.getPassword(), password)) {
+                return Result.failure(ContestErrorCode.WRONG_PASSWORD);
             }
             if (name == null || name.isEmpty()) {
                 return Result.failure(ContestErrorCode.EMPTY_DATA);

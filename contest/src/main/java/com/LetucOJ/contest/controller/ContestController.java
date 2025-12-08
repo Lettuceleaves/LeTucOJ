@@ -54,8 +54,8 @@ public class ContestController {
     }
 
     @PostMapping("/attend")
-    public ResultVO<Void> attendContest(@RequestParam("user_name") String userName, @RequestParam("nick_name") String nickName, @RequestParam("ctname") String contestName) throws Exception {
-        return dbService.attend(userName, nickName, contestName);
+    public ResultVO<Void> attendContest(@RequestParam("user_name") String userName, @RequestParam("nick_name") String nickName, @RequestParam("ctname") String contestName, @RequestParam("password") String password) throws Exception {
+        return dbService.attend(userName, nickName, contestName, password);
     }
 
     @GetMapping("/attended")

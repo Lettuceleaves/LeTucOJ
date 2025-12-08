@@ -64,6 +64,7 @@ public class JwtFilter implements WebFilter {
     );
 
     private static final List<String> ROLE_REQUIRED = List.of(
+            "/practice/list"
     );
 
     @NotNull
