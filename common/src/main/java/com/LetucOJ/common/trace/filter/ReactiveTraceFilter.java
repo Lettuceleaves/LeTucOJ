@@ -1,9 +1,6 @@
 package com.LetucOJ.common.trace.filter;
 
 import cn.hutool.core.util.IdUtil;
-import com.LetucOJ.common.log.LogLevel;
-import com.LetucOJ.common.log.Logger;
-import com.LetucOJ.common.log.Type;
 import com.LetucOJ.common.trace.TraceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;

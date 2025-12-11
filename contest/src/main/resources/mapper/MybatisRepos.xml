@@ -127,9 +127,9 @@
 
     <insert id="insertRecord" parameterType="com.LetucOJ.contest.model.DTO.SubmitRecordDTO">
         INSERT INTO record
-        (userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime)
+        (traceId, userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime)
         VALUES
-            (#{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})
+            (#{traceId}, #{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})
     </insert>
 
     <select id="problemExist" resultType="java.lang.Integer">

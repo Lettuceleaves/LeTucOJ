@@ -39,13 +39,9 @@ public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
 
     Problem getProblem(String name);
 
-    Problem getProblemInRoot(String name);
-
     Integer insertProblem(Problem problem);
 
     Integer updateProblem(Problem problem);
-
-    Integer deleteProblem(String name);
 
     // 多参数需要 @Param 才能在 XML 中通过名字引用，否则只能用 #{arg0}, #{arg1}
     List<SubmitRecordDTO> getAllRecords(@Param("start") int start, @Param("limit") int limit);
@@ -61,6 +57,4 @@ public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
     Set<String> getCorrectByName(String userName);
 
     Integer insertCorrect(@Param("userName") String userName, @Param("problemName") String problemName);
-
-    Integer checkCorrect(@Param("userName") String userName, @Param("problemName") String problemName);
 }

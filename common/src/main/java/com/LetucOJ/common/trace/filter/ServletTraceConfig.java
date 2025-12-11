@@ -1,13 +1,11 @@
 package com.LetucOJ.common.trace.filter;
 
 import cn.hutool.core.util.IdUtil;
-import com.LetucOJ.common.log.LogLevel;
-import com.LetucOJ.common.log.Logger;
-import com.LetucOJ.common.log.Type;
 import com.LetucOJ.common.trace.TraceContext;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +39,7 @@ public class ServletTraceConfig implements ImportAware {
      * 用于在配置类之间传递注解参数的简单 Bean
      */
     @Data
-    static class TraceProperties {
+    public static class TraceProperties {
         private boolean isGateway = false;
     }
 
@@ -71,16 +69,16 @@ public class ServletTraceConfig implements ImportAware {
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
     @ConditionalOnClass(name = "org.springframework.web.servlet.DispatcherServlet")
     @Slf4j
+    @AllArgsConstructor
     protected static class ServletTraceConfiguration implements WebMvcConfigurer {
 
-        @Autowired
         private TraceProperties traceProperties;
 
         @Override
         public void addInterceptors(InterceptorRegistry registry) {
             registry.addInterceptor(new HandlerInterceptor() {
                 @Override
-                public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+                public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {
                     String traceId = request.getHeader(TraceContext.TRACE_HEADER);
                     boolean isGateway = traceProperties.isGateway();
 
@@ -99,7 +97,7 @@ public class ServletTraceConfig implements ImportAware {
                 }
 
                 @Override
-                public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+                public void afterCompletion(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler, Exception ex) {
                     TraceContext.clear();
                 }
             });
