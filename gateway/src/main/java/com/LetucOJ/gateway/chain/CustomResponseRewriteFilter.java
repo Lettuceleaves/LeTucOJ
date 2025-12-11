@@ -1,9 +1,6 @@
-package com.LetucOJ.gateway.tool;
+package com.LetucOJ.gateway.chain;
 
 import com.LetucOJ.common.cache.Redis;
-import com.LetucOJ.common.log.LogLevel;
-import com.LetucOJ.common.log.Logger;
-import com.LetucOJ.common.log.Type;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
 import com.LetucOJ.gateway.client.UserClient;

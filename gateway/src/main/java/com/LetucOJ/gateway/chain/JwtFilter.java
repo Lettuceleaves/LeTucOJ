@@ -1,12 +1,10 @@
-package com.LetucOJ.gateway.tool;
+package com.LetucOJ.gateway.chain;
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.LetucOJ.common.cache.Redis;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
-import com.LetucOJ.common.trace.TraceContext;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;

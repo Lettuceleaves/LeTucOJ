@@ -1,4 +1,4 @@
-package com.LetucOJ.gateway.tool;
+package com.LetucOJ.gateway.chain;
 
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.errorcode.ErrorCode;

@@ -1,8 +1,5 @@
-package com.LetucOJ.gateway.tool;
+package com.LetucOJ.gateway.chain;
 
-import com.LetucOJ.common.log.LogLevel;
-import com.LetucOJ.common.log.Logger;
-import com.LetucOJ.common.log.Type;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +19,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Slf4j
 @Configuration
 @EnableWebFluxSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity()
 @Order(10)
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -31,85 +28,72 @@ public class SecurityConfig {
     // 1. 定义白名单路径 (无需登录即可访问)
     // =================================================================================
     private static final String[] PUBLIC_PATHS = {
-            "/",
-            "/index.html",
-            "/favicon.ico",
-            "/code.txt",
-            "/user/login",
             "/user/register",
-            "/sys/doc/get",
-            "/static/**",
-            "/assets/**"
+            "/user/login",
+            "/user/secret_key",
+            "/user/password",
     };
 
     // =================================================================================
-    // 2. 定义普通用户权限路径 (需登录，角色为 USER, MANAGER, ROOT 之一)
+    // 2. 权限混合路径
+    // =================================================================================
+    private static final String[] READ_ONLY_FOR_USER_PATHS = {
+            "/user/info",
+            "/user/background",
+            "/user/headPortrait",
+
+            "/practice/problem",
+
+            "/contest/problem",
+            "/contest/contest"
+    };
+    private static final String[] READ_ONLY_FOR_PUBLIC_PATHS = {
+            "/sys/doc"
+    };
+
+    // =================================================================================
+    // 3. 定义普通用户权限路径 (需登录，角色为 USER, MANAGER, ROOT 之一)
     // =================================================================================
     private static final String[] AUTHENTICATED_PATHS = {
-            // 用户基础信息
-            "/user/info/get",
-            "/user/info/update",
             "/user/logout",
-            "/user/changePassword",
-            "/user/headPortrait/**",
-            "/user/background/**",
-            "/user/heatmap",
             "/user/rank",
-            "/advice",
+            "/user/heatmap",
 
-            // 练习相关
             "/practice/list",
-            "/practice/searchList",
-            "/practice/full/get",
+            "/practice/list_search",
+            "/practice/list_record/self",
+            "/practice/test_case",
             "/practice/submit",
-            "/practice/count",
 
-            // 比赛相关
-            "/contest/list/contest",
-            "/contest/list/problem",
-            "/contest/list/board",
-            "/contest/full/getContest",
-            "/contest/full/getProblem",
             "/contest/attend",
+            "/contest/attended",
+            "/contest/problems",
+            "/contest/contests",
+            "/contest/board",
             "/contest/submit",
-            "/contest/inContest",
 
-            // 记录相关
-            "/recordList/self"
+            "/advice",
     };
 
     // =================================================================================
-    // 3. 定义管理员权限路径 (仅限 MANAGER, ROOT)
+    // 4. 定义管理员权限路径 (仅限 MANAGER, ROOT)
     // =================================================================================
     private static final String[] ADMIN_PATHS = {
-            // 用户管理
-            "/user/users",
-            "/user/managers",
             "/user/activate",
             "/user/deactivate",
+            "/user/users",
+            "/user/managers",
             "/user/promote",
             "/user/demote",
 
-            // 练习题目管理 (Root版本)
-            "/practice/listRoot",
-            "/practice/searchListRoot", // 原代码拼写可能是 searchListInRoot，请确认
-            "/practice/fullRoot/**",    // 使用通配符简化 insert/update/delete/get
-            "/practice/getCase",
-            "/practice/submitCase",
-            "/practice/submitInRoot",
-            "/practice/searchListInRoot",
+            "/sys/log/list",
+            "/sys/mysqldump",
 
-            // 比赛管理
-            "/contest/insertContest",
-            "/contest/updateContest",
-            "/contest/insertProblem",
-            "/contest/deleteProblem",
-
-            // 系统维护
-            "/sys/doc/update",
-            "/sys/refresh/sql",
-            "/recordList/all",
-            "/recordList/any"
+            "/practice/list_record/any",
+            "/practice/list_record/all",
+            "/practice/get_case",
+            "/practice/config_file",
+            "/practice/save_case",
     };
 
     @Bean
@@ -121,20 +105,27 @@ public class SecurityConfig {
 
                 // 权限拦截配置
                 .authorizeExchange(exchange -> exchange
-                        // 1. 允许所有的 OPTIONS 请求 (解决跨域预检问题)
+                        // 允许所有的 OPTIONS 请求 (解决跨域预检问题)
                         .pathMatchers(HttpMethod.OPTIONS).permitAll()
 
-                        // 2. 白名单放行
+                        // 白名单放行
                         .pathMatchers(PUBLIC_PATHS).permitAll()
 
-                        // 3. 管理员接口 (注意：范围小的权限通常放在前面，虽然 Spring Security 是按顺序匹配的)
-                        // 这里将 ROOT 和 MANAGER 合并处理
+                        // 管理员能修改，普通用户能读
+                        .pathMatchers(HttpMethod.GET, READ_ONLY_FOR_USER_PATHS).hasAnyRole("USER", "MANAGER", "ROOT")
+                        .pathMatchers(READ_ONLY_FOR_USER_PATHS).hasAnyRole("MANAGER", "ROOT")
+
+                        // 管理员能修改，可公开获取
+                        .pathMatchers(HttpMethod.GET, READ_ONLY_FOR_PUBLIC_PATHS).permitAll()
+                        .pathMatchers(READ_ONLY_FOR_PUBLIC_PATHS).hasAnyRole("MANAGER", "ROOT")
+
+                        // 管理员接口 (注意：范围小的权限通常放在前面，虽然 Spring Security 是按顺序匹配的)
                         .pathMatchers(ADMIN_PATHS).hasAnyRole("MANAGER", "ROOT")
 
-                        // 4. 普通用户接口 (包含管理员，因为管理员也应该能访问用户接口)
+                        // 已登录用户接口
                         .pathMatchers(AUTHENTICATED_PATHS).hasAnyRole("USER", "MANAGER", "ROOT")
 
-                        // 5. 其他所有请求必须认证
+                        // 其他所有请求必须认证
                         .anyExchange().authenticated()
                 )
                 .addFilterBefore(new JwtFilter(), SecurityWebFiltersOrder.AUTHENTICATION)

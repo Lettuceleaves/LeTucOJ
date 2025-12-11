@@ -57,6 +57,4 @@ public class ListController {
         } catch (Exception ignore) {}
         return s;
     }
-
-
 }

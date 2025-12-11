@@ -48,7 +48,7 @@ public class ProblemController {
         return dbService.getCase(problemName, id);
     }
 
-    @GetMapping("/configfile")
+    @GetMapping("/config_file")
     public ResultVO<byte[]> getConfigFile(@RequestParam("problem_name") String problemName) {
         return dbService.getConfigFile(problemName);
     }
@@ -57,5 +57,4 @@ public class ProblemController {
     public ResultVO<Void> saveCase(@RequestBody CaseFile CaseFile) {
         return dbService.saveCase(CaseFile);
     }
-
 }

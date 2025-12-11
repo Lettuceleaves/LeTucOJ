@@ -18,17 +18,17 @@ public class SysController {
         return null;
     }
 
-    @PutMapping("/doc/update")
+    @PutMapping("/doc")
     public ResultVO<Void> updateDoc(@RequestBody byte[] doc) {
         return sysService.updateDoc(doc);
     }
 
-    @GetMapping("/doc/get")
+    @GetMapping("/doc")
     public ResultVO<byte[]> getDoc() {
         return sysService.getDoc();
     }
 
-    @GetMapping("/refresh/sql")
+    @GetMapping("/mysqldump")
     public ResultVO<Void> refreshSql() {
         return sysService.refreshSql();
     }
