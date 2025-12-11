@@ -17,44 +17,53 @@ import java.util.Set;
 @Mapper
 public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
 
+    // === 题目相关 ===
+
+    /**
+     * 通用查询列表（支持：前台/后台 + 搜索/不搜索）
+     * 依靠 DTO 中的 onlyPublic 字段区分权限，like 字段区分搜索
+     */
+    List<ProblemBrief> selectProblemList(ListConditionDTO listConditionDTO);
+
+    /**
+     * 通用查询数量
+     */
+    Integer countProblemList(ListConditionDTO listConditionDTO);
+
+    /**
+     * 获取题目详情
+     * @param name 题目ID/名称
+     * @param onlyPublic true=只查公开(前台), false=查所有(后台)
+     */
+    Problem selectProblemDetail(@Param("name") String name, @Param("onlyPublic") Boolean onlyPublic);
+
     ProblemStatus getStatus(String name);
 
     Integer incrementCaseAmount(String name);
-
-    List<ProblemBrief> getList(ListConditionDTO listConditionDTO);
-
-    Integer getAmount(ListConditionDTO listConditionDTO);
-
-    List<ProblemBrief> searchList(ListConditionDTO listConditionDTO);
-
-    Integer getSearchAmount(ListConditionDTO listConditionDTO);
-
-    List<ProblemBrief> getListInRoot(ListConditionDTO listConditionDTO);
-
-    Integer getAmountInRoot(ListConditionDTO listConditionDTO);
-
-    List<ProblemBrief> searchListInRoot(ListConditionDTO listConditionDTO);
-
-    Integer getSearchAmountInRoot(ListConditionDTO listConditionDTO);
-
-    Problem getProblem(String name);
 
     Integer insertProblem(Problem problem);
 
     Integer updateProblem(Problem problem);
 
-    // 多参数需要 @Param 才能在 XML 中通过名字引用，否则只能用 #{arg0}, #{arg1}
-    List<SubmitRecordDTO> getAllRecords(@Param("start") int start, @Param("limit") int limit);
+    void deleteProblem(String name); // 补充了 delete 方法定义
 
-    Integer getAllRecordsCount();
+    // === 记录相关 ===
 
-    List<SubmitRecordDTO> getRecordsByName(@Param("userName") String userName, @Param("start") int start, @Param("limit") int limit);
+    /**
+     * 通用记录查询
+     * @param userName 如果为 null 则查所有用户
+     */
+    List<SubmitRecordDTO> selectRecordList(@Param("userName") String userName, @Param("start") int start, @Param("limit") int limit);
 
-    Integer getRecordsByNameCount(String userName);
+    Integer countRecordList(@Param("userName") String userName);
 
-    Integer insertRecord(SubmitRecordDTO SubmitRecordDTO);
+    Integer insertRecord(SubmitRecordDTO submitRecordDTO);
+
+    // === 正确数相关 ===
 
     Set<String> getCorrectByName(String userName);
 
     Integer insertCorrect(@Param("userName") String userName, @Param("problemName") String problemName);
+
+    Integer checkCorrect(@Param("userName") String userName, @Param("problemName") String problemName);
 }

@@ -39,8 +39,8 @@ public class ProblemController {
     }
 
     @PostMapping("/test_case")
-    public ResultVO<TestTaskVO> testCase(@RequestParam String language, @RequestBody TestCaseDTO testCaseDTO) {
-        return dbService.testCase(testCaseDTO, language);
+    public ResultVO<TestTaskVO> testCase(@RequestParam String language, @RequestBody TestCaseDTO testCaseDTO, @RequestParam String role) {
+        return dbService.testCase(testCaseDTO, language, role);
     }
 
     @GetMapping("/get_case")

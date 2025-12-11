@@ -12,4 +12,5 @@ public class ListConditionDTO {
     Long limit;
     String order;
     String like;
+    Boolean onlyPublic;
 }

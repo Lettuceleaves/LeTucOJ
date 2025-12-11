@@ -16,7 +16,7 @@ public interface DBService {
     ResultVO<Void> insertProblem(Problem problem);
     ResultVO<Void> updateProblem(Problem problem);
     ResultVO<Void> deleteProblem(String user_name);
-    ResultVO<TestTaskVO> testCase(TestCaseDTO testCaseDTO, String language);
+    ResultVO<TestTaskVO> testCase(TestCaseDTO testCaseDTO, String language, String role);
     ResultVO<Void> saveCase(CaseFile caseFile);
     ResultVO<CaseFile> getCase(String problemName, Integer id);
     ResultVO<SubmitRecordListVO> submitRecordListByName(String userName, int start, int limit);
