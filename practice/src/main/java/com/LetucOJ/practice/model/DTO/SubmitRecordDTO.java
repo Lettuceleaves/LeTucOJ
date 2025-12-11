@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SubmitRecordDTO {
+    private String traceId;
     private String userName;
     private String nickName;
     private String problemName;

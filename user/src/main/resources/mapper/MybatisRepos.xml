@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.LetucOJ.user.repos.UserMybatisRepos">
+
+    <insert id="saveUserInfo" parameterType="com.LetucOJ.user.model.UserManagerDTO">
+        INSERT INTO user (user_name, cnname, password, role, status)
+        VALUES (#{userName}, #{cnname}, #{password}, #{role}, #{status})
+    </insert>
+
+    <update id="updatePassword">
+        UPDATE user
+        SET password = #{password}
+        WHERE user_name = #{userName}
+    </update>
+
+    <select id="getPasswordByUserName" resultType="com.LetucOJ.user.model.UserManagerDTO">
+        SELECT * FROM user WHERE user_name = #{userName}
+    </select>
+
+    <select id="getUserListByRole" resultType="com.LetucOJ.user.model.UserManagerDTO">
+        SELECT * FROM user WHERE role = #{role}
+    </select>
+
+    <update id="setUserToManager">
+        UPDATE user SET role = 'MANAGER' WHERE user_name = #{userName}
+    </update>
+
+    <update id="setManagerToUser">
+        UPDATE user SET role = 'USER' WHERE user_name = #{userName}
+    </update>
+
+    <update id="activateUser">
+        UPDATE user SET status = 1 WHERE user_name = #{userName}
+    </update>
+
+    <update id="deactivateUser">
+        UPDATE user SET status = 0 WHERE user_name = #{userName}
+    </update>
+
+    <select id="listCorrect" resultType="java.util.Map">
+        SELECT user_name AS userName, problem_name AS name FROM correct
+    </select>
+
+    <select id="points" resultType="java.util.Map">
+        SELECT name, difficulty FROM problem
+    </select>
+
+    <update id="updateUserInfo" parameterType="com.LetucOJ.user.model.UserInfoDTO">
+        UPDATE user
+        SET cnname = #{cnname},
+            email = #{email},
+            phone = #{phone},
+            description = #{description}
+        WHERE user_name = #{userName}
+    </update>
+
+    <select id="getUserFullInfo" resultType="com.LetucOJ.user.model.UserInfoDTO">
+        SELECT user_name AS userName, cnname, email, phone, description
+        FROM user
+        WHERE user_name = #{userName}
+    </select>
+
+</mapper>

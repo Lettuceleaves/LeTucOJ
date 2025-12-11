@@ -4,6 +4,7 @@ import com.LetucOJ.common.anno.SubmitLimit;
 import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.common.trace.TraceContext;
 import com.LetucOJ.practice.model.DTO.SubmitRecordDTO;
 import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.repos.MybatisRepos;
@@ -51,6 +52,7 @@ public class SubmitController {
                                                   ResultVO<TestTaskVO> result) {
         try {
             SubmitRecordDTO record = new SubmitRecordDTO(
+                    TraceContext.getTraceId(),
                     userName,
                     nickName,
                     problemName,

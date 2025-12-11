@@ -4,7 +4,8 @@ import com.LetucOJ.common.anno.SubmitLimit;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
-import com.LetucOJ.contest.model.DTO.RecordDTO;
+import com.LetucOJ.common.trace.TraceContext;
+import com.LetucOJ.contest.model.DTO.SubmitRecordDTO;
 import com.LetucOJ.contest.model.VO.TestTaskVO;
 import com.LetucOJ.contest.repos.MybatisRepos;
 import com.LetucOJ.contest.service.PracticeService;
@@ -42,7 +43,7 @@ public class SubmitController {
             @RequestParam("nick_name") String nickName,
             @RequestBody String code, ResultVO<TestTaskVO> result) {
         try {
-            Integer res = mybatisRepos.insertRecord(new RecordDTO(userName, nickName, problemName, language, code, result.getCode() + " $ " + result.getMessage(), 0L, 0L, System.currentTimeMillis()));
+            Integer res = mybatisRepos.insertRecord(new SubmitRecordDTO(TraceContext.getTraceId(), userName, nickName, problemName, language, code, result.getCode() + " $ " + result.getMessage(), 0L, 0L, System.currentTimeMillis()));
             if (res == null || res <= 0) {
                 return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
             } else {

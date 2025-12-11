@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.LetucOJ.contest.repos.MybatisRepos">
+
+    <select id="getStatus" resultType="com.LetucOJ.contest.model.DTO.ProblemStatusDTO">
+        SELECT public &gt; 0 as ispublic, showsolution, caseAmount
+        FROM problem
+        WHERE name = #{name}
+    </select>
+
+    <select id="getProblem" resultType="com.LetucOJ.contest.model.Problem">
+        SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq,
+               public &gt; 0 AS publicProblem, solution, showsolution
+        FROM problem
+        WHERE name = #{name}
+    </select>
+
+    <select id="getContestList" resultType="com.LetucOJ.contest.model.ContestBrief">
+        SELECT name, cnname, mode, start, end, public
+        FROM contest
+    </select>
+
+    <select id="getContest" resultType="com.LetucOJ.contest.model.Contest">
+        SELECT name, cnname, mode, start, end, public &gt; 0 AS publicContest, note, password
+        FROM contest
+        WHERE name = #{name}
+    </select>
+
+    <insert id="insertContest" parameterType="com.LetucOJ.contest.model.Contest">
+        INSERT INTO contest
+            (name, cnname, mode, start, end, public, note, password)
+        VALUES
+            (#{name}, #{cnname}, #{mode}, #{start}, #{end}, #{publicContest}, #{note}, #{password})
+    </insert>
+
+    <update id="updateContest" parameterType="com.LetucOJ.contest.model.Contest">
+        UPDATE contest SET
+                           cnname   = #{cnname},
+                           mode     = #{mode},
+                           start    = #{start},
+                           end      = #{end},
+                           public   = #{publicContest},
+                           note     = #{note},
+                           password = #{password}
+        WHERE name = #{name}
+    </update>
+
+    <select id="getProblemList" resultType="com.LetucOJ.contest.model.DTO.ProblemBrief">
+        SELECT * FROM contest_problem WHERE contest_name = #{contestName}
+    </select>
+
+    <insert id="insertProblem" parameterType="com.LetucOJ.contest.model.DTO.ContestProblemDTO">
+        INSERT INTO contest_problem
+            (contest_name, problem_name, score)
+        VALUES
+            (#{contestName}, #{problemName}, #{score})
+    </insert>
+
+    <delete id="deleteProblem">
+        DELETE FROM contest_problem
+        WHERE contest_name = #{contestName}
+          AND problem_name = #{problemName}
+    </delete>
+
+    <select id="getScoreByContestAndProblem" resultType="java.lang.Integer">
+        SELECT score FROM contest_problem
+        WHERE contest_name = #{contestName}
+          AND problem_name = #{problemName}
+    </select>
+
+    <insert id="insertContestUser">
+        INSERT INTO contest_user (contest_name, user_name, cnname)
+        VALUES (#{contestName}, #{userName}, #{cnname})
+    </insert>
+
+    <select id="getUserStatus" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM contest_user
+        WHERE contest_name = #{contestName} AND user_name = #{userName}
+    </select>
+
+    <select id="getContestBoardByUserAndProblem" resultType="com.LetucOJ.contest.model.DTO.BoardDTO">
+        SELECT contest_name AS contestName,
+               user_name AS userName,
+               problem_name AS problemName,
+               score,
+               attempts AS times,
+               last_submit as lastSubmit
+        FROM contest_board
+        WHERE contest_name = #{contestName}
+          AND user_name    = #{userName}
+          AND problem_name = #{problemName}
+    </select>
+
+    <select id="getBoard" resultType="com.LetucOJ.contest.model.DTO.BoardDTO">
+        SELECT u.user_name AS userName, u.cnname AS userCnname, p.problem_name AS problemName,
+               COALESCE(b.score, 0) AS score,
+               COALESCE(b.attempts, 0) AS times,
+               b.last_submit AS lastSubmit
+        FROM contest_user u
+                 JOIN contest_problem p ON p.contest_name = u.contest_name
+                 LEFT JOIN contest_board b ON b.contest_name = u.contest_name
+            AND b.user_name    = u.user_name
+            AND b.problem_name = p.problem_name
+        WHERE u.contest_name = #{contestName}
+        ORDER BY u.user_name, p.problem_name
+    </select>
+
+    <insert id="insertContestBoard" parameterType="com.LetucOJ.contest.model.DTO.BoardDTO">
+        INSERT INTO contest_board
+            (contest_name, user_name, problem_name, score, attempts, last_submit)
+        VALUES
+            (#{contestName}, #{userName}, #{problemName}, #{score}, #{times}, #{lastSubmit})
+    </insert>
+
+    <update id="updateContestBoard" parameterType="com.LetucOJ.contest.model.DTO.BoardDTO">
+        UPDATE contest_board SET
+                                 score    = #{score},
+                                 attempts = #{times},
+                                 last_submit = CURRENT_TIMESTAMP
+        WHERE contest_name = #{contestName}
+          AND user_name    = #{userName}
+          AND problem_name = #{problemName}
+    </update>
+
+    <insert id="insertRecord" parameterType="com.LetucOJ.contest.model.DTO.SubmitRecordDTO">
+        INSERT INTO record
+        (userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime)
+        VALUES
+            (#{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})
+    </insert>
+
+    <select id="problemExist" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM problem WHERE name = #{name}
+    </select>
+
+</mapper>

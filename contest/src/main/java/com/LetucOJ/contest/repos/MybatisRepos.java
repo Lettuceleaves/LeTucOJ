@@ -119,7 +119,7 @@ public interface MybatisRepos {
             "(userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime) " +
             "VALUES " +
             "(#{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})")
-    Integer insertRecord(RecordDTO recordDTO);
+    Integer insertRecord(SubmitRecordDTO recordDTO);
 
     @Select("SELECT COUNT(*) FROM problem WHERE name = #{name}")
     Integer problemExist(@Param("lang") String name);

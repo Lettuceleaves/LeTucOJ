@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.LetucOJ.practice.repos.MybatisRepos">
+
+    <select id="getStatus" resultType="com.LetucOJ.practice.model.ProblemStatus">
+        SELECT public &gt; 0 AS publicProblem, showsolution &gt; 0 AS showSolution, caseAmount
+        FROM problem
+        WHERE name = #{name}
+    </select>
+
+    <update id="incrementCaseAmount">
+        UPDATE problem
+        SET caseAmount = caseAmount + 1
+        WHERE name = #{name}
+    </update>
+
+    <select id="getList" parameterType="com.LetucOJ.practice.model.DTO.ListConditionDTO" resultType="com.LetucOJ.practice.model.ProblemBrief">
+        SELECT name, cnname, tags, difficulty, 0 AS accepted
+        FROM problem
+        WHERE public = 1
+        ORDER BY ${order}
+        LIMIT #{start}, #{limit}
+    </select>
+
+    <select id="getAmount" parameterType="com.LetucOJ.practice.model.DTO.ListConditionDTO" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM problem WHERE public = 1
+    </select>
+
+    <select id="searchList" parameterType="com.LetucOJ.practice.model.DTO.ListConditionDTO" resultType="com.LetucOJ.practice.model.ProblemBrief">
+        SELECT name, cnname, tags, difficulty, 0 AS accepted
+        FROM problem
+        WHERE public = 1
+          AND (cnname LIKE CONCAT('%', #{like}, '%')
+            OR tags LIKE CONCAT('%', #{like}, '%')
+            OR content LIKE CONCAT('%', #{like}, '%'))
+        ORDER BY ${order}
+        LIMIT #{start}, #{limit}
+    </select>
+
+    <select id="getSearchAmount" parameterType="com.LetucOJ.practice.model.DTO.ListConditionDTO" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM problem
+        WHERE public = 1
+          AND (cnname LIKE CONCAT('%', #{like}, '%')
+            OR tags LIKE CONCAT('%', #{like}, '%')
+            OR content LIKE CONCAT('%', #{like}, '%'))
+    </select>
+
+    <select id="getListInRoot" parameterType="com.LetucOJ.practice.model.DTO.ListConditionDTO" resultType="com.LetucOJ.practice.model.ProblemBrief">
+        SELECT name, cnname, tags, difficulty, 0 AS accepted
+        FROM problem
+        ORDER BY ${order}
+        LIMIT #{start}, #{limit}
+    </select>
+
+    <select id="getAmountInRoot" parameterType="com.LetucOJ.practice.model.DTO.ListConditionDTO" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM problem
+    </select>
+
+    <select id="searchListInRoot" parameterType="com.LetucOJ.practice.model.DTO.ListConditionDTO" resultType="com.LetucOJ.practice.model.ProblemBrief">
+        SELECT name, cnname, tags, difficulty, 0 AS accepted
+        FROM problem
+        WHERE cnname LIKE CONCAT('%', #{like}, '%')
+           OR tags LIKE CONCAT('%', #{like}, '%')
+           OR content LIKE CONCAT('%', #{like}, '%')
+        ORDER BY ${order}
+        LIMIT #{start}, #{limit}
+    </select>
+
+    <select id="getSearchAmountInRoot" parameterType="com.LetucOJ.practice.model.DTO.ListConditionDTO" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM problem
+        WHERE cnname LIKE CONCAT('%', #{like}, '%')
+           OR tags LIKE CONCAT('%', #{like}, '%')
+           OR content LIKE CONCAT('%', #{like}, '%')
+    </select>
+
+    <select id="getProblem" resultType="com.LetucOJ.practice.model.Problem">
+        SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq,
+               public &gt; 0 AS publicProblem, solution, showsolution
+        FROM problem
+        WHERE name = #{name} AND public = 1
+    </select>
+
+    <select id="getProblemInRoot" resultType="com.LetucOJ.practice.model.Problem">
+        SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq,
+               public &gt; 0 AS publicProblem, solution, showsolution
+        FROM problem
+        WHERE name = #{name}
+    </select>
+
+    <insert id="insertProblem" parameterType="com.LetucOJ.practice.model.Problem">
+        INSERT INTO problem
+        (name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public, solution, showsolution)
+        VALUES
+            (#{name}, #{cnname}, #{caseAmount}, #{difficulty}, #{tags}, #{authors}, #{createtime}, #{updateat}, #{content}, #{freq}, #{publicProblem}, #{solution}, #{showsolution})
+    </insert>
+
+    <update id="updateProblem" parameterType="com.LetucOJ.practice.model.Problem">
+        UPDATE problem
+        SET cnname = #{cnname},
+            caseAmount = #{caseAmount},
+            difficulty = #{difficulty},
+            tags = #{tags},
+            authors = #{authors},
+            updateat = #{updateat},
+            content = #{content},
+            freq = #{freq},
+            public = #{publicProblem},
+            solution = #{solution},
+            showsolution = #{showsolution}
+        WHERE name = #{name}
+    </update>
+
+    <delete id="deleteProblem">
+        DELETE FROM problem WHERE name = #{name}
+    </delete>
+
+    <select id="getAllRecords" resultType="com.LetucOJ.practice.model.DTO.SubmitRecordDTO">
+        SELECT * FROM record
+        ORDER BY submitTime DESC
+        LIMIT #{start}, #{limit}
+    </select>
+
+    <select id="getAllRecordsCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM record
+    </select>
+
+    <select id="getRecordsByName" resultType="com.LetucOJ.practice.model.DTO.SubmitRecordDTO">
+        SELECT * FROM record
+        WHERE userName = #{userName}
+        ORDER BY submitTime DESC
+        LIMIT #{start}, #{limit}
+    </select>
+
+    <select id="getRecordsByNameCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM record WHERE userName = #{userName}
+    </select>
+
+    <insert id="insertRecord" parameterType="com.LetucOJ.practice.model.DTO.SubmitRecordDTO">
+        INSERT INTO record
+        (traceId, userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime)
+        VALUES
+            (#{traceId}, #{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})
+    </insert>
+
+    <select id="getCorrectByName" resultType="java.lang.String">
+        SELECT problem_name FROM correct WHERE user_name = #{userName}
+    </select>
+
+    <insert id="insertCorrect">
+        INSERT INTO correct (user_name, problem_name) VALUES (#{userName}, #{problemName})
+    </insert>
+
+    <select id="checkCorrect" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM correct WHERE user_name = #{userName} AND problem_name = #{problemName}
+    </select>
+
+</mapper>
