@@ -1,6 +1,9 @@
 # Compiled class file
 *.class
 
+# Environment Param And Password
+*env
+
 # Log file
 *.log
 

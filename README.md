@@ -1,6 +1,6 @@
 # LeTucOJ
 
-<div align="center">
+<div>
   <!-- 预留项目logo位置 -->
   <img src="#" alt="LeTucOJ Logo" width="200" height="200">
   
@@ -101,8 +101,7 @@ LeTucOJ/
 ├── sys/             # 系统服务模块
 ├── user/            # 用户服务模块
 ├── ai_pages/        # AI功能相关前端页面
-├── ts_pages/        # 主要前端页面(TypeScript)
-└── letucoj.sql      # 数据库初始化脚本
+└── ts_pages/        # 主要前端页面(TypeScript)
 ```
 
 ## 部署指南
@@ -142,10 +141,6 @@ docker-compose up -d
 ### 数据库初始化
 
 系统首次启动时会自动执行 `deploy/mysql/letucoj.sql` 进行数据库初始化。如需手动导入，请执行：
-
-```bash
-docker exec -i mysql mysql -u root -p letucoj < letucoj.sql
-```
 
 ## 开发指南
 
