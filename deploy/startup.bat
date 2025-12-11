@@ -1,76 +1,92 @@
 @echo off
-echo buiding Docker images...
+setlocal enabledelayedexpansion
 
-:: 构建 practice 镜像
-cd practice
-docker build -t practice:latest .
-cd ..
+:: =======================================================
+:: 配置部分
+:: =======================================================
+set "SRC_ROOT=E:\projects\LeTucOJ"
+set "DST_ROOT=E:\projects\LeTucOJ\deploy"
+set REGISTRY_HOST=localhost:5000
 
-:: 构建 gateway 镜像
-cd gateway
-docker build -t gateway:latest .
-cd ..
+cd /d "%DST_ROOT%"
 
-:: 构建 user 镜像
-cd user
-docker build -t user:latest .
-cd ..
+:: 定义模块
+set JAR_MODULES=advice contest gateway practice run sys user
+set IMAGES=practice gateway user run run_c run_cpp run_js run_java run_py advice sys contest nginx
 
-:: 构建 run 镜像
-cd run
-docker build -t run:latest .
-cd ..
+echo =======================================================
+echo 0. Copying JARs...
+echo =======================================================
 
-:: 构建 run_c 镜像
-cd run_c
-docker build -t run_c:latest .
-cd ..
+for %%i in (%JAR_MODULES%) do (
+    set "TARGET_DIR=%%i"
+    set "DEST_DIR=%%i"
+    set "SNAPSHOT_JAR=%%i-0.0.1-SNAPSHOT.jar"
+    set "FINAL_JAR=%%i.jar"
+    
+    if exist "%DST_ROOT%\!DEST_DIR!\!FINAL_JAR!" del /Q "%DST_ROOT%\!DEST_DIR!\!FINAL_JAR!"
+    copy /Y "%SRC_ROOT%\!TARGET_DIR!\target\!SNAPSHOT_JAR!" "%DST_ROOT%\!DEST_DIR!\!FINAL_JAR!" >nul
+    
+    if errorlevel 1 (
+        echo [ERROR] !FINAL_JAR! copy failed.
+        pause
+        exit /b 1
+    ) else (
+        echo [OK] !FINAL_JAR! updated.
+    )
+)
 
-:: 构建 run_cpp 镜像
-cd run_cpp
-docker build -t run_cpp:latest .
-cd ..
+echo.
+echo =======================================================
+echo 1. Starting Registry & Middleware
+echo =======================================================
 
-:: 构建 run_js 镜像
-cd run_js
-docker build -t run_js:latest .
-cd ..
-
-:: 构建 run_java 镜像
-cd run_java
-docker build -t run_java:latest .
-cd ..
-
-:: 构建 run_py 镜像
-cd run_py
-docker build -t run_py:latest .
-cd ..
-
-:: 构建 advice 镜像
-cd advice
-docker build -t advice:latest .
-cd ..
-
-:: 构建 sys 镜像
-cd sys
-docker build -t sys:latest .
-cd ..
-
-:: 构建 contest 镜像
-cd contest
-docker build -t contest:latest .
-cd ..
-
-:: 构建 nginx 镜像
-cd nginx
-docker build -t nginx:latest .
-cd ..
-
-echo building Docker Compose...
-
-:: 启动 Docker Compose 服务
 cd docker-compose
-docker-compose up -d
+docker compose up -d registry mysql redis namesrv broker minio
+cd ..
 
-echo Docker Compose completed...
+echo.
+echo =======================================================
+echo 2. Building & Pushing (With Auto-Cleanup)
+echo =======================================================
+
+for %%i in (%IMAGES%) do (
+    echo.
+    echo --- Processing %%i ---
+    cd %%i
+    
+    set FULL_IMAGE_TAG=%REGISTRY_HOST%/%%i:latest
+    
+    :: 【新增步骤】尝试删除旧的、不带前缀的残留镜像
+    :: 如果它是基础镜像(如nginx:latest是被FROM引用的)，这步可能会报错或被忽略，这是正常的。
+    :: 我们用 2>nul 屏蔽错误信息，以免干扰视线。
+    docker rmi %%i:latest 2>nul
+    
+    echo Building !FULL_IMAGE_TAG!...
+    docker build -t !FULL_IMAGE_TAG! .
+    
+    echo Pushing !FULL_IMAGE_TAG!...
+    docker push !FULL_IMAGE_TAG!
+    
+    cd ..
+)
+
+echo.
+echo =======================================================
+echo 3. Starting Services
+echo =======================================================
+
+cd docker-compose
+docker compose up -d
+cd ..
+
+echo.
+echo =======================================================
+echo 4. Cleanup
+echo =======================================================
+
+docker image prune -f
+
+echo.
+echo Done!
 pause

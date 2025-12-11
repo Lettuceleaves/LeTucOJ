@@ -1,6 +1,7 @@
 package com.LetucOJ.sys.repository;
 
 import com.LetucOJ.common.anno.LanguageConfigDO;
+import com.LetucOJ.sys.model.Log;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -13,5 +14,5 @@ import java.util.Set;
 @Mapper
 public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
     @Insert("INSERT INTO log (id, content) VALUES (#{id}, #{content})")
-    void appendLog(String id, String content);
+    void appendLog(Log log);
 }

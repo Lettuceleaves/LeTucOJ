@@ -18,6 +18,6 @@ public class ResultVO<T> {
     private String code;
     private T data;
     private String message;
-    // private String requestId; TODO requestId用于错误追踪
+     private String taskId;
 
 }

@@ -8,6 +8,6 @@ import java.util.List;
 @Mapper
 @Repository
 public interface LangMybatisRepos {
-    @Select("SELECT * from lang_config where lang = #{language} or lang = 'total'")
+    @Select("SELECT lang, mem_per_sum ans MemPerRun from lang_config where lang = #{language} or lang = 'total'")
     List<LanguageConfigDO> selectList(String language);
 }

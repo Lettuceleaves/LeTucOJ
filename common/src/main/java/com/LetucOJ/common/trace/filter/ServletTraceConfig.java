@@ -92,7 +92,6 @@ public class ServletTraceConfig implements ImportAware {
                                     request.getRemoteAddr());
                         }
                         traceId = IdUtil.getSnowflake().nextIdStr();
-                        Logger.log(Type.SERVER, LogLevel.INFO, "generate id: " +  traceId);
                     }
 
                     TraceContext.setTraceId(traceId);

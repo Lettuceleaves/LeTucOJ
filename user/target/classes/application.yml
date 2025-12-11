@@ -8,8 +8,8 @@ spring:
     name: user
   datasource:
     url: jdbc:mysql://mysql:3306/letucoj?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: 430103535
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
@@ -18,8 +18,8 @@ spring:
   mail:
     host: smtp.qq.com
     port: 465
-    username: 2878506229@qq.com
-    password: whtxpptrfruiddha
+    username: ${EMAIL_ADDRESS}
+    password: ${EMAIL_PASSWORD}
     protocol: smtp
     properties:
       mail:

@@ -1,6 +1,7 @@
 package com.LetucOJ.sys.repository;
 
 import com.LetucOJ.common.mq.impl.Message;
+import com.LetucOJ.sys.model.Log;
 import jakarta.annotation.Resource;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -23,6 +24,6 @@ public class RocketMQLogConsumer implements RocketMQListener<Message> {
     @Override
     public void onMessage(Message message) {
         System.out.println("get log message: " + message.getBody());
-        mybatisRepos.appendLog(message.getKey(), message.getBody());
+        mybatisRepos.appendLog(new Log(message.getKey(), message.getBody()));
     }
 }

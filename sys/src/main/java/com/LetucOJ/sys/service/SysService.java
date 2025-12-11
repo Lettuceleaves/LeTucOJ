@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface SysService {
-    ResultVO getDoc();
-    ResultVO updateDoc(byte[] doc);
-    ResultVO refreshSql();
+    ResultVO<byte[]> getDoc();
+    ResultVO<Void> updateDoc(byte[] doc);
+    ResultVO<Void> refreshSql();
 }

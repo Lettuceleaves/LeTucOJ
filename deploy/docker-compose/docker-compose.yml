@@ -1,5 +1,18 @@
 services:
 
+  # --- 基础中间件服务 ---
+
+  registry:
+    image: registry:2
+    container_name: docker-registry
+    ports:
+      - "5000:5000"
+    restart: always
+    volumes:
+      - ./registry_data:/var/lib/registry
+    mem_limit: 512m
+    mem_reservation: 256m
+
   mysql:
     image: mysql:latest
     container_name: mysql
@@ -9,7 +22,7 @@ services:
       - ../mysql/letucoj.sql:/docker-entrypoint-initdb.d/letucoj.sql
       - ../mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
-      MYSQL_ROOT_PASSWORD: '430103535'
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: letucoj
     mem_limit: 2g
     mem_reservation: 1g
@@ -22,8 +35,7 @@ services:
       - "6379:6379"
     mem_limit: 256m
     mem_reservation: 128m
-    
-  
+
   namesrv:
     image: apache/rocketmq:5.3.3
     container_name: rocketmq-namesrv
@@ -35,20 +47,20 @@ services:
     restart: always
 
   broker:
-      image: apache/rocketmq:5.3.3
-      container_name: rocketmq-broker
-      ports:
-        - "10911:10911"
-        - "10909:10909"
-      volumes:
-        - ./broker.conf:/home/rocketmq/rocketmq-5.3.3/conf/broker.conf
-      environment:
-        - NAMESRV_ADDR=namesrv:9876
-        - JAVA_OPT=-Xms512m -Xmx512m
-      command: sh mqbroker -c /home/rocketmq/rocketmq-5.3.3/conf/broker.conf
-      restart: always
-      depends_on:
-        - namesrv
+    image: apache/rocketmq:5.3.3
+    container_name: rocketmq-broker
+    ports:
+      - "10911:10911"
+      - "10909:10909"
+    volumes:
+      - ./broker.conf:/home/rocketmq/rocketmq-5.3.3/conf/broker.conf
+    environment:
+      - NAMESRV_ADDR=namesrv:9876
+      - JAVA_OPT=-Xms512m -Xmx512m
+    command: sh mqbroker -c /home/rocketmq/rocketmq-5.3.3/conf/broker.conf
+    restart: always
+    depends_on:
+      - namesrv
 
   minio:
     image: minio/minio
@@ -65,40 +77,10 @@ services:
     mem_limit: 1g
     mem_reservation: 512m
 
-  practice:
-    image: practice:latest
-    container_name: practice
-    ports:
-      - "2222:2222"
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-      - TZ=Asia/Shanghai
-
-  gateway:
-    image: gateway:latest
-    container_name: gateway
-    ports:
-      - "7777:7777"
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-
-  contest:
-    image: contest:latest
-    container_name: contest
-    ports:
-      - "1234:1234"
-    mem_limit: 512m
-    mem_reservation: 256m
-    environment:
-      - JAVA_OPTS=-Xms256m -Xmx512m
-      - TZ=Asia/Shanghai
+  # --- 业务微服务 (从本地 Registry 拉取) ---
 
   sys:
-    image: sys:latest
+    image: localhost:5000/sys:latest  # <--- 已修正
     container_name: sys
     ports:
       - "2121:2121"
@@ -107,12 +89,18 @@ services:
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
       - MYSQL_HOST=mysql
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     user: "0:0"
+    depends_on:
+      - mysql
+      - minio
+      - registry
 
   user:
-    image: user:latest
+    image: localhost:5000/user:latest # <--- 已修正
     container_name: user
     ports:
       - "5555:5555"
@@ -120,9 +108,67 @@ services:
     mem_reservation: 256m
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - EMAIL_ADDRESS=${EMAIL_ADDRESS}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+    depends_on:
+      - mysql
+      - redis
+      - namesrv
+
+  gateway:
+    image: localhost:5000/gateway:latest # <--- 已修正
+    container_name: gateway
+    ports:
+      - "7777:7777"
+    mem_limit: 512m
+    mem_reservation: 256m
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx512m
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - namesrv
+      - mysql
+      - redis
+
+  practice:
+    image: localhost:5000/practice:latest # <--- 已修正
+    container_name: practice
+    ports:
+      - "2222:2222"
+    mem_limit: 512m
+    mem_reservation: 256m
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx512m
+      - TZ=Asia/Shanghai
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - mysql
+      - redis
+      - namesrv
+
+  contest:
+    image: localhost:5000/contest:latest # <--- 已修正
+    container_name: contest
+    ports:
+      - "1234:1234"
+    mem_limit: 512m
+    mem_reservation: 256m
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx512m
+      - TZ=Asia/Shanghai
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - mysql
+      - redis
+      - namesrv
 
   run:
-    image: run:latest
+    image: localhost:5000/run:latest # <--- 已修正
     container_name: run
     ports:
       - "1001:1001"
@@ -136,9 +182,13 @@ services:
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
       - HOST_DIR=${HOST_DIR}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - namesrv
 
   advice:
-    image: advice:latest
+    image: localhost:5000/advice:latest # <--- 已修正
     container_name: advice
     ports:
       - "9999:9999"
@@ -146,16 +196,23 @@ services:
     mem_reservation: 256m
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - AI_API=${AI_API}
+      - AI_URL=${AI_URL}
+    depends_on:
+      - mysql
+      - namesrv
 
   nginx:
-    image: nginx:latest
+    image: localhost:5000/nginx:latest # <--- 已修正 (假设您也自定义构建了nginx)
     container_name: nginx
     ports:
       - "80:80"
-    depends_on:
-      - gateway
     mem_limit: 128m
     mem_reservation: 64m
+    depends_on:
+      - gateway
 
 volumes:
   toolchain:

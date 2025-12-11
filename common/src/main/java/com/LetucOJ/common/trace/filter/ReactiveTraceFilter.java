@@ -99,7 +99,6 @@ public class ReactiveTraceFilter implements WebFilter, ImportAware {
                 // 兜底策略：为了不影响业务执行，仍然生成一个临时 ID 用于当前服务内部追踪
             }
             traceId = IdUtil.getSnowflake().nextIdStr();
-            Logger.log(Type.SERVER, LogLevel.INFO, "generate id: " +  traceId);
         }
 
         final String finalTraceId = traceId;
