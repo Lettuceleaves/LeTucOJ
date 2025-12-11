@@ -2,7 +2,7 @@
 *.class
 
 # Environment Param And Password
-*env
+*.env
 
 # Log file
 *.log
