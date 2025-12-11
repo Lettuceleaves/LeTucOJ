@@ -13,6 +13,6 @@ import java.util.Set;
 @Repository
 @Mapper
 public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
-    @Insert("INSERT INTO log (id, content) VALUES (#{id}, #{content})")
+    @Insert("INSERT INTO log (id, trace_id, content) VALUES (#{id}, #{traceId}, #{content})")
     void appendLog(Log log);
 }

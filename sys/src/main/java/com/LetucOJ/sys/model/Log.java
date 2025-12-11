@@ -7,5 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class Log {
     String id;
+    String traceId;
     String content;
 }

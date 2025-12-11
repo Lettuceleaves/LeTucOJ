@@ -89,9 +89,8 @@ public class ReactiveTraceFilter implements WebFilter, ImportAware {
         if (traceId == null || traceId.isEmpty()) {
             if (!isGateway) {
                 // 【场景B：非网关】异常流量，记录告警日志
-                // 注意：这里使用了你提供的自定义 Logger
                 try {
-                    Logger.log(Type.SERVER, LogLevel.WARN, "【Trace告警】检测到缺失 TraceId 的直接访问或链路断裂! Path: " + exchange.getRequest().getPath() + ", Method: " + exchange.getRequest().getMethod() + ", IP: " + exchange.getRequest().getRemoteAddress());
+                    log.warn("【Trace告警】检测到缺失 TraceId 的直接访问或链路断裂! Path: {}, Method: {}, IP: {}", exchange.getRequest().getPath(), exchange.getRequest().getMethod(), exchange.getRequest().getRemoteAddress());
                 } catch (Exception e) {
                     log.error("记录Trace告警日志失败", e);
                 }

@@ -1,5 +1,6 @@
 package com.LetucOJ.sys.repository;
 
+import cn.hutool.core.util.IdUtil;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.sys.model.Log;
 import jakarta.annotation.Resource;
@@ -24,6 +25,6 @@ public class RocketMQLogConsumer implements RocketMQListener<Message> {
     @Override
     public void onMessage(Message message) {
         System.out.println("get log message: " + message.getBody());
-        mybatisRepos.appendLog(new Log(message.getKey(), message.getBody()));
+        mybatisRepos.appendLog(new Log(IdUtil.getSnowflake().nextIdStr(), message.getKey(), message.getBody()));
     }
 }
