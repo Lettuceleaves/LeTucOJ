@@ -36,17 +36,17 @@ public class DBServiceImpl implements DBService {
     private final RunClient runClient;
 
     @Override
-    public ResultVO<ProblemListVO> getList(ListConditionDTO listConditionDTO, String name, String role) {
+    public ResultVO<ProblemListVO> getList(ListConditionDTO listConditionDTO, String userName, String role) {
          listConditionDTO.setLike(null);
-        return doQueryProblemList(listConditionDTO, name, role);
+        return doQueryProblemList(listConditionDTO, userName, role);
     }
 
     @Override
-    public ResultVO<ProblemListVO> searchList(ListConditionDTO listConditionDTO, String name, String role) {
-        return doQueryProblemList(listConditionDTO, name, role);
+    public ResultVO<ProblemListVO> searchList(ListConditionDTO listConditionDTO, String userName, String role) {
+        return doQueryProblemList(listConditionDTO, userName, role);
     }
 
-    private ResultVO<ProblemListVO> doQueryProblemList(ListConditionDTO dto, String currentUserName, String role) {
+    private ResultVO<ProblemListVO> doQueryProblemList(ListConditionDTO dto, String userName, String role) {
         return executeSafe(() -> {
             if (dto.getStart() == null || dto.getLimit() == null) {
                 return Result.failure(PracticeErrorCode.CLIENT_ERROR, null);
@@ -74,8 +74,8 @@ public class DBServiceImpl implements DBService {
             }
 
             // 填充 AC 状态
-            if (currentUserName != null && !currentUserName.isEmpty()) {
-                Set<String> acceptedSet = mybatisRepos.getCorrectByName(currentUserName);
+            if (userName != null && !userName.isEmpty()) {
+                Set<String> acceptedSet = mybatisRepos.getCorrectByName(userName);
                 if (acceptedSet != null && !acceptedSet.isEmpty()) {
                     for (ProblemBrief item : list) {
                         if (acceptedSet.contains(item.getName())) {

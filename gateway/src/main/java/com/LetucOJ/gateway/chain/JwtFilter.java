@@ -18,7 +18,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -34,35 +33,50 @@ import java.util.List;
 public class JwtFilter implements WebFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final List<String> WHITELIST = List.of(
-            "/user/login", "/user/register", "/sys/doc/get"
-    );
 
     // 白名单
-    private static final List<String> STATIC = List.of(
-            "/", "/index.html",
-            "/static/**", "/assets/**",
-            "/**/*.js", "/**/*.css", "/**/*.ico", "/**/*.png", "/**/*.woff2", "/code.txt"
+    private static final List<String> WHITELIST = List.of(
+            "/user/register",
+            "/user/login",
+            "/user/secret_key",
+            "/user/password"
     );
 
-    private static final AntPathMatcher MATCHER = new AntPathMatcher();
+    private static final List<String> USER_NAME_REQUIRED = List.of(
+            "/contest/problem",
+            "/contest/attend",
+            "/contest/attended",
+            "/contest/submit",
 
-    private boolean isStatic(String path) {
-        return STATIC.stream().anyMatch(p -> MATCHER.match(p, path));
-    }
+            "/practice/list",
+            "/practice/list_search",
+            "/practice/list_record/self",
+            "/practice/submit",
 
-    private static final List<String> NAME_REQUIRED = List.of(
-            "/contest/attend", "/contest/submit", "/contest/submitInRoot", "/practice/recordList/self", "/user/info/update",
-            "/practice/submit", "/practice/submitInRoot", "/user/change-password", "/contest/inContest", "/practice/list",
-            "/practice/listRoot", "/practice/searchList", "/practice/searchListInRoot", "/user/logout", "/user/background/update", "/user/headPortrait/update"
+            "/user/logout",
+            "/user/promote",
+            "/user/demote"
     );
 
-    private static final List<String> CNNAME_REQUIRED = List.of(
-            "/contest/attend", "/contest/submit", "/contest/submitInRoot", "/practice/submit", "/practice/submitInRoot"
+    private static final List<String> NICK_NAME_REQUIRED = List.of(
+            "/contest/attend",
+            "/contest/submit",
+            "/practice/submit"
     );
 
     private static final List<String> ROLE_REQUIRED = List.of(
-            "/practice/list"
+            "/contest/problem",
+            "/contest/contest",
+            "/contest/problems",
+            "/contest/board",
+            "/contest/submit",
+
+            "/practice/list",
+            "/practice/list_search",
+            "/practice/problem",
+            "/practice/test_case",
+            "/practice/submit",
+            "/practice/test_case"
     );
 
     @NotNull
@@ -73,7 +87,7 @@ public class JwtFilter implements WebFilter {
         System.out.println("------" + "Method:" + exchange.getRequest().getMethod() + " " + exchange + " " + chain);
 
         // 默认放过OPTIONS方法
-        if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod()) || isStatic(path) || WHITELIST.contains(path)) {
+        if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod())  || WHITELIST.contains(path)) {
             return chain.filter(exchange);
         }
 
@@ -113,12 +127,12 @@ public class JwtFilter implements WebFilter {
         // 修改http标志位
         boolean shouldMutate = false;
 
-        if (NAME_REQUIRED.contains(path)) {
+        if (USER_NAME_REQUIRED.contains(path)) {
             uriBuilder.replaceQueryParam("user_name", userName);
             shouldMutate = true;
         }
 
-        if (CNNAME_REQUIRED.contains(path)) {
+        if (NICK_NAME_REQUIRED.contains(path)) {
             uriBuilder.replaceQueryParam("nick_name", nickName);
             shouldMutate = true;
         }

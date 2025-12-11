@@ -91,9 +91,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultVO<Void> logout(String username) {
+    public ResultVO<Void> logout(String userName) {
         return executeSafe(() -> {
-            Redis.mapPutDuration("black:" + username, "0", 7 * 24 * 60 * 60);
+            Redis.mapPutDuration("black:" + userName, "0", 7 * 24 * 60 * 60);
             return Result.success();
         });
     }
@@ -119,10 +119,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultVO<UserInfoDTO> getUserFullInfo(String username) {
+    public ResultVO<UserInfoDTO> getUserFullInfo(String userName) {
         return executeSafe(() -> {
-            if (username == null) return Result.failure(UserErrorCode.EMPTY_PARAMETER, null);
-            UserInfoDTO info = userMybatisRepos.getUserFullInfo(username);
+            if (userName == null) return Result.failure(UserErrorCode.EMPTY_PARAMETER, null);
+            UserInfoDTO info = userMybatisRepos.getUserFullInfo(userName);
             return info != null ? Result.success(info) : Result.failure(UserErrorCode.NO_USER, null);
         });
     }
@@ -140,29 +140,29 @@ public class UserServiceImpl implements UserService {
     // --- MinIO 相关 ---
 
     @Override
-    public ResultVO<byte[]> getBackground(String username) {
-        return getFileSafe(username, BACKGROUND_FILE, UserErrorCode.NO_BACKGROUND);
+    public ResultVO<byte[]> getBackground(String userName) {
+        return getFileSafe(userName, BACKGROUND_FILE, UserErrorCode.NO_BACKGROUND);
     }
 
     @Override
-    public ResultVO<Void> updateBackground(String username, byte[] data) {
-        return updateFileSafe(username, BACKGROUND_FILE, data);
+    public ResultVO<Void> updateBackground(String userName, byte[] data) {
+        return updateFileSafe(userName, BACKGROUND_FILE, data);
     }
 
     @Override
-    public ResultVO<byte[]> getHeadPortrait(String username) {
-        return getFileSafe(username, HEAD_PORTRAIT_FILE, UserErrorCode.NO_HEADPORTRAIT);
+    public ResultVO<byte[]> getHeadPortrait(String userName) {
+        return getFileSafe(userName, HEAD_PORTRAIT_FILE, UserErrorCode.NO_HEADPORTRAIT);
     }
 
     @Override
-    public ResultVO<Void> updateHeadPortrait(String username, byte[] data) {
-        return updateFileSafe(username, HEAD_PORTRAIT_FILE, data);
+    public ResultVO<Void> updateHeadPortrait(String userName, byte[] data) {
+        return updateFileSafe(userName, HEAD_PORTRAIT_FILE, data);
     }
 
     @Override
-    public ResultVO<byte[]> getHeatmap(String username, int year) {
+    public ResultVO<byte[]> getHeatmap(String userName, int year) {
         return executeSafe(() -> {
-            String objectName = "user/" + username + "/heatmap/" + year + ".json";
+            String objectName = "user/" + userName + "/heatmap/" + year + ".json";
             if (!minioRepos.isObjectExist(BUCKET_NAME, objectName)) {
                 return Result.failure(UserErrorCode.NO_HEATMAP, null);
             }
@@ -173,30 +173,30 @@ public class UserServiceImpl implements UserService {
     // --- 邮件与密码 ---
 
     @Override
-    public ResultVO<String> getSecretKey(String username) {
+    public ResultVO<String> getSecretKey(String userName) {
         return executeSafe(() -> {
-            UserInfoDTO user = userMybatisRepos.getUserFullInfo(username);
+            UserInfoDTO user = userMybatisRepos.getUserFullInfo(userName);
             if (user == null) return Result.failure(UserErrorCode.NO_USER, null);
             if (isEmpty(user.getEmail())) return Result.failure(UserErrorCode.NO_EMAIL, null);
 
             String secretKey = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-            sendSecretKeyEmail(user.getEmail(), username, secretKey);
+            sendSecretKeyEmail(user.getEmail(), userName, secretKey);
 
-            Redis.mapPutDuration(username, secretKey, 120);
+            Redis.mapPutDuration(userName, secretKey, 120);
             return Result.success("密钥已成功发送至您的邮箱: " + user.getEmail());
         });
     }
 
     @Override
-    public ResultVO<Void> changePassword(String username, String secretKey, String newPassword) {
+    public ResultVO<Void> changePassword(String userName, String secretKey, String newPassword) {
         return executeSafe(() -> {
-            String cachedKey = Redis.mapGet(username);
+            String cachedKey = Redis.mapGet(userName);
             if (!Objects.equals(cachedKey, secretKey)) {
-                Logger.log(Type.SERVER, LogLevel.WARN, "Password change failed: invalid key for " + username);
+                Logger.log(Type.SERVER, LogLevel.WARN, "Password change failed: invalid key for " + userName);
                 return Result.failure(UserErrorCode.SECRET_KEY_INVALID);
             }
             return checkDbRows(
-                    userMybatisRepos.updatePassword(username, Password.encrypt(newPassword)),
+                    userMybatisRepos.updatePassword(userName, Password.encrypt(newPassword)),
                     BaseErrorCode.SERVICE_ERROR
             );
         });
@@ -280,8 +280,8 @@ public class UserServiceImpl implements UserService {
     /**
      * 认证逻辑抽取
      */
-    private ResultVO<JwtInfoVO> authenticate(String username, String rawPassword, boolean checkPassword) {
-        UserManagerDTO user = userMybatisRepos.getPasswordByUserName(username);
+    private ResultVO<JwtInfoVO> authenticate(String userName, String rawPassword, boolean checkPassword) {
+        UserManagerDTO user = userMybatisRepos.getPasswordByUserName(userName);
         if (user == null) {
             return Result.failure(UserErrorCode.NAME_OR_CODE_WRONG, null);
         }
@@ -291,19 +291,19 @@ public class UserServiceImpl implements UserService {
         if (user.getStatus() == 0) {
             return Result.failure(UserErrorCode.NOT_ENABLE, null);
         }
-        JwtInfoVO jwt = new JwtInfoVO(username, user.getCnname(), user.getRole(), System.currentTimeMillis());
+        JwtInfoVO jwt = new JwtInfoVO(userName, user.getCnname(), user.getRole(), System.currentTimeMillis());
         return Result.success(jwt);
     }
 
     /**
      * 状态变更模板方法
      */
-    private ResultVO<Void> handleStatusChange(String username, Function<String, Integer> operation, boolean needLogout) {
+    private ResultVO<Void> handleStatusChange(String userName, Function<String, Integer> operation, boolean needLogout) {
         return executeSafe(() -> {
-            Integer rows = operation.apply(username);
+            Integer rows = operation.apply(userName);
             if (rows != null && rows == 1) {
                 if (needLogout) {
-                    logout(username); // 强制登出
+                    logout(userName); // 强制登出
                 }
                 return Result.success();
             }
@@ -328,10 +328,10 @@ public class UserServiceImpl implements UserService {
     /**
      * 安全获取文件
      */
-    private ResultVO<byte[]> getFileSafe(String username, String fileName, ErrorCode failCode) {
+    private ResultVO<byte[]> getFileSafe(String userName, String fileName, ErrorCode failCode) {
         return executeSafe(() -> {
             try {
-                String objectName = "user/" + username + "/" + fileName;
+                String objectName = "user/" + userName + "/" + fileName;
                 return Result.success(minioRepos.getFile(BUCKET_NAME, objectName));
             } catch (Exception e) {
                 return Result.failure(failCode, null);
@@ -342,9 +342,9 @@ public class UserServiceImpl implements UserService {
     /**
      * 安全上传文件
      */
-    private ResultVO<Void> updateFileSafe(String username, String fileName, byte[] data) {
+    private ResultVO<Void> updateFileSafe(String userName, String fileName, byte[] data) {
         return executeSafe(() -> {
-            String objectName = "user/" + username + "/" + fileName;
+            String objectName = "user/" + userName + "/" + fileName;
             minioRepos.addFile(BUCKET_NAME, objectName, data);
             return Result.success();
         });
@@ -358,12 +358,12 @@ public class UserServiceImpl implements UserService {
                 dto.getCnname() != null && !dto.getCnname().isEmpty() && dto.getCnname().length() <= 20;
     }
 
-    private void sendSecretKeyEmail(String email, String username, String secretKey) {
+    private void sendSecretKeyEmail(String email, String userName, String secretKey) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);
         message.setTo(email);
         message.setSubject("您在 LetucOJ 的密钥");
-        message.setText(String.format("尊敬的 %s,\n\n您请求的密钥如下:\n\n密钥: %s\n\n请使用此密钥继续操作。", username, secretKey));
+        message.setText(String.format("尊敬的 %s,\n\n您请求的密钥如下:\n\n密钥: %s\n\n请使用此密钥继续操作。", userName, secretKey));
         mailSender.send(message);
     }
 

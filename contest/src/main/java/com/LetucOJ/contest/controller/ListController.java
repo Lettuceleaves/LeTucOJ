@@ -22,18 +22,18 @@ public class ListController {
 
     @GetMapping("/problems")
     public ResultVO<ContestProblemListVO> getProblemList(@RequestParam("contest_name") String ctname,
-                                                         @RequestParam("role") String role) throws Exception {
+                                                         @RequestParam("role") String role) {
         return dbService.getProblemList(ctname, role);
     }
 
     @GetMapping("/contests")
-    public ResultVO<ContestListVO> getContestList() throws Exception {
+    public ResultVO<ContestListVO> getContestList() {
         return dbService.getContestList();
     }
 
     @GetMapping("/board")
     public ResultVO<BoardVO> getBoardList(@RequestParam("contest_name") String ctname,
-                                          @RequestParam("role") String role) throws Exception {
+                                          @RequestParam("role") String role) {
         return dbService.getBoard(ctname, role);
     }
 

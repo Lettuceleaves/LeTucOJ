@@ -5,61 +5,61 @@ import com.LetucOJ.contest.model.Contest;
 import com.LetucOJ.contest.model.DTO.ContestProblemDTO;
 import com.LetucOJ.contest.model.Problem;
 import com.LetucOJ.contest.service.DBService;
-import com.LetucOJ.contest.service.PracticeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/contest")
+@AllArgsConstructor
 public class ContestController {
 
-    @Autowired
-    private PracticeService practiceService;
-
-    @Autowired
     private DBService dbService;
 
     @GetMapping("/problem")
     public ResultVO<Problem> getProblem(@RequestParam("user_name") String userName,
                                         @RequestParam("contest_name") String contestName,
                                         @RequestParam("problem_name") String problemName,
-                                        @RequestParam("role") String role) throws Exception {
+                                        @RequestParam("role") String role) {
         return dbService.getProblem(userName, contestName, problemName, role);
     }
 
     @GetMapping("/contest")
     public ResultVO<Contest> getContest(@RequestParam("contest_name") String contestName,
-                                        @RequestParam("role") String role) throws Exception {
+                                        @RequestParam("role") String role) {
         return dbService.getContest(contestName, role);
     }
 
     @PostMapping("/contest")
-    public ResultVO<Void> insertContest(@RequestBody Contest dto) throws Exception {
+    public ResultVO<Void> insertContest(@RequestBody Contest dto) {
         return dbService.insertContest(dto);
     }
 
     @PutMapping("/contest")
-    public ResultVO<Void> updateContest(@RequestBody Contest dto) throws Exception {
+    public ResultVO<Void> updateContest(@RequestBody Contest dto) {
         return dbService.updateContest(dto);
     }
 
     @PostMapping("/problem")
-    public ResultVO<Void> insertProblem(@RequestBody ContestProblemDTO dto) throws Exception {
+    public ResultVO<Void> insertProblem(@RequestBody ContestProblemDTO dto) {
         return dbService.insertProblem(dto);
     }
 
     @DeleteMapping("/problem")
-    public ResultVO<Void> deleteProblem(@RequestBody ContestProblemDTO dto) throws Exception {
+    public ResultVO<Void> deleteProblem(@RequestBody ContestProblemDTO dto) {
         return dbService.deleteProblem(dto);
     }
 
     @PostMapping("/attend")
-    public ResultVO<Void> attendContest(@RequestParam("user_name") String userName, @RequestParam("nick_name") String nickName, @RequestParam("ctname") String contestName, @RequestParam("password") String password) throws Exception {
+    public ResultVO<Void> attendContest(@RequestParam("user_name") String userName,
+                                        @RequestParam("nick_name") String nickName,
+                                        @RequestParam("contest_name") String contestName,
+                                        @RequestParam("password") String password) {
         return dbService.attend(userName, nickName, contestName, password);
     }
 
     @GetMapping("/attended")
-    public ResultVO<Void> inContest(@RequestParam("user_name") String userName, @RequestParam("contestName") String contestName) throws Exception {
+    public ResultVO<Void> inContest(@RequestParam("user_name") String userName,
+                                    @RequestParam("contest_name") String contestName) {
         return dbService.attended(userName, contestName);
     }
 }

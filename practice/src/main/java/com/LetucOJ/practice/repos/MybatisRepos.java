@@ -64,6 +64,4 @@ public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
     Set<String> getCorrectByName(String userName);
 
     Integer insertCorrect(@Param("userName") String userName, @Param("problemName") String problemName);
-
-    Integer checkCorrect(@Param("userName") String userName, @Param("problemName") String problemName);
 }

@@ -16,19 +16,19 @@ public interface UserService {
     ResultVO<JwtInfoVO> refreshToken(String userName);
     ResultVO<Void> activateAccount(String userName);
     ResultVO<Void> deactivateAccount(String userName);
-    ResultVO<Void> logout(String username);
+    ResultVO<Void> logout(String userName);
     ResultVO<List<UserManagerDTO>> getAllUsers();
     ResultVO<List<UserManagerDTO>> getAllManagers();
     ResultVO<Void> promoteToManager(String userName);
     ResultVO<Void> demoteToUser(String userName);
     ResultVO<Object> getUserRankings();
     ResultVO<Void> updateUserFullInfo(UserInfoDTO userInfoDTO);
-    ResultVO<byte[]> getBackground(String username);
-    ResultVO<UserInfoDTO> getUserFullInfo(String username);
-    ResultVO<Void> updateBackground(String username, byte[] data);
-    ResultVO<byte[]> getHeadPortrait(String username);
-    ResultVO<Void> updateHeadPortrait(String username, byte[] data);
-    ResultVO<byte[]> getHeatmap(String username, int year);
-    ResultVO<String> getSecretKey(String username);
-    ResultVO<Void> changePassword(String username, String secretKey, String newPassword);
+    ResultVO<byte[]> getBackground(String userName);
+    ResultVO<UserInfoDTO> getUserFullInfo(String userName);
+    ResultVO<Void> updateBackground(String userName, byte[] data);
+    ResultVO<byte[]> getHeadPortrait(String userName);
+    ResultVO<Void> updateHeadPortrait(String userName, byte[] data);
+    ResultVO<byte[]> getHeatmap(String userName, int year);
+    ResultVO<String> getSecretKey(String userName);
+    ResultVO<Void> changePassword(String userName, String secretKey, String newPassword);
 }

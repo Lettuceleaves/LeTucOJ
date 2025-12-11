@@ -19,32 +19,36 @@ public class ProblemController {
     private DBService dbService;
 
     @GetMapping("/problem")
-    public ResultVO<Problem> getProblem(@RequestParam("problem_name") String problemName, String role) throws Exception {
+    public ResultVO<Problem> getProblem(@RequestParam("problem_name") String problemName,
+                                        @RequestParam("role") String role) {
         return dbService.getProblem(problemName, role);
     }
 
     @PostMapping("/problem")
-    public ResultVO<Void> insertProblem(@RequestBody Problem problem) throws Exception {
+    public ResultVO<Void> insertProblem(@RequestBody Problem problem) {
         return dbService.insertProblem(problem);
     }
 
     @PutMapping("/problem")
-    public ResultVO<Void> updateProblem(@RequestBody Problem problem) throws Exception {
+    public ResultVO<Void> updateProblem(@RequestBody Problem problem) {
         return dbService.updateProblem(problem);
     }
 
     @DeleteMapping("/problem")
-    public ResultVO<Void> deleteProblem(@RequestParam("problem_name") String problemName) throws Exception {
+    public ResultVO<Void> deleteProblem(@RequestParam("problem_name") String problemName) {
         return dbService.deleteProblem(problemName);
     }
 
     @PostMapping("/test_case")
-    public ResultVO<TestTaskVO> testCase(@RequestParam String language, @RequestBody TestCaseDTO testCaseDTO, @RequestParam String role) {
+    public ResultVO<TestTaskVO> testCase(@RequestParam("language") String language,
+                                         @RequestParam("role") String role,
+                                         @RequestBody TestCaseDTO testCaseDTO) {
         return dbService.testCase(testCaseDTO, language, role);
     }
 
     @GetMapping("/get_case")
-    public ResultVO<CaseFile> getCase(@RequestParam("problem_name") String problemName, @RequestParam("id") Integer id) {
+    public ResultVO<CaseFile> getCase(@RequestParam("problem_name") String problemName,
+                                      @RequestParam("id") Integer id) {
         return dbService.getCase(problemName, id);
     }
 
