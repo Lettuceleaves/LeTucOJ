@@ -57,9 +57,6 @@ for %%i in (%IMAGES%) do (
     
     set FULL_IMAGE_TAG=%REGISTRY_HOST%/%%i:latest
     
-    :: 【新增步骤】尝试删除旧的、不带前缀的残留镜像
-    :: 如果它是基础镜像(如nginx:latest是被FROM引用的)，这步可能会报错或被忽略，这是正常的。
-    :: 我们用 2>nul 屏蔽错误信息，以免干扰视线。
     docker rmi %%i:latest 2>nul
     
     echo Building !FULL_IMAGE_TAG!...

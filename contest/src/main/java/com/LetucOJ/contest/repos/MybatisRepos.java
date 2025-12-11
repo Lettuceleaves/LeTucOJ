@@ -2,7 +2,8 @@ package com.LetucOJ.contest.repos;
 
 import com.LetucOJ.contest.model.*;
 import com.LetucOJ.contest.model.DTO.*;
-import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -11,116 +12,47 @@ import java.util.List;
 @Mapper
 public interface MybatisRepos {
 
-    @Select("SELECT public > 0 as ispublic, showsolution, caseAmount FROM problem WHERE name = #{name}")
     ProblemStatusDTO getStatus(String name);
 
-    @Select("SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public > 0 AS publicProblem, solution, showsolution " +
-            "FROM problem " +
-            "WHERE name = #{name}")
     Problem getProblem(String name);
 
-    @Select("SELECT name, cnname, mode, start, end, public FROM contest")
     List<ContestBrief> getContestList();
 
-    @Select("SELECT name, cnname, mode, start, end, public > 0 AS publicContest, note, password FROM contest WHERE name = #{name}")
     Contest getContest(String name);
 
-    @Insert("INSERT INTO contest " +
-            "(name, cnname, mode, start, end, public, note, password) " +
-            "VALUES " +
-            "(#{name}, #{cnname}, #{mode}, #{start}, #{end}, #{publicContest}, #{note}, #{password})")
     Integer insertContest(Contest contest);
 
-    @Update("UPDATE contest SET " +
-            "cnname   = #{cnname}, " +
-            "mode     = #{mode}, " +
-            "start    = #{start}, " +
-            "end      = #{end}, " +
-            "public   = #{publicContest}, " +
-            "note     = #{note}, " +
-            "password = #{password} " +
-            "WHERE name = #{name}")
     Integer updateContest(Contest contest);
 
-    @Select("SELECT * FROM contest_problem WHERE contest_name = #{contestName}")
     List<ProblemBrief> getProblemList(@Param("contestName") String contestName);
 
-    @Insert("INSERT INTO contest_problem " +
-            "(contest_name, problem_name, score) " +
-            "VALUES " +
-            "(#{contestName}, #{problemName}, #{score})")
     Integer insertProblem(ContestProblemDTO contestProblemDTO);
 
-    @Delete("DELETE FROM contest_problem " +
-            "WHERE contest_name = #{contestName} " +
-            "  AND problem_name = #{problemName}")
     Integer deleteProblem(@Param("contestName") String contestName,
                           @Param("problemName") String problemName);
 
-    @Select("SELECT score FROM contest_problem " +
-            "WHERE contest_name = #{contestName} " +
-            "  AND problem_name = #{problemName}")
     Integer getScoreByContestAndProblem(@Param("contestName") String contestName,
                                         @Param("problemName") String problemName);
 
-    @Insert("INSERT INTO contest_user (contest_name, user_name, cnname) " +
-            "VALUES (#{contestName}, #{userName}, #{cnname})")
     Integer insertContestUser(@Param("contestName") String contestName,
                               @Param("userName")    String userName,
-                              @Param("cnname")    String cnname);
+                              @Param("cnname")      String cnname);
 
-    @Select("SELECT COUNT(*) FROM contest_user WHERE contest_name = #{contestName} AND user_name = #{userName}")
     Integer getUserStatus(@Param("contestName") String contestName,
-                                  @Param("userName")    String userName);
+                          @Param("userName")    String userName);
 
-
-    @Select("SELECT contest_name AS contestName, " +
-            "       user_name AS userName, " +
-            "       problem_name AS problemName, " +
-            "       score ," +
-            "       attempts AS times," +
-            "       last_submit as lastSubmit FROM contest_board " +
-            "WHERE contest_name = #{contestName} " +
-            "  AND user_name    = #{userName}    " +
-            "  AND problem_name = #{problemName}")
     BoardDTO getContestBoardByUserAndProblem(@Param("contestName") String contestName,
                                              @Param("userName")    String userName,
                                              @Param("problemName") String problemName);
 
-    @Select("SELECT u.user_name AS userName, u.cnname AS userCnname, p.problem_name AS problemName, " +
-            "       COALESCE(b.score, 0) AS score, " +
-            "       COALESCE(b.attempts, 0) AS times, " +
-            "       b.last_submit AS lastSubmit " +
-            "FROM contest_user u " +
-            "JOIN contest_problem p ON p.contest_name = u.contest_name " +
-            "LEFT JOIN contest_board b ON b.contest_name = u.contest_name " +
-            "                          AND b.user_name    = u.user_name " +
-            "                          AND b.problem_name = p.problem_name " +
-            "WHERE u.contest_name = #{contestName} " +
-            "ORDER BY u.user_name, p.problem_name")
     List<BoardDTO> getBoard(@Param("contestName") String contestName);
 
-    @Insert("INSERT INTO contest_board " +
-            "(contest_name, user_name, problem_name, score, attempts, last_submit) " +
-            "VALUES " +
-            "(#{contestName}, #{userName}, #{problemName}, #{score}, #{times}, #{lastSubmit})")
     Integer insertContestBoard(BoardDTO boardDTO);
 
-    @Update("UPDATE contest_board SET " +
-            "score    = #{score}, " +
-            "attempts = #{times}, " +
-            "last_submit = CURRENT_TIMESTAMP " +
-            "WHERE contest_name = #{contestName} " +
-            "  AND user_name    = #{userName}    " +
-            "  AND problem_name = #{problemName}")
     Integer updateContestBoard(BoardDTO boardDTO);
 
-    @Insert("INSERT INTO record " +
-            "(traceId, userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime) " +
-            "VALUES " +
-            "(#{traceId}, #{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})")
     Integer insertRecord(SubmitRecordDTO recordDTO);
 
-    @Select("SELECT COUNT(*) FROM problem WHERE name = #{name}")
-    Integer problemExist(@Param("lang") String name);
+    // 建议将这里的 @Param("lang") 改为 @Param("name") 以避免混淆
+    Integer problemExist(@Param("name") String name);
 }

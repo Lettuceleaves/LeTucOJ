@@ -7,6 +7,7 @@
       <w>createtime</w>
       <w>ctname</w>
       <w>globalcors</w>
+      <w>hutool</w>
       <w>ispublic</w>
       <w>letuc</w>
       <w>letucoj</w>
@@ -16,6 +17,7 @@
       <w>scriptdir</w>
       <w>showsolution</w>
       <w>taskid</w>
+      <w>threadlocal</w>
       <w>updateat</w>
     </words>
   </dictionary>

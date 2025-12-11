@@ -48,7 +48,7 @@
         WHERE name = #{name}
     </update>
 
-    <select id="getProblemList" resultType="com.LetucOJ.contest.model.DTO.ProblemBrief">
+    <select id="getProblemList" resultType="com.LetucOJ.contest.model.ProblemBrief">
         SELECT * FROM contest_problem WHERE contest_name = #{contestName}
     </select>
 

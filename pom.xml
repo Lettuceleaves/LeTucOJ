@@ -62,6 +62,7 @@
         <hutool-all.version>5.8.27</hutool-all.version>
         <snowflake.version>1.2.0</snowflake.version>
         <thread-local.version>2.2.0</thread-local.version>
+        <grpc-lib.version>1.63.0</grpc-lib.version>
     </properties>
 
     <dependencyManagement>
@@ -233,6 +234,15 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>transmittable-thread-local</artifactId>
                 <version>${thread-local.version}</version>
+            </dependency>
+
+            <!-- grpc -->
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-bom</artifactId>
+                <version>${grpc-lib.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
         </dependencies>
