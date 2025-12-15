@@ -38,14 +38,14 @@ const login = async () => {
         username: userName.value,
         role: data.data?.role || 'USER'
       }))
-      router.push('/main')
-      return
+      await router.push('/main')
+
     } else if (data.code === 'B070004' || data.code === 'B070003') {
       alert(data.message)
-      return
+
     } else {
       alert('网页错误，请联系开发者')
-      return
+
     }
   } catch (err) {
     console.error(err)

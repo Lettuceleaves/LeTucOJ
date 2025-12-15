@@ -378,7 +378,7 @@ h2 {
   overscroll-behavior: contain;
 
   /* ✅ 始终预留可见的底部缓冲 + iOS 安全区，避免最后几项被遮挡 */
-  padding-bottom: 0; /* 真正的缓冲通过 ::after 提供，避免被最后一项 margin 抵消 */
+  /* 真正的缓冲通过 ::after 提供，避免被最后一项 margin 抵消 */
 }
 .problem-list::after {
   content: '';

@@ -217,7 +217,6 @@ public class RunServiceImpl implements RunService {
                     }
                     case 4: { // 超时
                         Logger.log(Type.EXTERNAL, LogLevel.ERROR, "Runtime timeout from script.");
-                        String errMsg = "Execution exceeded time limit";
                         return Result.failure(RunErrorCode.OUT_OF_TIME, null);
                     }
                     case 5: { // 脚本内部的异常

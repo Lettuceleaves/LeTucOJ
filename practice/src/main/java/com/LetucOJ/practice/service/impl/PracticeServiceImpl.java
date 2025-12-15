@@ -30,7 +30,7 @@ public class PracticeServiceImpl implements PracticeService {
 
     private MybatisRepos mybatisRepos;
 
-    public ResultVO<TestTaskVO> submit(String userName, String problemName, String code, String language, String role) throws Exception {
+    public ResultVO<TestTaskVO> submit(String userName, String problemName, String code, String language, String role) {
         try {
 
             ProblemStatus problemStatus = mybatisRepos.getStatus(problemName);
