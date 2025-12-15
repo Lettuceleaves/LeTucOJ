@@ -106,7 +106,9 @@ public class RunServiceImpl implements RunService {
 
             // 启动沙盒
             String containerName = "box-" + testTaskDTO.getLanguage() + "-" + boxId + "-" + System.currentTimeMillis();
-            String imageName = "run_" + RunPath.getSuffix(testTaskDTO.getLanguage());
+
+            // 【修改处】匹配本地 Registry 镜像格式: localhost:5000/run_xx:latest
+            String imageName = "localhost:5000/run_" + RunPath.getSuffix(testTaskDTO.getLanguage()) + ":latest";
 
             try {
 

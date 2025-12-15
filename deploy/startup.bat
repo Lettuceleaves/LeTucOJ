@@ -73,12 +73,14 @@ set /a TOTAL_IMAGES=0
 for %%i in (%IMAGES%) do set /a TOTAL_IMAGES+=1
 
 :: ---------------------------------------------
-:: 循环触发并发构建 (关键修正)
+:: 循环触发并发构建
 :: ---------------------------------------------
 for %%i in (%IMAGES%) do (
     echo [MAIN] Triggering build task for: %%i
-    :: 启动子进程，使用 cmd /k 执行命令后保持窗口开启 (移除 /min 和 /c)
-    start "Build %%i" cmd /k call "%~f0" build_worker %%i "%DST_ROOT%" "%FLAG_DIR_FULL%" "%REGISTRY_HOST%"
+    
+    :: [修改点 1] 使用 cmd /c，表示命令执行完毕后自动关闭窗口
+    :: 如果子脚本里有 pause，窗口会等待用户按键；如果没有 pause，窗口直接消失
+    start "Build %%i" cmd /c call "%~f0" build_worker %%i "%DST_ROOT%" "%FLAG_DIR_FULL%" "%REGISTRY_HOST%"
 )
 
 :: ---------------------------------------------
@@ -97,7 +99,7 @@ for %%i in (%IMAGES%) do (
     if exist "%FLAG_DIR_FULL%\%%i_FAIL.flag" (
         echo.
         echo [FATAL ERROR] Build process reported failure for: %%i
-        echo Check the opened command windows for details.
+        echo Check the remaining open command windows for details.
         cd /d "%DST_ROOT%"
         pause
         exit /b 1
@@ -145,7 +147,7 @@ exit /b 0
 
 
 :: =======================================================
-::           Worker 子进程逻辑 (确保了暂停控制)
+::           Worker 子进程逻辑
 :: =======================================================
 :BUILD_WORKER_ENTRY
 set "W_IMAGE=%2"
@@ -161,6 +163,10 @@ cd /d "%W_ROOT%\%W_IMAGE%"
 if errorlevel 1 (
     echo [WORKER] Dir not found: %W_ROOT%\%W_IMAGE%
     echo FAIL > "%W_FLAGS%\%W_IMAGE%_FAIL.flag"
+    
+    :: [修改点 2] 失败时保留 pause，让你能看到报错
+    color 4f
+    echo [ERROR] Directory missing!
     pause
     exit 1
 )
@@ -174,6 +180,10 @@ docker build -t %FULL_TAG% .
 if errorlevel 1 (
     echo [WORKER] Build failed for %W_IMAGE%
     echo FAIL > "%W_FLAGS%\%W_IMAGE%_FAIL.flag"
+    
+    :: [修改点 2] 失败时保留 pause，让你能看到报错
+    color 4f
+    echo [ERROR] Docker Build Failed!
     pause
     exit 1
 )
@@ -183,12 +193,17 @@ docker push %FULL_TAG%
 if errorlevel 1 (
     echo [WORKER] Push failed for %W_IMAGE%
     echo FAIL > "%W_FLAGS%\%W_IMAGE%_FAIL.flag"
+    
+    :: [修改点 2] 失败时保留 pause，让你能看到报错
+    color 4f
+    echo [ERROR] Docker Push Failed!
     pause
     exit 1
 )
 
 echo [WORKER] Success!
 echo DONE > "%W_FLAGS%\%W_IMAGE%_DONE.flag"
-pause
 
+:: [修改点 3] 成功时移除 pause，配合 cmd /c 实现自动关闭
+:: 窗口会立即关闭，表示这个任务完成了
 exit 0

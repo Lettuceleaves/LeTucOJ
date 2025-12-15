@@ -51,7 +51,7 @@ public class PracticeServiceImpl implements PracticeService {
 
             if (runResult.getCode().equals("0")) {
                 Integer res = mybatisRepos.insertCorrect(userName, problemName);
-                if (res == null || res == 0) {
+                if (res == null) {
                     return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
                 }
                 return Result.success(null);

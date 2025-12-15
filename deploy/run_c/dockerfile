@@ -1,14 +1,23 @@
 # 使用稳定的官方GCC镜像
 FROM gcc:12-bookworm
 
-# 安装必需的依赖
-RUN apt-get update && apt-get install -y bash yq && rm -rf /var/lib/apt/lists/*
+# 设置工作目录（可选，但在某些情况下有帮助）
+WORKDIR /app
+
+# 安装必需的依赖 + dos2unix (用于修复 Windows 换行符问题)
+# 注意：yq 在 debian bookworm 源中可能不直接可用，这里保留您的写法，
+# 如果 yq 安装失败，您可能需要下载二进制文件安装。
+RUN apt-get update && \
+    apt-get install -y bash yq dos2unix && \
+    rm -rf /var/lib/apt/lists/*
 
 # 将评测脚本复制到镜像中
 COPY run.sh /usr/local/bin/run.sh
 
-# 授予脚本执行权限
-RUN chmod +x /usr/local/bin/run.sh
+# 1. 转换换行符 (CRLF -> LF)
+# 2. 授予脚本执行权限
+RUN dos2unix /usr/local/bin/run.sh && \
+    chmod +x /usr/local/bin/run.sh
 
 # 将 run.sh 设置为容器的主可执行文件
 ENTRYPOINT ["/usr/local/bin/run.sh"]

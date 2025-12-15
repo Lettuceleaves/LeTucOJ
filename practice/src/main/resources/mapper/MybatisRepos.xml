@@ -86,19 +86,19 @@
     <select id="selectRecordList" resultType="com.LetucOJ.practice.model.DTO.SubmitRecordDTO">
         SELECT * FROM record
         <where>
-            <if test="userName != null and userName != ''">
-                userName = #{userName}
+            <if test="user_name != null and user_name != ''">
+                user_name = #{userName}
             </if>
         </where>
-        ORDER BY submitTime DESC
+        ORDER BY submit_time DESC
         `LIMIT` #{start}, #{limit}
     </select>
 
     <select id="countRecordList" resultType="java.lang.Integer">
         SELECT COUNT(*) FROM record
         <where>
-            <if test="userName != null and userName != ''">
-                userName = #{userName}
+            <if test="user_name != null and user_name != ''">
+                user_name = #{userName}
             </if>
         </where>
     </select>
@@ -115,7 +115,7 @@
     </select>
 
     <insert id="insertCorrect">
-        INSERT INTO correct (user_name, problem_name) VALUES (#{userName}, #{problemName})
+        INSERT IGNORE INTO correct (user_name, problem_name) VALUES (#{userName}, #{problemName})
     </insert>
 
     <select id="checkCorrect" resultType="java.lang.Integer">
