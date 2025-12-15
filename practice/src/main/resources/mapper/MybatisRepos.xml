@@ -12,7 +12,7 @@
             </if>
             <if test="like != null and like != ''">
                 AND (
-                cnname LIKE CONCAT('%', #{like}, '%')
+                problem_nick_name LIKE CONCAT('%', #{like}, '%')
                 OR tags LIKE CONCAT('%', #{like}, '%')
                 OR content LIKE CONCAT('%', #{like}, '%')
                 )
@@ -21,7 +21,7 @@
     </sql>
 
     <select id="selectProblemList" parameterType="com.LetucOJ.practice.model.DTO.ListConditionDTO" resultType="com.LetucOJ.practice.model.ProblemBrief">
-        SELECT name, cnname, tags, difficulty, 0 AS accepted
+        SELECT problem_name, problem_nick_name, tags, difficulty, 0 AS accepted
         FROM problem
         <include refid="problemCriteria"/>
         ORDER BY ${order}
@@ -35,52 +35,52 @@
     </select>
 
     <select id="selectProblemDetail" resultType="com.LetucOJ.practice.model.Problem">
-        SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq,
-        public &gt; 0 AS publicProblem, solution, showsolution
+        SELECT problem_name, problem_nick_name, case_amount, difficulty, tags, authors, create_time, update_time, content, freq,
+        public &gt; 0 AS publicProblem, solution, show_solution
         FROM problem
-        WHERE name = #{name}
+        WHERE problem_name = #{problemName}
         <if test="onlyPublic != null and onlyPublic == true">
             AND public = 1
         </if>
     </select>
 
     <select id="getStatus" resultType="com.LetucOJ.practice.model.ProblemStatus">
-        SELECT public &gt; 0 AS publicProblem, showsolution &gt; 0 AS showSolution, caseAmount
+        SELECT public &gt; 0 AS publicProblem, show_solution &gt; 0 AS showSolution, case_amount
         FROM problem
-        WHERE name = #{name}
+        WHERE problem_name = #{problemName}
     </select>
 
     <update id="incrementCaseAmount">
         UPDATE problem
-        SET caseAmount = caseAmount + 1
-        WHERE name = #{name}
+        SET case_amount = case_amount + 1
+        WHERE problem_name = #{problemName}
     </update>
 
     <insert id="insertProblem" parameterType="com.LetucOJ.practice.model.Problem">
         INSERT INTO problem
-        (name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public, solution, showsolution)
+        (problem_name, problem_nick_name, case_amount, difficulty, tags, authors, create_time, update_time, content, freq, public, solution, show_solution)
         VALUES
-            (#{name}, #{cnname}, #{caseAmount}, #{difficulty}, #{tags}, #{authors}, #{createtime}, #{updateat}, #{content}, #{freq}, #{publicProblem}, #{solution}, #{showsolution})
+            (#{problemName}, #{problemNickName}, #{caseAmount}, #{difficulty}, #{tags}, #{authors}, #{createtime}, #{updateTime}, #{content}, #{freq}, #{publicProblem}, #{solution}, #{showSolution})
     </insert>
 
     <update id="updateProblem" parameterType="com.LetucOJ.practice.model.Problem">
         UPDATE problem
-        SET cnname = #{cnname},
-            caseAmount = #{caseAmount},
+        SET problem_nick_name = #{problemNickName},
+            case_amount = #{caseAmount},
             difficulty = #{difficulty},
             tags = #{tags},
             authors = #{authors},
-            updateat = #{updateat},
+            update_time = #{updateTime},
             content = #{content},
             freq = #{freq},
             public = #{publicProblem},
             solution = #{solution},
-            showsolution = #{showsolution}
-        WHERE name = #{name}
+            show_solution = #{showSolution}
+        WHERE problem_name = #{problemName}
     </update>
 
     <delete id="deleteProblem">
-        DELETE FROM problem WHERE name = #{name}
+        DELETE FROM problem WHERE problem_name = #{problemName}
     </delete>
 
     <select id="selectRecordList" resultType="com.LetucOJ.practice.model.DTO.SubmitRecordDTO">
@@ -105,9 +105,9 @@
 
     <insert id="insertRecord" parameterType="com.LetucOJ.practice.model.DTO.SubmitRecordDTO">
         INSERT INTO record
-        (traceId, userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime)
+        (trace_id, user_name, user_nick_name, problem_name, language, code, result, use_time, use_memory, submit_time)
         VALUES
-            (#{traceId}, #{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})
+            (#{traceId}, #{userName}, #{userNickName}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})
     </insert>
 
     <select id="getCorrectByName" resultType="java.lang.String">

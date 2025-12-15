@@ -30,7 +30,7 @@ public class SubmitController {
     private MessageQueueProducer mqProducer;
 
     @PostMapping("/submit")
-    @SubmitLimit
+//    @SubmitLimit
     public ResultVO<TestTaskVO> submit(
             @RequestParam("language") String language,
             @RequestParam("user_name") String userName,
@@ -71,7 +71,7 @@ public class SubmitController {
                     .body(JSON.toJSONString(record))
                     .build();
 
-            mqProducer.send(message);
+//            mqProducer.send(message);
 
         } catch (Exception ignored) {
         }

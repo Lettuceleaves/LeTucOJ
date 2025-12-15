@@ -37,12 +37,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, getCurrentInstance } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import apiService from '../../utils/api.js'
 
 /* ---------- 基础响应式数据 ---------- */
-const instance = getCurrentInstance()
-const ip = instance?.appContext.config.globalProperties.$ip
 
 const rankData = ref([])   // 原始数据
 const loading  = ref(true)
@@ -77,27 +76,19 @@ const medalClass = idx =>
 /* ---------- 获取数据 ---------- */
 async function fetchRankData() {
   try {
-    const token = localStorage.getItem('jwt');
-    const res = await fetch(`http://${ip}/user/rank`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    const { code, data, error } = await res.json(); // 一次性解构
+    const res = await apiService.user.getRank();
+    const data = res.data;
 
-    if (code === '0') {
-      rankData.value = data || [];
+    if (data.code === '0') {
+      rankData.value = data.data || [];
     } else {
-      throw new Error(error || '获取数据失败');
+      throw new Error(data.message || '获取数据失败');
     }
   } catch (err) {
     error.value = err.message || '网络错误';
   } finally {
     loading.value = false;
   }
-
 }
 
 onMounted(() => {

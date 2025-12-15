@@ -31,7 +31,13 @@ public class DockerCmdBuilder {
 
     public DockerCmdBuilder volume(String hostPath, String containerPath) {
         cmd.add("-v");
-        cmd.add(hostPath + ":" + containerPath);
+        // Convert Windows path to Docker on Windows format (e.g., E:/path -> /e/path)
+        String dockerHostPath = hostPath;
+        if (dockerHostPath.matches("^[A-Z]:.*")) {
+            dockerHostPath = "/" + dockerHostPath.substring(0, 1).toLowerCase() + dockerHostPath.substring(2);
+        }
+        dockerHostPath = dockerHostPath.replaceAll("\\\\", "/");
+        cmd.add(dockerHostPath + ":" + containerPath);
         return this;
     }
 

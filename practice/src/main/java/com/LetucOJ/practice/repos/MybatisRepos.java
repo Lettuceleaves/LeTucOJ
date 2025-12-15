@@ -32,20 +32,20 @@ public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
 
     /**
      * 获取题目详情
-     * @param name 题目ID/名称
+     * @param problemName 题目ID/名称
      * @param onlyPublic true=只查公开(前台), false=查所有(后台)
      */
-    Problem selectProblemDetail(@Param("name") String name, @Param("onlyPublic") Boolean onlyPublic);
+    Problem selectProblemDetail(@Param("problemName") String problemName, @Param("onlyPublic") Boolean onlyPublic);
 
-    ProblemStatus getStatus(String name);
+    ProblemStatus getStatus(@Param("problemName") String problemName);
 
-    Integer incrementCaseAmount(String name);
+    Integer incrementCaseAmount(@Param("problemName") String problemName);
 
     Integer insertProblem(Problem problem);
 
     Integer updateProblem(Problem problem);
 
-    void deleteProblem(String name); // 补充了 delete 方法定义
+    void deleteProblem(@Param("problemName") String problemName); // 补充了 delete 方法定义
 
     // === 记录相关 ===
 

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CaseFile {
-    private String name;
+    private String problemName;
     private String input;
     private String output;
 }

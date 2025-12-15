@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProblemStatusDTO {
-    private boolean ispublic;
+    private boolean publicProblem;
     private boolean showSolution;
     private int caseAmount;
 }

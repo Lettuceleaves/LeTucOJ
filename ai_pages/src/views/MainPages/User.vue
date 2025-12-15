@@ -20,7 +20,7 @@
       <div class="avatar-wrapper">
         <div class="avatar-area">
           <img :src="avatarUrl"
-            :alt="userInfo.cnname || userInfo.userName"
+            :alt="userInfo.userNickName || userInfo.userName"
             class="avatar-placeholder">
         </div>
 
@@ -36,7 +36,7 @@
       <div class="info-area">
         <div class="header-and-button">
             <div>
-              <h2>{{ userInfo.cnname || userInfo.userName || '加载中...' }}</h2>
+              <h2>{{ userInfo.userNickName || userInfo.userName || '加载中...' }}</h2>
               <p class="user-id">ID: {{ userInfo.userName || '...' }}</p>
             </div>
             <div class="profile-actions"> 
@@ -177,9 +177,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, getCurrentInstance, computed, watch, nextTick  } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance  } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import * as echarts from 'echarts';
+import apiService from '../../utils/api.js';
 
 const router = useRouter();
 const route = useRoute();
@@ -203,7 +204,7 @@ const error = ref(false);
 // 后端模型映射
 const userInfo = ref({
   userName: '',
-  cnname: '',
+  userNickName: '',
   email: '',
   phone: '',
   description: ''
@@ -217,7 +218,7 @@ const avatarUrl = ref(DEFAULT_AVATAR);
 const backgroundImageUrl = ref(DEFAULT_BACKGROUND);
 
 const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip
+const ip = instance?.appContext.config.globalProperties.$ip || 'localhost'
 const jwtToken = ref(localStorage.getItem('jwt'));
 
 const searchUsername = ref(''); 
@@ -246,9 +247,9 @@ function searchUser() {
     router.push({ 
         // ⭐ 使用路由名称，它能避免 URL 路径被哈希模式影响
         name: 'othersProfile', 
-        // ⭐ 使用 params 来传递动态路径中的参数
+        // ⭐ 使用 query 来传递参数
         query: { 
-            pname: username 
+            pname: username
         } 
     });
 }
@@ -310,33 +311,21 @@ async function submitForm() {
     const userName = targetUserName.value;
     const requestBody = {
       userName: userName,
-      cnname: editForm.value.cnname,
+      userNickName: editForm.value.userNickName,
       email: editForm.value.email,
       phone: editForm.value.phone,
       description: editForm.value.description
     };
 
-    const res = await fetch(`http://${ip}/user/info/update`, {
-      method: 'PUT',
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
+    const res = await apiService.user.updateUserInfo(userName, requestBody);
+    const data = res.data;
     
-    if (!res.ok) {
-        throw new Error(`HTTP 错误！状态码: ${res.status}`);
-    }
-    
-    const response = await res.json();
-    
-    if (response.code === '0') {
+    if (data.code === '0') {
       userInfo.value = { ...editForm.value }; 
       // 使用自定义消息或模态框代替 alert
       console.log('资料更新成功！'); 
     } else {
-      throw new Error("API返回错误: " + (response.message || '未知错误'));
+      throw new Error("API返回错误: " + (data.message || '未知错误'));
     }
     
   } catch (err) {
@@ -357,16 +346,9 @@ async function fetchUserInfo() {
   error.value = false;
   
   try {
-    const token = localStorage.getItem('jwt')
     const userName = targetUserName.value;
-    const params = new URLSearchParams({
-      pname: userName,
-    }).toString();
-    const res = await fetch(`http://${ip}/user/info/get?${params}`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    const response = await res.json()
+    const res = await apiService.user.getUserInfo(userName);
+    const response = res.data;
     
     if (response.code === '0') {
       userInfo.value = response.data;
@@ -385,18 +367,11 @@ async function fetchUserInfo() {
 
 async function fetchUserAvatar() {
     try {
-        const token = localStorage.getItem('jwt')
         const userName = targetUserName.value;
-        const params = new URLSearchParams({
-          pname: userName,
-        }).toString();
-        const res = await fetch(`http://${ip}/user/headPortrait/get?${params}`, {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const response = await res.json()
-        if (response.code === '0') {
-          avatarUrl.value = `data:image/jpeg;base64,${response.data}`
+        const res = await apiService.user.getUserAvatar(userName);
+        const data = res.data;
+        if (data.code === '0') {
+          avatarUrl.value = `data:image/jpeg;base64,${data.data}`
         } else {
           console.warn('用户头像未找到，使用默认头像');
         }
@@ -437,19 +412,16 @@ async function onSelectFile(e) {
     const params = new URLSearchParams({
       pname: userName,
     }).toString();
-    const res = await fetch(`http://${ip}/user/headPortrait/update?${params}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}` },
-      body: file
-    })
-    const json = await res.json()
-    if (json.code === '0') {
-      // 假设后端返回 { code:'0', data:'/9j/4AAQ...' }
-      avatarUrl.value = `data:image/jpeg;base64,${json.data}`
-      fetchUserAvatar();
+    const res = await apiService.user.updateUserAvatar(userName, file);
+    const data = res.data;
+    if (data.code === '0') {
+      // 上传成功后更新本地头像
+      fetchUserAvatar()
+      // 使用自定义消息或模态框代替 alert
+      console.log('头像更新成功！')
     } else {
       // 使用自定义消息或模态框代替 alert
-      console.error('上传失败：' + (json.message || '未知错误'))
+      console.error('上传失败：' + (data.message || '未知错误'))
     }
   } catch (e) {
     console.error(e)
@@ -472,18 +444,16 @@ async function onSelectBg(e) {
   try {
     const token = localStorage.getItem('jwt')
     const userName = targetUserName.value;
-    const res = await fetch(`http://${ip}/user/background/update?pname=${userName}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}` },
-      body: file
-    })
-    const json = await res.json()
-    if (json.code === '0') {
-      backgroundImageUrl.value = `data:image/jpeg;base64,${json.data}`
+    const res = await apiService.user.updateUserBackground(userName, file);
+    const data = res.data;
+    if (data.code === '0') {
+      backgroundImageUrl.value = `data:image/jpeg;base64,${data.data}`
       fetchUserBackground()
+      // 使用自定义消息或模态框代替 alert
+      console.log('背景图更新成功！')
     } else {
       // 使用自定义消息或模态框代替 alert
-      console.error('背景上传失败：' + (json.message || '未知错误'))
+      console.error('背景上传失败：' + (data.message || '未知错误'))
     }
   } catch (e) {
     console.error(e)
@@ -496,15 +466,11 @@ async function onSelectBg(e) {
 // 获取用户背景图
 async function fetchUserBackground() {
   try {
-    const token = localStorage.getItem('jwt')
     const userName = targetUserName.value;
-    const params = new URLSearchParams({ pname: userName }).toString()
-    const res = await fetch(`http://${ip}/user/background/get?${params}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const json = await res.json()
-    if (json.code === '0' && json.data) {
-      backgroundImageUrl.value = `data:image/jpeg;base64,${json.data}`
+    const res = await apiService.user.getUserBackground(userName);
+    const data = res.data;
+    if (data.code === '0' && data.data) {
+      backgroundImageUrl.value = `data:image/jpeg;base64,${data.data}`
     } else {
       // 没上传过背景就保持默认图，不弹错
       console.log('未找到用户背景，使用默认')
@@ -612,21 +578,11 @@ async function fetchHeatmapData() {
     heatmapError.value = false;
 
     try {
-        const token = localStorage.getItem('jwt');
         const userName = targetUserName.value;
         const year = currentHeatmapYear.value;
 
-        const params = new URLSearchParams({
-            pname: userName,
-            year: year
-        }).toString();
-
-        // 这里的接口地址是 /heatmap
-        const res = await fetch(`http://${ip}/user/heatmap?${params}`, {
-            method: 'GET',
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const response = await res.json();
+        const res = await apiService.user.getHeatmap(userName, year);
+        const response = res.data;
 
         if (response.code === '0' && response.data) {
             let heatmapJsonData = {};
@@ -778,7 +734,6 @@ const toggleCode = (r) => {
 // 业务函数：获取当前用户的提交历史
 async function fetchUserHistory() {
   historyLoading.value = true
-  const token = localStorage.getItem('jwt')
   const userName = userInfo.value.userName // 使用已获取的用户名
   
   if (!userName) {
@@ -786,28 +741,23 @@ async function fetchUserHistory() {
     return;
   }
 
-  const params = new URLSearchParams({
-    start: start.value,
-    limit: limit,
-    pname: userName
-  })
+  // 计算当前页码
+  const page = Math.floor(start.value / limit) + 1;
 
   try {
-    const res = await fetch(`http://${ip}/practice/recordList/any?${params}`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const json = await res.json()
-    if (json.code === "0") {
-      records.value = (json.data.records ?? []).map(r => ({ ...r, _showCode: false }))
-      total.value = json.data?.amount || 0
+    const res = await apiService.practice.getUserSubmissions(userName, page, limit);
+    const data = res.data;
+
+    if (data.code === "0") {
+      records.value = (data.data.records ?? []).map(r => ({ ...r, _showCode: false }));
+      total.value = data.data?.amount || 0;
     } else {
-      console.error(json.error || '拉取记录失败')
+      console.error(data.error || '拉取记录失败');
     }
   } catch (e) {
-    console.error('网络错误：' + e.message)
+    console.error('网络错误：' + e.message);
   } finally {
-    historyLoading.value = false
+    historyLoading.value = false;
   }
 }
 
@@ -898,12 +848,12 @@ onMounted(async () => {
         console.error("无法确定要加载的用户，请检查登录状态或 URL 参数。");
         return; 
     }
-    await fetchUserInfo(targetUserName.value);
+    await fetchUserInfo();
     if (userInfo.value.userName) {
-        fetchUserAvatar(targetUserName.value);
-        fetchUserBackground(targetUserName.value);
-        fetchUserHistory(targetUserName.value);
-        fetchHeatmapData(targetUserName.value);
+        fetchUserAvatar();
+        fetchUserBackground();
+        fetchUserHistory();
+        fetchHeatmapData();
     }
 });
 

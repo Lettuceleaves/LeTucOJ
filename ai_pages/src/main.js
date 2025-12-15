@@ -11,7 +11,6 @@ app.use(ElementPlus)
 app.config.globalProperties.$dialog = Dialog
 
 app.mount('#app')
-app.config.globalProperties.$ip = "localhost"
 
 document.title = 'LetucOJ';
 
@@ -30,55 +29,4 @@ function setEmojiFavicon(emoji) {
 
 setEmojiFavicon('😇');
 
-/* ---------- 全局 fetch 拦截 ---------- */
-const IGNORED_PATHNAMES = [
-    '/code.txt', 
-    '/advice'
-];
-
-;(function () {
-  const _originFetch = window.fetch
-  window.fetch = async function (...args) {
-
-    const input = args[0];
-    const requestUrl = (typeof input === 'string') ? input : input?.url || ''; 
-    let pathnameToMatch = '';
-    
-    try {
-        if (requestUrl.startsWith('http')) {
-            pathnameToMatch = new URL(requestUrl).pathname;
-        }
-        else if (requestUrl.startsWith('/')) {
-            pathnameToMatch = requestUrl;
-        }
-    } catch (e) {
-        pathnameToMatch = requestUrl;
-    }
-    
-    const shouldIgnore = IGNORED_PATHNAMES.includes(pathnameToMatch);
-    
-    if (shouldIgnore) {
-      return await _originFetch(...args);
-    }
-    const res = await _originFetch(...args)
-    const cloned = res.clone()
-    
-    try {
-        const data = await cloned.json();
-
-        if (data.code === "A010003") {
-            localStorage.removeItem("jwt")
-            if (typeof router !== 'undefined') { 
-                router.push("/login")
-            }
-        }
-
-        if (data.token) {
-            localStorage.setItem('jwt', data.token);
-        }
-    } catch (e) {
-    }
-
-    return res
-  }
-})()
+// 不再需要全局fetch拦截器，已在axios实例中配置

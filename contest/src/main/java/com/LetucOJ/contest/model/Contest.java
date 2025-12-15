@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Contest {
-    String name;
-    String cnname;
+    String contestName;
+    String contestNickName;
     String mode;
     LocalDateTime start;
     LocalDateTime  end;

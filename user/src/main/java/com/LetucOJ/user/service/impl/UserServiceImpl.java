@@ -58,13 +58,13 @@ public class UserServiceImpl implements UserService {
             }
 
             // 2. 查重
-            if (userMybatisRepos.getUserFullInfo(dto.getUsername()) != null) {
+            if (userMybatisRepos.getUserFullInfo(dto.getUserName()) != null) {
                 return Result.failure(UserErrorCode.USERNAME_ALREADY_EXISTS);
             }
 
             // 3. 执行注册
             String encodedPwd = Password.encrypt(dto.getPassword());
-            UserManagerDTO newUser = new UserManagerDTO(dto.getUsername(), dto.getCnname(), encodedPwd, "USER", 1);
+            UserManagerDTO newUser = new UserManagerDTO(dto.getUserName(), dto.getUserNickName(), encodedPwd, "USER", 1);
 
             return checkDbRows(userMybatisRepos.saveUserInfo(newUser), UserErrorCode.REGISTER_FAILED);
         });
@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVO<JwtInfoVO> login(RegisterRequestDTO dto) {
-        return executeSafe(() -> authenticate(dto.getUsername(), dto.getPassword(), true));
+        return executeSafe(() -> authenticate(dto.getUserName(), dto.getPassword(), true));
     }
 
     @Override
@@ -207,44 +207,79 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResultVO<Object> getUserRankings() {
         return executeSafe(() -> {
-            List<Map<String, Object>> corrects = userMybatisRepos.listCorrect();
-            List<UserManagerDTO> users = userMybatisRepos.getUserListByRole("USER");
+            List<Map<String, Object>> correctSubmissions = userMybatisRepos.listCorrect();
+            List<UserManagerDTO> activeUsers = userMybatisRepos.getUserListByRole("USER");
 
-            if (isEmpty(corrects)) return Result.failure(UserErrorCode.NO_RANK, null);
-            if (isEmpty(users)) return Result.failure(UserErrorCode.NO_USER, null);
+            if (isEmpty(correctSubmissions)) return Result.failure(UserErrorCode.NO_RANK, null);
+            if (isEmpty(activeUsers)) return Result.failure(UserErrorCode.NO_USER, null);
 
-            // 1. 构建题目分数映射
-            Map<String, Integer> problemScores = userMybatisRepos.points().stream()
+            // 1. 构建题目分数映射：problem_name -> difficulty
+            Map<String, Integer> problemScoreMap = userMybatisRepos.points().stream()
+                    .filter(m -> m.get("problem_name") != null && m.get("difficulty") != null)
                     .collect(Collectors.toMap(
-                            m -> m.get("name").toString().trim(),
-                            m -> Integer.parseInt(m.get("difficulty").toString())));
+                            m -> m.get("problem_name").toString().trim(),
+                            m -> Integer.parseInt(m.get("difficulty").toString()),
+                            (existing, replacement) -> existing // 处理可能的重复题目名，保留第一个
+                    ));
 
-            // 2. 计算聚合数据
-            Map<String, Integer> userTotalScore = new HashMap<>();
-            Map<String, Integer> userPassCount = new HashMap<>();
+            // 2. 计算用户聚合数据：user_name -> (通过题目数, 总分)
+            Map<String, UserStats> userStatsMap = new HashMap<>();
 
-            for (Map<String, Object> record : corrects) {
-                String uName = safeString(record.get("userName"), record.get("user_name"));
-                String pName = safeString(record.get("name"));
-                if (uName == null || pName == null) continue;
+            for (Map<String, Object> submission : correctSubmissions) {
+                String userName = safeString(submission.get("user_name"));
+                String problemName = safeString(submission.get("problem_name"));
+                
+                if (userName == null || problemName == null) continue;
 
-                userPassCount.merge(uName, 1, Integer::sum);
-                userTotalScore.merge(uName, problemScores.getOrDefault(pName, 0), Integer::sum);
+                UserStats stats = userStatsMap.computeIfAbsent(userName, k -> new UserStats());
+                stats.passCount++;
+                stats.totalScore += problemScoreMap.getOrDefault(problemName, 0);
             }
 
-            // 3. 构建并排序
-            Map<String, UserManagerDTO> userMap = users.stream()
+            // 3. 构建用户映射：user_name -> UserManagerDTO
+            Map<String, UserManagerDTO> userInfoMap = activeUsers.stream()
                     .collect(Collectors.toMap(UserManagerDTO::getUserName, Function.identity()));
 
-            List<Map<String, Object>> topList = userTotalScore.entrySet().stream()
-                    .filter(entry -> userMap.containsKey(entry.getKey()))
-                    .map(entry -> buildRankItem(entry, userMap.get(entry.getKey()), userPassCount))
-                    .sorted(this::compareRank)
+            // 4. 构建并排序排行榜
+            List<Map<String, Object>> topRankings = userStatsMap.entrySet().stream()
+                    .filter(entry -> userInfoMap.containsKey(entry.getKey()))
+                    .map(entry -> {
+                        String userName = entry.getKey();
+                        UserStats stats = entry.getValue();
+                        UserManagerDTO user = userInfoMap.get(userName);
+                        
+                        Map<String, Object> rankItem = new HashMap<>();
+                        rankItem.put("userName", userName);
+                        rankItem.put("userNickName", user.getUserNickName());
+                        rankItem.put("count", stats.passCount);
+                        rankItem.put("totalScore", stats.totalScore);
+                        
+                        return rankItem;
+                    })
+                    .sorted((a, b) -> {
+                        // 首先按总分降序排序
+                        int scoreCompare = Integer.compare(
+                                (Integer) b.getOrDefault("totalScore", 0),
+                                (Integer) a.getOrDefault("totalScore", 0)
+                        );
+                        if (scoreCompare != 0) return scoreCompare;
+                        
+                        // 总分相同时按用户名升序排序
+                        return ((String) a.getOrDefault("userName", "")).compareTo(
+                                (String) b.getOrDefault("userName", "")
+                        );
+                    })
                     .limit(20)
                     .collect(Collectors.toList());
 
-            return Result.success(topList);
+            return Result.success(topRankings);
         });
+    }
+    
+    // 辅助类：用于存储用户统计数据
+    private static class UserStats {
+        int passCount = 0;
+        int totalScore = 0;
     }
 
 
@@ -291,7 +326,7 @@ public class UserServiceImpl implements UserService {
         if (user.getStatus() == 0) {
             return Result.failure(UserErrorCode.NOT_ENABLE, null);
         }
-        JwtInfoVO jwt = new JwtInfoVO(userName, user.getCnname(), user.getRole(), System.currentTimeMillis());
+        JwtInfoVO jwt = new JwtInfoVO(userName, user.getUserNickName(), user.getRole(), System.currentTimeMillis());
         return Result.success(jwt);
     }
 
@@ -353,9 +388,9 @@ public class UserServiceImpl implements UserService {
     // --- 业务辅助工具 ---
 
     private boolean isValidRegisterParams(RegisterRequestDTO dto) {
-        return USERNAME_PATTERN.matcher(dto.getUsername()).matches() &&
+        return USERNAME_PATTERN.matcher(dto.getUserName()).matches() &&
                 PASSWORD_PATTERN.matcher(dto.getPassword()).matches() &&
-                dto.getCnname() != null && !dto.getCnname().isEmpty() && dto.getCnname().length() <= 20;
+                dto.getUserNickName() != null && !dto.getUserNickName().isEmpty() && dto.getUserNickName().length() <= 20;
     }
 
     private void sendSecretKeyEmail(String email, String userName, String secretKey) {
@@ -370,16 +405,20 @@ public class UserServiceImpl implements UserService {
     private Map<String, Object> buildRankItem(Map.Entry<String, Integer> entry, UserManagerDTO user, Map<String, Integer> passCounts) {
         Map<String, Object> map = new HashMap<>();
         map.put("userName", entry.getKey());
-        map.put("cnname", user.getCnname());
+        map.put("cnname", user.getUserNickName());
         map.put("count", passCounts.get(entry.getKey()));
         map.put("totalScore", entry.getValue());
         return map;
     }
 
     private int compareRank(Map<String, Object> a, Map<String, Object> b) {
-        int scoreCompare = Integer.compare((int) b.get("totalScore"), (int) a.get("totalScore")); // 分数降序
+        Integer scoreA = (Integer) a.getOrDefault("totalScore", 0);
+        Integer scoreB = (Integer) b.getOrDefault("totalScore", 0);
+        int scoreCompare = Integer.compare(scoreB, scoreA); // 分数降序
         if (scoreCompare != 0) return scoreCompare;
-        return ((String) a.get("userName")).compareTo((String) b.get("userName")); // 名字升序
+        String userNameA = (String) a.getOrDefault("userName", "");
+        String userNameB = (String) b.getOrDefault("userName", "");
+        return userNameA.compareTo(userNameB); // 名字升序
     }
 
     private boolean isEmpty(Collection<?> collection) {

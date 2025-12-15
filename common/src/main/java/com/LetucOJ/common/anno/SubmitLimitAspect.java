@@ -11,6 +11,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -25,14 +26,14 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @Data
-@AllArgsConstructor
+@ConditionalOnClass(name = "org.springframework.web.servlet.DispatcherServlet")
 public class SubmitLimitAspect {
 
-    private RocketMQProducer rocketMQProducer;
+    private final RocketMQProducer rocketMQProducer;
 
-    private StringRedisTemplate stringRedisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
-    private LangMybatisRepos langMybatisRepos;
+    private final LangMybatisRepos langMybatisRepos;
 
     private boolean retry = false;
 
@@ -113,12 +114,12 @@ public class SubmitLimitAspect {
     private void loadLanguageConfig(String lang) {
         List<LanguageConfigDO> configs = langMybatisRepos.selectList(lang);
         for (LanguageConfigDO config : configs) {
-            System.out.println(config.getLang() + " " + config.getMemPerRun());
+            System.out.println(config.getLanguage() + " " + config.getMemoryPerRun());
             stringRedisTemplate.execute(
                     new DefaultRedisScript<>(LUA_UPDATE_CONFIG, Long.class),
                     List.of("lang:mem"),
-                    config.getLang(),
-                    String.valueOf(config.getMemPerRun())
+                    config.getLanguage(),
+                    String.valueOf(config.getMemoryPerRun())
             );
         }
     }

@@ -34,17 +34,15 @@
 </template>
 
 <script setup>
-import { ref, getCurrentInstance } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import apiService from '../utils/api';
 
 const username = ref('')
 const cnname = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const router = useRouter();
-
-const { appContext } = getCurrentInstance()
-const ip = appContext.config.globalProperties.$ip
 
 const goToLogin = () => {
     router.push('/');
@@ -87,17 +85,8 @@ const register = async () => {
 
     // 5. 执行注册请求
     try {
-        const data = await fetch(`http://${ip}/user/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                username: trimmedUsername,
-                password: trimmedPassword,
-                cnname: trimmedCnname
-            })
-        });
-
-        const json = await data.json();
+        const res = await apiService.user.register(trimmedUsername, trimmedPassword, trimmedCnname);
+        const json = res.data;
 
         if (json.code === '0') {
             alert('注册成功！请告知管理员进行激活');
@@ -106,7 +95,7 @@ const register = async () => {
             alert('注册失败：' + (json.message || '未知错误'));
         }
     } catch (e) {
-        alert('请求失败：' + (e.response?.json?.error || e.message || '网络错误'));
+        alert('请求失败：' + (e.response?.data?.message || e.message || '网络错误'));
     }
 };
 </script>

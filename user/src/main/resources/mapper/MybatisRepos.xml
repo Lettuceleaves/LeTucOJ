@@ -6,8 +6,8 @@
 <mapper namespace="com.LetucOJ.user.repos.UserMybatisRepos">
 
     <insert id="saveUserInfo" parameterType="com.LetucOJ.user.model.UserManagerDTO">
-        INSERT INTO user (user_name, cnname, password, role, status)
-        VALUES (#{userName}, #{cnname}, #{password}, #{role}, #{status})
+        INSERT INTO user (user_name, user_nick_name, password, role, status)
+        VALUES (#{userName}, #{userNickName}, #{password}, #{role}, #{status})
     </insert>
 
     <update id="updatePassword">
@@ -41,16 +41,16 @@
     </update>
 
     <select id="listCorrect" resultType="java.util.Map">
-        SELECT user_name AS userName, problem_name AS name FROM correct
+        SELECT user_name, problem_name FROM correct
     </select>
 
     <select id="points" resultType="java.util.Map">
-        SELECT name, difficulty FROM problem
+        SELECT problem_name, difficulty FROM problem
     </select>
 
     <update id="updateUserInfo" parameterType="com.LetucOJ.user.model.UserInfoDTO">
         UPDATE user
-        SET cnname = #{cnname},
+        SET user_nick_name = #{userNickName},
             email = #{email},
             phone = #{phone},
             description = #{description}
@@ -58,7 +58,7 @@
     </update>
 
     <select id="getUserFullInfo" resultType="com.LetucOJ.user.model.UserInfoDTO">
-        SELECT user_name AS userName, cnname, email, phone, description
+        SELECT user_name, user_nick_name, email, phone, description
         FROM user
         WHERE user_name = #{userName}
     </select>

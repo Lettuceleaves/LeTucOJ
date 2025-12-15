@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProblemStatus {
     boolean publicProblem;
-    boolean showsolution;
+    boolean showSolution;
     int caseAmount;
     int correct;
 }

@@ -10,17 +10,17 @@ import java.sql.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FullInfoDTO {
-    private String name;
-    private String cnname;
+    private String problemName;
+    private String problemNickName;
     private Integer caseAmount;
     private Integer difficulty;
     private String tags;
     private String authors;
-    private Date createtime;
-    private Date updateat;
+    private Date createTime;
+    private Date updateTime;
     private String content;
     private Float freq;
-    private Boolean ispublic;
+    private Boolean publicProblem;
     private String solution;
-    private Boolean showsolution;
+    private Boolean showSolution;
 }

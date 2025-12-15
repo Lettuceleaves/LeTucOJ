@@ -2,6 +2,9 @@ package com.LetucOJ.gateway.chain;
 
 import cn.hutool.json.JSONUtil;
 import com.LetucOJ.common.cache.Redis;
+import com.LetucOJ.common.log.LogLevel;
+import com.LetucOJ.common.log.Logger;
+import com.LetucOJ.common.log.Type;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
@@ -120,6 +123,7 @@ public class JwtFilter implements WebFilter {
         String nickName = claims.get("nick_name", String.class);
         String role = claims.get("role", String.class);
 
+        Logger.log(Type.CLIENT, LogLevel.INFO, "UserName: " + userName + " NickName: " + nickName + " Role: " + role);
 
         // 保存用户名上下文
         exchange.getAttributes().put("user_name", userName);

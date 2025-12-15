@@ -1,4 +1,4 @@
-# -------------- 基础：官方已瘦身 JRE --------------
+# -------------- 基础：官方已瘦身 JRE (Alpine) --------------
 # 使用官方OpenJDK镜像，更稳定可靠
 FROM eclipse-temurin:17-jre-alpine
 
@@ -10,17 +10,20 @@ WORKDIR /app
 USER root
 
 # 安装 Docker 客户端 (docker-cli)
+# 修正：将 apt-get 替换为 Alpine 的 apk
 RUN apk update && \
-    apk add --no-cache docker && \
+    apk add --no-cache docker-cli && \
     rm -rf /var/cache/apk/*
 
 # 复制jar文件到容器
 COPY run.jar /app/
 
 # 创建非root用户并设置权限
+# 注意：虽然这里创建了 appuser，但您的 docker-compose.yaml 中，
+# run 服务被强制设定为 user: "0:0" (root)，这是因为它需要通过 docker.sock 运行沙盒容器。
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup && chown -R appuser:appgroup /app
 
-# 切换回非root用户启动应用 (安全最佳实践)
+# 切换回非root用户启动应用 (安全最佳实践，但会被 docker-compose 的 user: "0:0" 覆盖)
 USER appuser
 
 # 设置Java运行参数

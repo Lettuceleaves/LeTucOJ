@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProblemBrief {
-    private String name;
-    private String cnname;
+    private String problemName;
+    private String problemNickName;
     private String tags;
     private int difficulty;
     private int accepted;

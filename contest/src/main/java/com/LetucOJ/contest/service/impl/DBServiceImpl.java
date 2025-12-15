@@ -120,7 +120,7 @@ public class DBServiceImpl implements DBService {
 
             if (boardDbDto == null || boardDbDto.isEmpty()) {
                 return Result.failure(ContestErrorCode.EMPTY_BOARD, null);
-            } else if (!statusDbDto.isIspublic()) {
+            } else if (!statusDbDto.isPublicProblem()) {
                 return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC, null);
             }
             return Result.success(new BoardVO(boardDbDto, 0, 0));
@@ -199,7 +199,7 @@ public class DBServiceImpl implements DBService {
             if (!contest.isPublicContest()) {
                 return Result.failure(ContestErrorCode.CONTEST_NOT_PUBLIC);
             }
-            if (!Password.matches(contest.getPassword(), password)) {
+            if (Password.matches(contest.getPassword(), password)) {
                 return Result.failure(ContestErrorCode.WRONG_PASSWORD);
             }
             if (name == null || name.isEmpty()) {

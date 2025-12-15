@@ -135,13 +135,13 @@ public class CustomResponseRewriteFilter implements WebFilter {
 
             JsonNode data = root.get("data");
             // 提取字段
-            String username = getNodeText(data, "username");
-            String cnname = getNodeText(data, "cnname");
+            String userName = getNodeText(data, "userName");
+            String nickName = getNodeText(data, "userNickName");
             String role = getNodeText(data, "role");
             long millis = data.path("millis").asLong();
 
             // 检查 Redis 黑名单
-            String blackListTimeStr = Redis.mapGet("black:" + username);
+            String blackListTimeStr = Redis.mapGet("black:" + userName);
             long check = Long.parseLong(Objects.requireNonNullElse(blackListTimeStr, "-1"));
 
             if (check != -1 && millis <= check) {
@@ -152,12 +152,12 @@ public class CustomResponseRewriteFilter implements WebFilter {
             }
 
             // 清理黑名单并设置 Token 过期时间
-            Redis.mapRemove("black:" + username);
-            Redis.mapPutDuration("exp:" + username, "0", 24 * 60 * 60);
+            Redis.mapRemove("black:" + userName);
+            Redis.mapPutDuration("exp:" + userName, "0", 24 * 60 * 60);
 
             // 生成 Token
-            String token = JwtUtil.generateToken(username, cnname, role);
-            log.info("Login success, generate JWT for user: {}", username);
+            String token = JwtUtil.generateToken(userName, nickName, role);
+            log.info("Login success, generate JWT for user: {}", userName);
 
             // 构造新的响应 JSON
             return String.format(
@@ -178,7 +178,7 @@ public class CustomResponseRewriteFilter implements WebFilter {
     private String processTokenRefreshResponse(String originalContent, ServerWebExchange exchange) {
         try {
             // 检查是否具备刷新条件 (Attribute中包含username 且 Redis中exp过期)
-            String usernameAttr = exchange.getAttribute("username");
+            String usernameAttr = exchange.getAttribute("user_name");
             if (usernameAttr == null || Redis.mapGet("exp:" + usernameAttr) != null) {
                 return originalContent;
             }
@@ -191,10 +191,10 @@ public class CustomResponseRewriteFilter implements WebFilter {
 
             // 生成新 Token
             JsonNode resData = objectMapper.valueToTree(res).get("data");
-            String username = getNodeText(resData, "username");
-            String cnname = getNodeText(resData, "cnname");
+            String userName = getNodeText(resData, "userName");
+            String nickName = getNodeText(resData, "userNickName");
             String role = getNodeText(resData, "role");
-            String token = JwtUtil.generateToken(username, cnname, role);
+            String token = JwtUtil.generateToken(userName, nickName, role);
 
             // 注入 Token 到原有响应中
             JsonNode originalRoot = objectMapper.readTree(originalContent);
@@ -202,7 +202,7 @@ public class CustomResponseRewriteFilter implements WebFilter {
                 ((ObjectNode) originalRoot.get("data")).put("token", token);
 
                 // 更新 Redis 过期时间
-                Redis.mapPutDuration("exp:" + username, "0", 24 * 60 * 60);
+                Redis.mapPutDuration("exp:" + userName, "0", 24 * 60 * 60);
 
                 return objectMapper.writeValueAsString(originalRoot);
             }

@@ -12,19 +12,19 @@ import java.sql.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Problem {
-    private String name;
-    private String cnname;
+    private String problemName;
+    private String problemNickName;
     private Integer caseAmount;
     private Integer difficulty;
     private String tags;
     private String authors;
-    private Date createtime;
-    private Date updateat;
+    private Date createTime;
+    private Date updateTime;
     private String content;
     private Float freq;
     private Boolean publicProblem;
     private String solution;
-    private Boolean showsolution;
+    private Boolean showSolution;
 
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

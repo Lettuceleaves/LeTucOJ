@@ -174,6 +174,7 @@
 import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MarkdownRenderer from '../../../components/MarkdownRenderer.vue'
+import apiService from '../../../utils/api.js'
 
 const instance = getCurrentInstance()
 const ip = instance.appContext.config.globalProperties.$ip
@@ -353,15 +354,12 @@ async function fetchFullContest() {
   loading.value = true
   error.value = null
   try {
-    const token = localStorage.getItem('jwt') || ''
-    const res = await fetch(`http://${ip}/contest/full/getContest?ctname=${ctname}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const json = await res.json()
-    if (json.code === '0' && json.data) {
-      fullContest.value = json.data
+    const res = await apiService.contest.getContest(ctname)
+    const data = res.data
+    if (data.code === '0' && data.data) {
+      fullContest.value = data.data
     } else {
-      error.value = json.message || '获取竞赛详情失败'
+      error.value = data.message || '获取竞赛详情失败'
     }
   } catch (e) {
     error.value = e.message
@@ -374,17 +372,14 @@ async function fetchProblemList() {
   problemsLoading.value = true
   problemsError.value = null
   try {
-    const token = localStorage.getItem('jwt') || ''
-    const res = await fetch(`http://${ip}/contest/list/problem?ctname=${ctname}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const json = await res.json()
-    if (json.code === '0' && Array.isArray(json.data)) {
-      problemList.value = json.data
-    } else if (json.code === 'B020007') {
+    const res = await apiService.contest.getContestProblems(ctname)
+    const data = res.data
+    if (data.code === '0' && Array.isArray(data.data)) {
+      problemList.value = data.data
+    } else if (data.code === 'B020007') {
       problemList.value = [] // No problems found is not an error
     } else {
-      problemsError.value = json.message || '获取题目列表失败'
+      problemsError.value = data.message || '获取题目列表失败'
     }
   } catch (e) {
     problemsError.value = e.message
@@ -395,17 +390,14 @@ async function fetchProblemList() {
 
 async function fetchLeaderboard() {
   try {
-    const token = localStorage.getItem('jwt')
-    const res = await fetch(`http://${ip}/contest/list/board?ctname=${ctname}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const json = await res.json()
-    if (json.code === '0' && Array.isArray(json.data)) {
-      leaderboardData.value = json.data
-    } else if (json.code === 'B020009') {
+    const res = await apiService.contest.getContestBoard(ctname)
+    const data = res.data
+    if (data.code === '0' && Array.isArray(data.data)) {
+      leaderboardData.value = data.data
+    } else if (data.code === 'B020009') {
       leaderboardData.value = []
     } else {
-      console.warn('获取榜单失败：', json.message)
+      console.warn('获取榜单失败：', data.message)
     }
   } catch (e) {
     console.error('获取榜单异常', e)
@@ -414,12 +406,11 @@ async function fetchLeaderboard() {
 
 async function fetchAttendStatus() {
   try {
-    const token = localStorage.getItem('jwt')
-    const res = await fetch(`http://${ip}/contest/inContest?ctname=${ctname}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const json = await res.json()
-    attended.value = json.code === '0'
+    const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {}
+    const userName = userInfo.username || ''
+    const res = await apiService.contest.getAttendedContests(userName, ctname)
+    const data = res.data
+    attended.value = data.code === '0'
   } catch (e) {
     console.error('获取参赛状态失败', e)
   }
@@ -442,27 +433,15 @@ async function confirmAddProblem() {
   if (!name) return alert('请输入题目名称')
 
   try {
-    const token = localStorage.getItem('jwt')
-    const res = await fetch(`http://${ip}/contest/insertProblem`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        contestName: ctname,
-        problemName: name,
-        score: newProblemScore.value
-      })
-    })
-    const json = await res.json()
-    if (json.code === '0') {
+    const res = await apiService.contest.insertProblem(ctname, name, newProblemScore.value)
+    const data = res.data
+    if (data.code === '0') {
       await fetchProblemList()
       cancelAddProblem()
-    } else if (json.code === 'B010002') {
-      alert(json.message || '题目未在题库中，请先在题库创建后再添加')
+    } else if (data.code === 'B010002') {
+      alert(data.message || '题目未在题库中，请先在题库创建后再添加')
     } else {
-      alert(`添加失败：${json.message || '未知错误'}`)
+      alert(`添加失败：${data.message || '未知错误'}`)
     }
   } catch (e) {
     alert(`添加失败：${e.message}`)
@@ -481,24 +460,13 @@ function closeDeleteConfirm() {
 
 async function confirmDeleteProblem() {
   try {
-    const token = localStorage.getItem('jwt')
-    const res = await fetch(`http://${ip}/contest/deleteProblem`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        contestName: ctname,
-        problemName: deleteTargetName.value
-      })
-    })
-    const json = await res.json()
-    if (json.code === '0') {
+    const res = await apiService.contest.deleteProblem(ctname, deleteTargetName.value)
+    const data = res.data
+    if (data.code === '0') {
       await fetchProblemList()
       closeDeleteConfirm()
     } else {
-      alert(`删除失败：${json.message || '未知错误'}`)
+      alert(`删除失败：${data.message || '未知错误'}`)
     }
   } catch (e) {
     alert(`删除失败：${e.message}`)
@@ -516,16 +484,13 @@ function goToProblem(p) {
 async function handleAttend() {
   attending.value = true
   try {
-    const token = localStorage.getItem('jwt') || ''
-    const res = await fetch(`http://${ip}/contest/attend?ctname=${ctname}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const json = await res.json()
-    if (json.code === '0') {
+    // attendContest接口需要密码参数，但这里可能是公开竞赛，所以传空字符串
+    const res = await apiService.contest.attendContest(ctname, '')
+    const data = res.data
+    if (data.code === '0') {
       attended.value = true
     } else {
-      alert(`参加失败：${json.message || '未知错误'}`)
+      alert(`参加失败：${data.message || '未知错误'}`)
     }
   } catch (e) {
     alert(`参加出错：${e.message}`)

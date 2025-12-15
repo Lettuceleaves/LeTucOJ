@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 @Mapper
 public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
-    @Insert("INSERT INTO log (id, trace_id, content) VALUES (#{id}, #{traceId}, #{content})")
+    @Insert("INSERT INTO log (log_id, trace_id, content) VALUES (#{logId}, #{traceId}, #{content})")
     void appendLog(Log log);
 }

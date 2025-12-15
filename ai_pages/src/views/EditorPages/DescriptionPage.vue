@@ -1,6 +1,6 @@
 <template>
   <div class="desc-panel card">
-    <h3 class="title">{{ data.cnname }}（{{ data.name }}）</h3>
+    <h3 class="title">{{ data.problemNickName || '(无中文名)' }}（{{ data.problemName }}）</h3>
     <p><strong>测试点数量：</strong>{{ data.caseAmount }}</p>
     <p><strong>题目描述：</strong></p>
     

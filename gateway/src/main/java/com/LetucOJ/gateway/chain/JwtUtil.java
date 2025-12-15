@@ -1,5 +1,8 @@
 package com.LetucOJ.gateway.chain;
 
+import com.LetucOJ.common.log.LogLevel;
+import com.LetucOJ.common.log.Logger;
+import com.LetucOJ.common.log.Type;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.errorcode.ErrorCode;
 import com.LetucOJ.common.result.errorcode.GatewayErrorCode;
@@ -26,11 +29,12 @@ public class JwtUtil {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static String generateToken(String userName, String nickName, String role) {
+        Logger.log(Type.CLIENT, LogLevel.INFO, "generateToken: userName: " + userName + " nickName: " + nickName + " role: " + role);
         return Jwts.builder()
                 .issuer("LetucOJ")
                 .subject(userName)
                 .expiration((new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)))
-                .claim("cnname", nickName)
+                .claim("nickName", nickName)
                 .claim("role", role)
                 .signWith(KEY)
                 .compact();

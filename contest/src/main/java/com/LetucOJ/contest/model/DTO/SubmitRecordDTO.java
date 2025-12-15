@@ -10,12 +10,12 @@ import lombok.NoArgsConstructor;
 public class SubmitRecordDTO {
     private String traceId;
     private String userName;
-    private String nickName;
+    private String userNickName;
     private String problemName;
     private String language;
     private String code;
     private String result;
-    private long timeUsed;
-    private long memoryUsed;
+    private long useTime;
+    private long useMemory;
     private long submitTime;
 }

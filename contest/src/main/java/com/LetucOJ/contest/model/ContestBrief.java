@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 public class ContestBrief {
-    String name;
-    String cnname;
+    String contestName;
+    String contestNickName;
     String mode;
     LocalDateTime start;
     LocalDateTime  end;

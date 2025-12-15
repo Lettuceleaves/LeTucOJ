@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class JwtInfoVO {
-    private String username;
-    private String cnname;
+    private String userName;
+    private String nickName;
     private String role;
     private long millis;
 }

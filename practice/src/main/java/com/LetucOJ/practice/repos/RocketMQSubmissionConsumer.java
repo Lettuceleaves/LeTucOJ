@@ -80,7 +80,7 @@ public class RocketMQSubmissionConsumer implements RocketMQListener<Message> {
                 String jsonString = new String(data, StandardCharsets.UTF_8);
 
                 try {
-                    yearHeatmap = JSON.parseObject(jsonString, new TypeReference<Map<String, MonthData>>() {
+                    yearHeatmap = JSON.parseObject(jsonString, new TypeReference<>() {
                     });
                 } catch (Exception e) {
                     System.err.println("mq consumer heatmap error: JSON deserialization failed, re-initializing: " + e.getMessage());

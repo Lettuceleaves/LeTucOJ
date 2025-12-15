@@ -78,7 +78,7 @@ public class DBServiceImpl implements DBService {
                 Set<String> acceptedSet = mybatisRepos.getCorrectByName(userName);
                 if (acceptedSet != null && !acceptedSet.isEmpty()) {
                     for (ProblemBrief item : list) {
-                        if (acceptedSet.contains(item.getName())) {
+                        if (acceptedSet.contains(item.getProblemName())) {
                             item.setAccepted(1);
                         }
                     }
@@ -102,7 +102,7 @@ public class DBServiceImpl implements DBService {
             }
 
             // 处理题解隐藏逻辑
-            if (!Boolean.TRUE.equals(problem.getShowsolution())) {
+            if (!Boolean.TRUE.equals(problem.getShowSolution())) {
                 problem.setSolution("题解已隐藏");
             }
 
@@ -112,7 +112,7 @@ public class DBServiceImpl implements DBService {
 
     @Override
     public ResultVO<Void> insertProblem(Problem dto) {
-        dto.setCreatetime(new Date(System.currentTimeMillis()));
+        dto.setCreateTime(new Date(System.currentTimeMillis()));
         return executeDbUpdate(() -> mybatisRepos.insertProblem(dto));
     }
 
@@ -174,7 +174,7 @@ public class DBServiceImpl implements DBService {
     @Transactional
     public ResultVO<Void> saveCase(CaseFile CaseFile) {
         return executeSafe(() -> {
-            String name = CaseFile.getName();
+            String name = CaseFile.getProblemName();
             String input = CaseFile.getInput();
             String output = CaseFile.getOutput();
 

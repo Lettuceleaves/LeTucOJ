@@ -27,8 +27,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick, getCurrentInstance, provide, readonly, onUnmounted } from 'vue' // <-- 1. 导入 onUnmounted
+import { ref, computed, onMounted, watch, nextTick, provide, readonly, onUnmounted } from 'vue' // <-- 1. 导入 onUnmounted
 import { useRouter, useRoute } from 'vue-router'
+import apiService from '../utils/api'
 
 import DoPage from './EditorPages/DoPage.vue'
 import SolutionPage from './EditorPages/SolutionPage.vue'
@@ -47,8 +48,7 @@ const problemData = ref({})
 const aiChatRef = ref(null)
 
 const resultData = computed(() => result.value || { code: '-1' })
-const instance = getCurrentInstance()
-const ip = instance.appContext.config.globalProperties.$ip
+
 
 const doPageRef = ref(null)
 
@@ -138,20 +138,8 @@ const sendCode = async (userCode) => {
       data: "正在提交，请等待"
    }
    try {
-      const token = localStorage.getItem('jwt')
-      const params = new URLSearchParams({
-         qname: name,
-         lang: selectedLanguage.value
-      });
-      const response = await fetch(`http://${ip}/practice/submit?${params}`, {
-         method: 'POST',
-         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-         },
-         body: userCode
-      })
-      const data = await response.json()
+      const response = await apiService.practice.submitCode(name, selectedLanguage.value, userCode)
+      const data = response.data
 
       result.value = {
          code: data.code,
@@ -184,21 +172,32 @@ const checkCode = () => {
 
 const goToLogin = () => router.push('/login')
 
+// 解析JWT令牌获取用户角色
+const getRoleFromJwt = () => {
+   const token = localStorage.getItem('jwt')
+   if (!token) return 'USER'
+   try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(
+         atob(base64)
+            .split('')
+            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+      )
+      const payload = JSON.parse(jsonPayload)
+      return payload.role || 'USER'
+   } catch (e) {
+      console.error('解析 JWT 失败', e)
+      return 'USER'
+   }
+}
+
 const fetchDataOnRefresh = async () => {
    try {
-      const token = localStorage.getItem('jwt')
-      const params = new URLSearchParams({
-         qname: name
-      });
-      const response = await fetch(`http://${ip}/practice/full/get?${params}`, {
-         method: 'GET',
-         headers: {
-            'Authorization': `Bearer ${token}`
-         }
-      })
-      if (!response.ok) throw new Error(`请求失败，状态码：${response.code}`)
-
-      const data = await response.json()
+      const role = getRoleFromJwt()
+      const response = await apiService.practice.getProblem(name, role)
+      const data = response.data
       problemData.value = data.data || {}
       solutionContent.value = problemData.value.solution || '暂无题解'
    } catch (error) {

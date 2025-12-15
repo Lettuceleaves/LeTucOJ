@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Mapper
 @Repository
-public interface UserMybatisRepos extends BaseMapper<LanguageConfigDO> {
+public interface UserMybatisRepos {
 
     Integer saveUserInfo(UserManagerDTO userDTO);
 
