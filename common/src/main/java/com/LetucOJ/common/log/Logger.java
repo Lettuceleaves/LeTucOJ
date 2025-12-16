@@ -1,6 +1,8 @@
 package com.LetucOJ.common.log;
 
 import java.time.format.DateTimeFormatter;
+
+import cn.hutool.core.util.IdUtil;
 import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.trace.TraceContext;
@@ -31,7 +33,9 @@ public class Logger {
 
         String payload = "[" + level.message() + ": " + type.message() + "] " + "(" + time() + ")" + " " + info;
         Message message = new Message("log", "log", TraceContext.getTraceId(), payload, time(), 0);
-        System.out.println("send: " + message);
+        if (message.getKey() == null) {
+            message.setKey(IdUtil.getSnowflake().nextIdStr());
+        }
         staticMessageQueueProducer.send(message);
     }
 

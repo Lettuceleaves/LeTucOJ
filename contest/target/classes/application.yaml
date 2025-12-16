@@ -26,9 +26,3 @@ logging:
     org.mybatis: DEBUG
     com.OMS.user_service.client: DEBUG
 
-rocketmq:
-  name-server: rocketmq-namesrv:9876
-  producer:
-    group: my-producer-group
-  consumer:
-    group: my-consumer-group

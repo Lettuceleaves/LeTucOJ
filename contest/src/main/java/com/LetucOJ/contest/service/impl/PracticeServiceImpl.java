@@ -1,5 +1,8 @@
 package com.LetucOJ.contest.service.impl;
 
+import com.LetucOJ.common.log.LogLevel;
+import com.LetucOJ.common.log.Logger;
+import com.LetucOJ.common.log.Type;
 import com.LetucOJ.common.oss.MinioRepos;
 import com.LetucOJ.common.result.Result;
 import com.LetucOJ.common.result.ResultVO;
@@ -35,7 +38,7 @@ public class PracticeServiceImpl implements PracticeService {
 
     private DBService dbService;
 
-    public ResultVO<TestTaskVO> submit(String userName, String nickName, String problemName, String contestName, String code, String language, String role) throws Exception {
+    public ResultVO<TestTaskVO> submit(String userName, String nickName, String problemName, String contestName, String code, String language, String role) {
         try {
 
             Contest contest = mybatisRepos.getContest(contestName);
@@ -153,7 +156,7 @@ public class PracticeServiceImpl implements PracticeService {
                 return runResult;
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
             return Result.failure(BaseErrorCode.SERVICE_ERROR, null);
         }
         return Result.failure(BaseErrorCode.SERVICE_ERROR, null);

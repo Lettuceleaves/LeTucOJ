@@ -86,8 +86,7 @@ public class JwtFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, @NotNull WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-
-        System.out.println("------" + "Method:" + exchange.getRequest().getMethod() + " " + exchange + " " + chain);
+        Logger.log(Type.CLIENT, LogLevel.INFO, "------" + "Method:" + exchange.getRequest().getMethod() + " " + exchange + " " + chain);
 
         // 默认放过OPTIONS方法
         if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod())  || WHITELIST.contains(path)) {

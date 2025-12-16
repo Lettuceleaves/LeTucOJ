@@ -6,16 +6,16 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.StatObjectArgs;
 import io.minio.errors.ErrorResponseException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.io.InputStream;
 
 
 @Repository
+@AllArgsConstructor
 public class MinioReposImpl implements MinioRepos {
 
-    @Autowired
     private MinioClient minioClient;
 
     @Override

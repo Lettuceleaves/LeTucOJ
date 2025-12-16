@@ -9,17 +9,16 @@ import com.LetucOJ.contest.model.DTO.SubmitRecordDTO;
 import com.LetucOJ.contest.model.VO.TestTaskVO;
 import com.LetucOJ.contest.repos.MybatisRepos;
 import com.LetucOJ.contest.service.PracticeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/contest")
+@AllArgsConstructor
 public class SubmitController {
 
-    @Autowired
     private PracticeService practiceService;
 
-    @Autowired
     private MybatisRepos mybatisRepos;
 
     @PostMapping("/submit")

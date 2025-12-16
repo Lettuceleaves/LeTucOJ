@@ -1,6 +1,9 @@
 package com.LetucOJ.practice.controller;
 
-import com.LetucOJ.common.anno.SubmitLimit;
+import com.LetucOJ.common.cache.Redis;
+import com.LetucOJ.common.log.LogLevel;
+import com.LetucOJ.common.log.Logger;
+import com.LetucOJ.common.log.Type;
 import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.result.ResultVO;
@@ -39,7 +42,7 @@ public class SubmitController {
             @RequestParam("role") String role,
             @RequestBody String code) throws Exception {
         ResultVO<TestTaskVO> result = practiceService.submit(userName, problemName, code, language, role);
-
+        Logger.log(Type.DEPENDENT, LogLevel.INFO, nickName);
         return saveSubmitRecord(language, userName, problemName, nickName, code, result);
     }
 
@@ -71,9 +74,10 @@ public class SubmitController {
                     .body(JSON.toJSONString(record))
                     .build();
 
-//            mqProducer.send(message);
+            Redis.listPush("submission", JSON.toJSONString(message));
 
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            Logger.log(Type.SERVER, LogLevel.ERROR, e.getMessage());
         }
         return result;
     }

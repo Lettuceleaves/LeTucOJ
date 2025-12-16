@@ -47,9 +47,4 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
 
-rocketmq:
-  name-server: rocketmq-namesrv:9876
-  producer:
-    group: my-producer-group
-  consumer:
-    group: my-consumer-group
+

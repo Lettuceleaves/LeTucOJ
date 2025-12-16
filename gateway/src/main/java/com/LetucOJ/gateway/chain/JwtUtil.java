@@ -34,8 +34,8 @@ public class JwtUtil {
                 .issuer("LetucOJ")
                 .subject(userName)
                 .expiration((new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)))
-                .claim("nickName", nickName)
                 .claim("role", role)
+                .claim("nick_name", nickName)
                 .signWith(KEY)
                 .compact();
     }
@@ -52,7 +52,7 @@ public class JwtUtil {
         try {
             return objectMapper.writeValueAsBytes(Result.failure(errorCode));
         } catch (JsonProcessingException e) {
-            System.err.println("Error serializing error response: " + e.getMessage());
+            Logger.log(Type.SERVER, LogLevel.ERROR, "Error serializing error response: " + e.getMessage());
             return ("{\"code\":" + GatewayErrorCode.SERVICE_ERROR.code() +
                     ",\"message\":\"Internal gateway error during response creation\"}").getBytes(StandardCharsets.UTF_8);
         }

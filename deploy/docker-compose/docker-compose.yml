@@ -36,32 +36,6 @@ services:
     mem_limit: 256m
     mem_reservation: 128m
 
-  namesrv:
-    image: apache/rocketmq:5.3.3
-    container_name: rocketmq-namesrv
-    ports:
-      - "9876:9876"
-    mem_limit: 512m
-    mem_reservation: 256m
-    command: sh mqnamesrv
-    restart: always
-
-  broker:
-    image: apache/rocketmq:5.3.3
-    container_name: rocketmq-broker
-    ports:
-      - "10911:10911"
-      - "10909:10909"
-    volumes:
-      - ./broker.conf:/home/rocketmq/rocketmq-5.3.3/conf/broker.conf
-    environment:
-      - NAMESRV_ADDR=namesrv:9876
-      - JAVA_OPT=-Xms512m -Xmx512m
-    command: sh mqbroker -c /home/rocketmq/rocketmq-5.3.3/conf/broker.conf
-    restart: always
-    depends_on:
-      - namesrv
-
   minio:
     image: minio/minio
     container_name: minio
@@ -115,7 +89,6 @@ services:
     depends_on:
       - mysql
       - redis
-      - namesrv
 
   gateway:
     image: localhost:5000/gateway:latest # <--- 已修正
@@ -129,7 +102,6 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
     depends_on:
-      - namesrv
       - mysql
       - redis
 
@@ -148,7 +120,6 @@ services:
     depends_on:
       - mysql
       - redis
-      - namesrv
 
   contest:
     image: localhost:5000/contest:latest # <--- 已修正
@@ -165,7 +136,6 @@ services:
     depends_on:
       - mysql
       - redis
-      - namesrv
 
   run:
     image: localhost:5000/run:latest # <--- 已修正
@@ -185,7 +155,7 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
     depends_on:
-      - namesrv
+      - mysql
 
   advice:
     image: localhost:5000/advice:latest # <--- 已修正
@@ -202,7 +172,6 @@ services:
       - AI_URL=${AI_URL}
     depends_on:
       - mysql
-      - namesrv
 
   nginx:
     image: localhost:5000/nginx:latest # <--- 已修正 (假设您也自定义构建了nginx)

@@ -61,7 +61,7 @@ echo 1. Starting Registry ^& Middleware
 echo =======================================================
 
 cd docker-compose
-docker compose up -d registry mysql redis namesrv broker minio
+docker compose up -d registry mysql redis minio
 cd ..
 
 echo.

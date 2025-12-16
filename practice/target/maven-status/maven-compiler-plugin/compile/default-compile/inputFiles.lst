@@ -11,12 +11,12 @@ E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\ProblemBri
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\DTO\SubmitRecordDTO.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\controller\ListController.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\DTO\ListConditionDTO.java
+E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\repos\RedisSubmissionConsumer.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\service\DBService.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\controller\SubmitController.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\client\RunClient.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\Problem.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\repos\MybatisRepos.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\service\impl\DBServiceImpl.java
-E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\repos\RocketMQSubmissionConsumer.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\service\impl\PracticeServiceImpl.java
 E:\projects\LeTucOJ\practice\src\main\java\com\LetucOJ\practice\model\DTO\TestCaseDTO.java

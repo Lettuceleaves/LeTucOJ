@@ -27,16 +27,50 @@ const router = useRouter()
 
 const goHome = () => router.push('/')
 
+// 解析JWT令牌获取用户信息
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+    // eslint-disable-next-line no-unused-vars
+  } catch (e) {
+    return {}
+  }
+}
+
 const login = async () => {
   try {
     const res = await apiService.user.login(userName.value, password.value)
     const data = res.data
 
     if (data.code === '0') {
+      // 获取JWT令牌
+      const token = data.token || localStorage.getItem('jwt')
+      let role = 'USER'
+
+      // 优先从API响应中获取角色信息
+      if (data.data?.role) {
+        role = data.data.role
+      }
+      // 如果API响应中没有角色信息，从JWT令牌中解析
+      else if (token) {
+        const payload = parseJwt(token)
+        if (payload.role) {
+          role = payload.role
+        }
+      }
+
       // 保存用户信息到localStorage
       localStorage.setItem('userInfo', JSON.stringify({
         username: userName.value,
-        role: data.data?.role || 'USER'
+        role: role
       }))
       await router.push('/main')
 

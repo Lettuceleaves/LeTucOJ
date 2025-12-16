@@ -6,7 +6,6 @@ import com.LetucOJ.common.result.errorcode.BaseErrorCode;
 import com.LetucOJ.common.result.errorcode.ContestErrorCode;
 import com.LetucOJ.contest.model.Contest;
 import com.LetucOJ.contest.model.VO.TestTaskVO;
-import org.bouncycastle.crypto.agreement.kdf.ConcatenationKDFGenerator;
 
 import java.time.LocalDateTime;
 

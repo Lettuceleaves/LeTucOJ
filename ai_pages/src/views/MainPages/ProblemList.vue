@@ -120,10 +120,50 @@ const userInfo = ref(null)
 const like = ref('')
 
 /** ------------ 工具函数 ------------ **/
+// 解析JWT令牌获取用户信息
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+    // eslint-disable-next-line no-unused-vars
+  } catch (e) {
+    return {}
+  }
+}
+
 const loadUserInfo = () => {
+  // 首先从localStorage获取userInfo
   const userInfoStr = localStorage.getItem('userInfo')
   if (userInfoStr) {
     userInfo.value = JSON.parse(userInfoStr)
+  }
+
+  // 然后从JWT令牌中获取最新的角色信息
+  const token = localStorage.getItem('jwt')
+  if (token) {
+    const payload = parseJwt(token)
+    if (payload.role) {
+      // 更新userInfo中的角色信息
+      if (userInfo.value) {
+        userInfo.value.role = payload.role
+        // 同时更新localStorage中的userInfo
+        localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+      } else {
+        // 如果没有userInfo，创建一个新的
+        userInfo.value = {
+          username: payload.sub || '',
+          role: payload.role
+        }
+        localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+      }
+    }
   }
 }
 

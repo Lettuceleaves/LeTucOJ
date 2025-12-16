@@ -24,12 +24,43 @@ api.interceptors.request.use(
   }
 );
 
+// 解析JWT令牌获取用户信息
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+    // eslint-disable-next-line no-unused-vars
+  } catch (e) {
+    return {};
+  }
+};
+
 // 响应拦截器
 api.interceptors.response.use(
   (response) => {
     // 如果返回的token，保存到localStorage
     if (response.data && response.data.token) {
       localStorage.setItem('jwt', response.data.token);
+
+      // 解析JWT令牌获取角色信息
+      const payload = parseJwt(response.data.token);
+      if (payload.role) {
+        // 获取当前userInfo
+        const userInfoStr = localStorage.getItem('userInfo');
+        if (userInfoStr) {
+          const userInfo = JSON.parse(userInfoStr);
+          // 更新角色信息
+          userInfo.role = payload.role;
+          localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        }
+      }
     }
     return response;
   },
