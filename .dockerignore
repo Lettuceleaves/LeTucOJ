@@ -1,0 +1,20 @@
+# 1. 忽略所有文件
+**
+
+# 2. 允许 POM 文件（递归允许所有模块的 pom）
+!**/pom.xml
+
+# 3. 允许源代码目录
+!**/src/**
+
+# 4. 允许 Maven 配置文件（如果有）
+!**/.mvn/**
+!**/mvnw
+!**/mvnw.cmd
+
+# 5. 允许资源文件（如 application.yml, Mapper XML）
+!**/src/main/resources/**
+
+# 6. 允许 Native Image 必要的元数据提示文件
+!**/src/main/resources/META-INF/**
+!**/src/main/resources/META-INF/native-image/**

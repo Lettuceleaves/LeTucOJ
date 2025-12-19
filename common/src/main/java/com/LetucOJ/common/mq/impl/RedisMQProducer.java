@@ -25,26 +25,4 @@ public class RedisMQProducer implements MessageQueueProducer {
             return Result.failure(BaseErrorCode.LOG_ERROR);
         }
     }
-
-    @Override
-    public void sendAsync(Message message, ResultVO<Void> callback) {
-        new Thread(() -> {
-            try {
-                String messageJson = JSON.toJSONString(message);
-                Redis.listPush(message.getTopic(), messageJson);
-            } catch (Exception e) {
-                Result.failure(BaseErrorCode.LOG_ERROR, e);
-            }
-        }).start();
-    }
-
-    @Override
-    public void sendOneWay(Message message) {
-        try {
-            String messageJson = JSON.toJSONString(message);
-            Redis.listPush(message.getTopic(), messageJson);
-        } catch (Exception e) {
-            Result.failure(BaseErrorCode.LOG_ERROR, e);
-        }
-    }
 }

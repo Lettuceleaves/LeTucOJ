@@ -1,18 +1,7 @@
 # LeTucOJ
-
-<div>
-  <!-- 预留项目logo位置 -->
-  <img src="#" alt="LeTucOJ Logo" width="200" height="200">
-  
-  <p>一个试图让出题变简单的OJ系统</p>
-  
-  <!-- 预留项目截图位置 -->
-  <img src="#" alt="系统首页截图" width="800">
-</div>
-
 ## 项目简介
 
-LeTucOJ 是一个功能完善的在线评测系统（Online Judge），专注于提供简洁高效的题目管理、代码评测和竞赛组织功能。系统采用微服务架构，支持多种编程语言，旨在为教育机构和个人提供便捷的编程学习和竞赛环境。
+LeTucOJ 是一个功能完善的在线评测系统，专注于提供简洁高效的题目管理、代码评测和竞赛组织功能。系统采用微服务架构，支持多种编程语言，旨在为教育机构和个人提供便捷的编程学习和竞赛环境。
 
 ## 主要功能
 
@@ -46,10 +35,10 @@ LeTucOJ 是一个功能完善的在线评测系统（Online Judge），专注于
 - **框架**: Spring Boot 3.3.0, Spring Cloud 2023.0.1
 - **数据库**: MySQL
 - **缓存**: Redis
-- **消息队列**: RocketMQ 5.3.3
 - **对象存储**: MinIO
-- **ORM**: MyBatis-Plus
-- **微服务组件**: Spring Cloud LoadBalancer, OpenFeign
+- **消息队列**: Redis
+- **ORM**: MyBatis
+- **微服务组件**: OpenFeign
 
 ### 前端
 - **框架**: Vue 3.5.17, TypeScript 5.9.2
@@ -66,9 +55,6 @@ LeTucOJ 是一个功能完善的在线评测系统（Online Judge），专注于
 
 ## 系统架构
 
-<!-- 预留系统架构图位置 -->
-<img src="#" alt="系统架构图" width="800">
-
 系统采用微服务架构，包含以下主要服务模块：
 
 - **gateway**: API网关，统一入口，路由转发
@@ -83,7 +69,7 @@ LeTucOJ 是一个功能完善的在线评测系统（Online Judge），专注于
 
 ```
 LeTucOJ/
-├── advice/          # 建议服务模块
+├── advice/          # AI模块
 ├── common/          # 公共组件和工具类
 ├── contest/         # 竞赛服务模块
 ├── deploy/          # 部署配置和脚本
@@ -100,8 +86,7 @@ LeTucOJ/
 ├── run/             # 判题服务模块
 ├── sys/             # 系统服务模块
 ├── user/            # 用户服务模块
-├── ai_pages/        # AI功能相关前端页面
-└── ts_pages/        # 主要前端页面(TypeScript)
+└── page/            # AI生成的前端页面
 ```
 
 ## 部署指南
@@ -156,29 +141,72 @@ docker-compose up -d
 ```bash
 mvn clean package -DskipTests
 ```
-
-### 前端开发
-
-1. 进入前端目录
-```bash
-cd ts_pages  # 或 cd ai_pages
+对于powershell，提供脚本
 ```
+function global:ojbd {
+    # 1. 环境初始化
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OriginalLocation = Get-Location
+    $CurrentPath = $pwd.Path
 
-2. 安装依赖
-```bash
-npm install
+    # 2. 检查当前目录下是否有 Dockerfile
+    if (-not (Test-Path "$CurrentPath\Dockerfile")) {
+        Write-Host "❌ 错误: 在当前目录 [$CurrentPath] 下未找到 Dockerfile！" -ForegroundColor Red
+        Write-Host ">>> 请切换到项目根目录后再运行 ojbd。" -ForegroundColor Gray
+        return
+    }
+
+    Write-Host "--------------------------------------------------" -ForegroundColor Cyan
+    Write-Host ">>> 📂 [Oj-Build] 当前项目路径: $CurrentPath" -ForegroundColor DarkGray
+    Write-Host ">>> ⏱️  极速构建启动..." -ForegroundColor Cyan
+    Write-Host "--------------------------------------------------" -ForegroundColor Cyan
+
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+
+    # 3. 执行 Docker 构建
+    # 使用 --progress=plain 可以看到详细的构建日志
+    docker build --progress=plain -t my-app-build .
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "`n>>> [Extract] 正在提取 Jar 包..." -ForegroundColor Green
+
+        # 4. 清理旧的临时容器（如果有）
+        docker rm -f temp-extract 2>$null | Out-Null
+
+        # 5. 提取产物
+        # 创建容器但不运行
+        docker create --name temp-extract my-app-build | Out-Null
+
+        # 准备输出目录
+        if (Test-Path dist) { Remove-Item dist -Recurse -Force }
+        New-Item -ItemType Directory -Path dist | Out-Null
+
+        # 将容器内的文件拷贝到本地 dist 目录
+        # 注意：这里假设你的 Dockerfile 将产物放到了 /export/ 目录下
+        docker cp temp-extract:/export/. ./dist/
+        
+        # 移除临时容器
+        docker rm temp-extract | Out-Null
+
+        $sw.Stop()
+        $time = $sw.Elapsed
+
+        Write-Host "--------------------------------------------------" -ForegroundColor Cyan
+        Write-Host ">>> ✅ 构建完成并已导出至 .\dist 文件夹" -ForegroundColor Green
+        Write-Host ">>> ⏱️  总耗时: $($time.Minutes)分 $($time.Seconds)秒" -ForegroundColor Yellow
+        Write-Host "--------------------------------------------------" -ForegroundColor Cyan
+
+        # 6. 自动打开输出文件夹
+        Invoke-Item dist
+    } else {
+        Write-Host "`n❌ 构建失败，请检查上方 Docker 日志。" -ForegroundColor Red
+    }
+
+    # 7. 现场还原
+    Set-Location $OriginalLocation
+}
 ```
-
-3. 开发模式
-```bash
-npm run dev
-```
-
-4. 构建生产版本
-```bash
-npm run build
-```
-
+注册到`$PROFILE`后可以在根目录使用指令`ojbd`快速打包
 ## 安全措施
 
 - 代码在Docker容器沙箱中执行，确保系统安全
@@ -201,22 +229,11 @@ npm run build
 4. 选择编程语言，点击"提交"按钮
 5. 查看评测结果和详细信息
 
-### 创建竞赛
-<!-- 预留竞赛创建流程图位置 -->
-<img src="#" alt="竞赛创建流程图" width="800">
-
-## API文档
-
-系统提供了完整的REST API，详情请查看项目中的API文档：
-
-- [API接口文档](http://localhost:7777/api-docs) （部署后访问）
-- 或直接查看项目中的API文档文件：`ts_pages/public/doc.md` 和 `ai_pages/public/doc.md`
-
 ## 常见问题
 
 ### 1. 如何添加新的编程语言支持？
 
-1. 在 `deploy` 目录下创建新的语言运行环境目录（如 `run_xxx`）
+1. 在 `deploy` 目录下创建新的语言运行环境目录
 2. 编写对应的Dockerfile和运行脚本
 3. 在 `docker-compose.yml` 中添加对应的服务配置
 4. 在配置文件中设置时间和内存限制
@@ -234,10 +251,6 @@ npm run build
 - **RE (Runtime Error)**: 代码运行时出错
 - **CE (Compile Error)**: 代码编译失败
 
-## 许可证
-
-<!-- 预留许可证信息位置 -->
-
 ## 贡献指南
 
 我们欢迎社区贡献！如果您有兴趣参与项目开发，请遵循以下步骤：
@@ -247,14 +260,3 @@ npm run build
 3. 提交您的更改 (`git commit -m 'Add some amazing feature'`)
 4. 推送到分支 (`git push origin feature/amazing-feature`)
 5. 开启一个 Pull Request
-
-## 致谢
-
-<!-- 预留致谢信息位置 -->
-
-## 联系方式
-
-项目维护者：[项目团队邮箱/联系方式]
-
-<!-- 预留联系信息二维码位置 -->
-<img src="#" alt="联系方式二维码" width="200">

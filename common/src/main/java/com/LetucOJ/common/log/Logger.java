@@ -6,10 +6,10 @@ import cn.hutool.core.util.IdUtil;
 import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
 import com.LetucOJ.common.trace.TraceContext;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Component;
-import javax.annotation.PostConstruct;
 
 @Component
 @Data
