@@ -1,8 +1,6 @@
 package com.LetucOJ.gateway;
 
 import com.LetucOJ.common.trace.filter.ReactiveTraceFilter;
-import com.LetucOJ.common.trace.filter.ServletTraceConfig;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;

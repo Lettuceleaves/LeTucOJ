@@ -30,7 +30,7 @@ import java.util.Map;
  * 2. 保持了对 WebFlux 环境的兼容性（通过内部类隔离）。
  */
 @Configuration
-public class ServletTraceConfig implements ImportAware {
+public class ServletTraceFilter implements ImportAware {
 
     // 1. 定义成员变量暂存注解配置
     private boolean isGateway = false;
@@ -107,7 +107,7 @@ public class ServletTraceConfig implements ImportAware {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     @Documented
-    @Import(ServletTraceConfig.class)
+    @Import(ServletTraceFilter.class)
     public @interface EnableTrace {
         boolean isGateway();
     }
