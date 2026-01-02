@@ -2,16 +2,19 @@ package com.LetucOJ.common.anno;
 
 import cn.hutool.core.lang.Singleton;
 import cn.hutool.json.JSONUtil;
+import com.LetucOJ.common.log.LogLevel;
+import com.LetucOJ.common.log.Logger;
+import com.LetucOJ.common.log.Type;
+import com.LetucOJ.common.mq.MessageQueueProducer;
 import com.LetucOJ.common.mq.impl.Message;
-import com.LetucOJ.common.mq.impl.RocketMQProducer;
-import com.LetucOJ.common.unique.TaskIdContext;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.LetucOJ.common.result.ResultVO;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -21,13 +24,16 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Aspect
 @Component
 @RequiredArgsConstructor
+@Data
+@ConditionalOnClass(name = "org.springframework.web.servlet.DispatcherServlet")
 public class SubmitLimitAspect {
 
-    private final RocketMQProducer rocketMQProducer;
+    private final MessageQueueProducer rocketMQProducer;
 
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -53,7 +59,7 @@ public class SubmitLimitAspect {
     @Around("@annotation(com.LetucOJ.common.anno.SubmitLimit)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         SubmitLimit submitLimit = getSubmitLimit(joinPoint);
-        String uniqueKey = submitLimit.keyPrefix() + TaskIdContext.getTaskId();
+        String uniqueKey = submitLimit.keyPrefix() + submitLimit.taskId();
         DefaultRedisScript<Long> buildLuaScript = Singleton.get(LUA_PATH, () -> {
             DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
             redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(LUA_PATH)));
@@ -64,7 +70,6 @@ public class SubmitLimitAspect {
         String userId = joinPoint.getArgs()[1].toString();
         String problemId = joinPoint.getArgs()[2].toString();
         String submitKey = submitLimit.keyPrefix() + userId + ":" + problemId;
-        System.out.println(submitKey);
         Long result = stringRedisTemplate.execute(
                 buildLuaScript,
                 List.of("limit", submitKey),
@@ -73,7 +78,7 @@ public class SubmitLimitAspect {
             String body = JSONUtil.toJsonStr(Map.of(
                     "submitKey", submitKey,
                     "mem", result));
-            rocketMQProducer.send(Message
+            ResultVO<Void> resultVO = rocketMQProducer.send(Message
                     .builder()
                     .topic("limit")
                     .key(uniqueKey)
@@ -81,6 +86,9 @@ public class SubmitLimitAspect {
                     .timestamp(String.valueOf(System.currentTimeMillis()))
                     .delayLevel(submitLimit.delayLevel())
                     .build());
+            if (!Objects.equals(resultVO.getCode(), "0")) {
+                Logger.log(Type.EXTERNAL, LogLevel.ERROR, resultVO.getMessage());
+            }
             Object res = joinPoint.proceed();
             stringRedisTemplate.execute(
                     new DefaultRedisScript<>(LUA_DECR_MEM, Long.class),
@@ -98,8 +106,8 @@ public class SubmitLimitAspect {
         } else if (result == -2L || result == -3L) {
             throw new RuntimeException("sys busy");
         } else {
-            System.out.println("unknown err " + result);
-            throw new RuntimeException("sys err");
+            Logger.log(Type.SERVER, LogLevel.ERROR, "unknown err " + result);
+            throw new RuntimeException("system err in submit aspect");
         }
     }
 
@@ -110,18 +118,13 @@ public class SubmitLimitAspect {
     }
 
     private void loadLanguageConfig(String lang) {
-        LambdaQueryWrapper<LanguageConfigDO> queryWrapper = Wrappers.lambdaQuery(LanguageConfigDO.class)
-                .eq(LanguageConfigDO::getLang, lang)
-                .or()
-                .eq(LanguageConfigDO::getLang, "total");
-        List<LanguageConfigDO> configs = langMybatisRepos.selectList(queryWrapper);
+        List<LanguageConfigDO> configs = langMybatisRepos.selectList(lang);
         for (LanguageConfigDO config : configs) {
-            System.out.println(config.getLang() + " " + config.getMemPerRun());
             stringRedisTemplate.execute(
                     new DefaultRedisScript<>(LUA_UPDATE_CONFIG, Long.class),
                     List.of("lang:mem"),
-                    config.getLang(),
-                    String.valueOf(config.getMemPerRun())
+                    config.getLanguage(),
+                    String.valueOf(config.getMemoryPerRun())
             );
         }
     }

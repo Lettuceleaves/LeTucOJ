@@ -1,10 +1,12 @@
 package com.LetucOJ.practice.controller;
 
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.practice.model.ListServiceDTO;
+import com.LetucOJ.practice.model.DTO.ListConditionDTO;
+import com.LetucOJ.practice.model.VO.ProblemListVO;
+import com.LetucOJ.practice.model.VO.SubmitRecordListVO;
 import com.LetucOJ.practice.service.DBService;
-import com.LetucOJ.practice.service.PracticeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLDecoder;
@@ -12,48 +14,45 @@ import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/practice")
+@Data
+@AllArgsConstructor
 public class ListController {
 
-    @Autowired
     private DBService dbService;
 
     @GetMapping("/list")
-    public ResultVO getList(@ModelAttribute ListServiceDTO sql, @RequestParam("pname") String pname) {
-        sql.setLike(recursiveDecode(sql.getLike()));
-        return dbService.getList(sql, pname);
+    public ResultVO<ProblemListVO> getList(@ModelAttribute ListConditionDTO listConditionDTO,
+                                           @RequestParam("user_name") String problemName,
+                                           @RequestParam("role") String role) {
+        listConditionDTO.setLike(recursiveDecode(listConditionDTO.getLike()));
+        return dbService.getList(listConditionDTO, problemName, role);
     }
 
-    @GetMapping("/listRoot")
-    public ResultVO getListInRoot(@ModelAttribute ListServiceDTO sql, @RequestParam("pname") String pname) {
-        sql.setLike(recursiveDecode(sql.getLike()));
-        return dbService.getListInRoot(sql, pname);
+    @GetMapping("/list_search")
+    public ResultVO<ProblemListVO> searchList(@ModelAttribute ListConditionDTO listConditionDTO,
+                                              @RequestParam("user_name") String problemName,
+                                              @RequestParam("role") String role) {
+        listConditionDTO.setLike(recursiveDecode(listConditionDTO.getLike()));
+        return dbService.searchList(listConditionDTO, problemName, role);
+    }
+    @GetMapping("/list_record/self")
+    public ResultVO<SubmitRecordListVO> submitRecordListSelf(@RequestParam("user_name") String problemName,
+                                                             @RequestParam("start") int start,
+                                                             @RequestParam("limit") int limit) {
+        return dbService.submitRecordListByName(problemName, start, limit);
     }
 
-    @GetMapping("/searchList")
-    public ResultVO searchList(@ModelAttribute ListServiceDTO sql, @RequestParam("pname") String pname) {
-        sql.setLike(recursiveDecode(sql.getLike()));
-        return dbService.searchList(sql, pname);
+    @GetMapping("/list_record/any")
+    public ResultVO<SubmitRecordListVO> submitRecordListAny(@RequestParam("user_name") String problemName,
+                                                            @RequestParam("start") int start,
+                                                            @RequestParam("limit") int limit) {
+        return dbService.submitRecordListByName(problemName, start, limit);
     }
 
-    @GetMapping("/searchListInRoot")
-    public ResultVO searchListInRoot(@ModelAttribute ListServiceDTO sql, @RequestParam("pname") String pname) {
-        sql.setLike(recursiveDecode(sql.getLike()));
-        return dbService.searchListInRoot(sql, pname);
-    }
-
-    @GetMapping("/recordList/self")
-    public ResultVO recordListSelf(@RequestParam("pname") String pname, @RequestParam("start") int start, @RequestParam("limit") int limit) {
-        return dbService.recordListByName(pname, start, limit);
-    }
-
-    @GetMapping("/recordList/any")
-    public ResultVO recordListAny(@RequestParam("pname") String pname, @RequestParam("start") int start, @RequestParam("limit") int limit) {
-        return dbService.recordListByName(pname, start, limit);
-    }
-
-    @GetMapping("/recordList/all")
-    public ResultVO recordListAll(@RequestParam("start") int start, @RequestParam("limit") int limit) {
-        return dbService.recordListAll(start, limit);
+    @GetMapping("/list_record/all")
+    public ResultVO<SubmitRecordListVO> submitRecordListAll(@RequestParam("start") int start,
+                                                            @RequestParam("limit") int limit) {
+        return dbService.submitRecordListAll(start, limit);
     }
 
     // base64多次编码问题 辅助解析方法
@@ -65,6 +64,4 @@ public class ListController {
         } catch (Exception ignore) {}
         return s;
     }
-
-
 }

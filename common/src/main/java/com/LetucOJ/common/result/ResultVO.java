@@ -1,6 +1,5 @@
 package com.LetucOJ.common.result;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,23 +17,6 @@ public class ResultVO<T> {
     private String code;
     private T data;
     private String message;
-    // private String requestId; TODO requestId用于错误追踪
-
-
-    public boolean isSuccess() {
-        return SUCCESS_CODE.equals(code);
-    }
-
-    public boolean isFail() {
-        return !isSuccess();
-    }
-
-    public String toJsonString() {
-        try {
-            return MAPPER.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            return "{}";
-        }
-    }
+     private String taskId;
 
 }

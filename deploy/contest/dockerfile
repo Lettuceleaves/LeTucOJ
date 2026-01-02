@@ -1,42 +1,24 @@
-FROM debian:bookworm-slim
+# 使用官方OpenJDK镜像，更稳定可靠
+FROM eclipse-temurin:17-jre-alpine
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-# 使用腾讯云 APT 镜像：
-# 1) 先把 apt 源替换为 http 的 mirrors.cloud.tencent.com（避免镜像里还没 CA 时 https 失败）
-# 2) apt-get update -> 安装 ca-certificates -> 切回 https -> 再 apt-get update -> 安装其他包
-RUN set -eux; \
-    for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
-      if [ -f "$f" ]; then \
-        sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
-      fi; \
-    done; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends ca-certificates; \
-    update-ca-certificates; \
-    # 切回 https（安装完 CA 后再用 https 更安全）
-    for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
-      if [ -f "$f" ]; then \
-        sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
-      fi; \
-    done; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends openjdk-17-jre-headless; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
-
+# 设置工作目录
 WORKDIR /app
+
+# 复制jar文件到容器
 COPY contest.jar /app/
-RUN chmod 0644 /app/contest.jar
 
-# 推荐使用非 root 运行（提高安全性）
-RUN set -eux; \
-    groupadd -r app && useradd -r -g app app; \
-    chown -R app:app /app
+# 创建非root用户并设置权限
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
+    chown -R appuser:appgroup /app
 
-USER app
+# 切换到非root用户
+USER appuser
 
+# 设置Java运行参数
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
 
+# 暴露端口
 EXPOSE 1234
+
+# 启动命令
 CMD ["sh", "-c", "exec java $JAVA_OPTS -jar /app/contest.jar"]

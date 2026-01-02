@@ -1,11 +1,13 @@
 package com.LetucOJ.common.cache;
 
+import lombok.Data;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.Nullable;
 
 import java.time.Duration;
 
 /** 静态工具，封装最常用 set/get 以及 Set 操作 */
+@Data
 public final class Redis {
 
     private static StringRedisTemplate template;
@@ -16,9 +18,9 @@ public final class Redis {
 
     /* ------------------- map ------------------- */
 
-    public static void mapPut(String key, String value) {
-        template.opsForValue().set(key, value);
-    }
+//    public static void mapPut(String key, String value) {
+//        template.opsForValue().set(key, value);
+//    }
 
     public static void mapPutDuration(String key, String value, long seconds) {
         template.opsForValue().set(key, value, Duration.ofSeconds(seconds));
@@ -35,20 +37,37 @@ public final class Redis {
 
     /* ------------------- set ------------------- */
 
-    public static boolean setContains(String key, String member) {
-        return Boolean.TRUE.equals(template.opsForSet().isMember(key, member));
-    }
+//    public static boolean setContains(String key, String member) {
+//        return Boolean.TRUE.equals(template.opsForSet().isMember(key, member));
+//    }
+//
+//    public static boolean setAdd(String key, String member) {
+//        Long ret = template.opsForSet().add(key, member);
+//        return ret != null && ret > 0;
+//    }
+//
+//    public static boolean setRemove(String key, String member) {
+//        Long ret = template.opsForSet().remove(key, member);
+//        return ret != null && ret > 0;
+//    }
 
-    public static boolean setAdd(String key, String member) {
-        Long ret = template.opsForSet().add(key, member);
+    /* ------------------- list ------------------- */
+
+    public static boolean listPush(String key, String value) {
+        Long ret = template.opsForList().leftPush(key, value);
         return ret != null && ret > 0;
     }
 
-    public static boolean setRemove(String key, String member) {
-        Long ret = template.opsForSet().remove(key, member);
-        return ret != null && ret > 0;
+    @Nullable
+    public static String listPop(String key) {
+        return template.opsForList().rightPop(key);
     }
 
-    private Redis() {}
+//    public static long listLength(String key) {
+//        Long ret = template.opsForList().size(key);
+//        return ret != null ? ret : 0;
+//    }
+//
+//    private Redis() {}
 }
 

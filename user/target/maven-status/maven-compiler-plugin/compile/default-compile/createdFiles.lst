@@ -1,12 +1,10 @@
+com\LetucOJ\user\AuthApplication.class
+com\LetucOJ\user\service\impl\UserServiceImpl$UserStats.class
 com\LetucOJ\user\service\impl\UserServiceImpl.class
 com\LetucOJ\user\model\UserManagerDTO.class
-com\LetucOJ\user\model\JwtInfoVO.class
-com\LetucOJ\user\model\RegisterRequestDTO.class
-com\LetucOJ\user\util\PasswordUtil.class
-com\LetucOJ\user\model\UserInfoDTO.class
-com\LetucOJ\user\AuthApplication.class
-com\LetucOJ\user\testService.class
-com\LetucOJ\user\testSubmit.class
 com\LetucOJ\user\repos\UserMybatisRepos.class
 com\LetucOJ\user\service\UserService.class
+com\LetucOJ\user\model\JwtInfoVO.class
 com\LetucOJ\user\controller\UserController.class
+com\LetucOJ\user\model\RegisterRequestDTO.class
+com\LetucOJ\user\model\UserInfoDTO.class

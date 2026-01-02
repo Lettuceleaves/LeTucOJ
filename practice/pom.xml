@@ -12,25 +12,21 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>practice</name>
 
-
     <dependencies>
 
         <!-- spring-web-starter -->
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <!-- spring-cloud-openfeign -->
-
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
         <!-- mysql -->
-
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -49,14 +45,12 @@
         </dependency>
 
         <!-- lombok -->
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
 
         <!-- common -->
-
         <dependency>
             <groupId>org.oms</groupId>
             <artifactId>common</artifactId>

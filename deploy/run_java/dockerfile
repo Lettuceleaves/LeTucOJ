@@ -1,26 +1,10 @@
-# 使用一个包含 OpenJDK 的官方镜像作为基础
-FROM openjdk:17-jdk-slim
+# 使用稳定的官方OpenJDK镜像
+FROM eclipse-temurin:17-jre-alpine
 
-ENV DEBIAN_FRONTEND=noninteractive
+# 安装必需的依赖
+RUN apk --no-cache add bash yq
 
-# 使用腾讯云镜像源：
-RUN set -eux; \
-    # 替换 APT 源为腾讯云镜像
-    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
-      [ -f "$f" ] && sed -i -E 's@https?://deb\.debian\.org@http://mirrors.cloud.tencent.com@g; s@https?://security\.debian\.org@http://mirrors.cloud.tencent.com@g' "$f"; \
-    done; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends ca-certificates; \
-    update-ca-certificates; \
-    # 切回 https 源
-    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
-      [ -f "$f" ] && sed -i -E 's@http://mirrors\.cloud\.tencent\.com@https://mirrors.cloud.tencent.com@g' "$f"; \
-    done; \
-    apt-get update; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
-
-# 将前面编写的脚本复制到镜像中
+# 将评测脚本复制到镜像中
 COPY run.sh /usr/local/bin/run.sh
 
 # 授予脚本执行权限

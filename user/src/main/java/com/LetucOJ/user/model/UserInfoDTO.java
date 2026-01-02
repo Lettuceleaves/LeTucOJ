@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class UserInfoDTO {
     @TableField("user_name")
     private String userName;
-    private String cnname;
+    private String userNickName;
     private String email;
     private String phone;
     private String description;

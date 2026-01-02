@@ -1,67 +1,64 @@
 package com.LetucOJ.practice.controller;
 
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.practice.model.CaseInputDTO;
-import com.LetucOJ.practice.model.CasePairDTO;
-import com.LetucOJ.practice.model.FullInfoDTO;
+import com.LetucOJ.practice.model.CaseFile;
+import com.LetucOJ.practice.model.DTO.TestCaseDTO;
+import com.LetucOJ.practice.model.Problem;
+import com.LetucOJ.practice.model.VO.TestTaskVO;
 import com.LetucOJ.practice.service.DBService;
-import com.LetucOJ.practice.service.PracticeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/practice")
+@Data
+@AllArgsConstructor
 public class ProblemController {
 
-    @Autowired
-    private PracticeService practiceService;
-
-    @Autowired
     private DBService dbService;
 
-    @GetMapping("/full/get")
-    public ResultVO getProblem(@RequestParam("qname") String qname) throws Exception {
-        return dbService.getProblem(qname);
+    @GetMapping("/problem")
+    public ResultVO<Problem> getProblem(@RequestParam("problem_name") String problemName,
+                                        @RequestParam("role") String role) {
+        return dbService.getProblem(problemName, role);
     }
 
-    @GetMapping("/fullRoot/get")
-    public ResultVO getProblemInRoot(@RequestParam("qname") String qname) throws Exception {
-        return dbService.getProblemInRoot(qname);
+    @PostMapping("/problem")
+    public ResultVO<Void> insertProblem(@RequestBody Problem problem) {
+        return dbService.insertProblem(problem);
     }
 
-    @PostMapping("/fullRoot/insert")
-    public ResultVO insertProblem(@RequestBody FullInfoDTO dto) throws Exception {
-        return dbService.insertProblem(dto);
+    @PutMapping("/problem")
+    public ResultVO<Void> updateProblem(@RequestBody Problem problem) {
+        return dbService.updateProblem(problem);
     }
 
-    @PutMapping("/fullRoot/update")
-    public ResultVO updateProblem(@RequestBody FullInfoDTO dto) throws Exception {
-        return dbService.updateProblem(dto);
+    @DeleteMapping("/problem")
+    public ResultVO<Void> deleteProblem(@RequestParam("problem_name") String problemName) {
+        return dbService.deleteProblem(problemName);
     }
 
-    @DeleteMapping("/fullRoot/delete")
-    public ResultVO deleteProblem(@RequestParam("qname") String qname) throws Exception {
-        return dbService.deleteProblem(qname);
+    @PostMapping("/test_case")
+    public ResultVO<TestTaskVO> testCase(@RequestParam("language") String language,
+                                         @RequestParam("role") String role,
+                                         @RequestBody TestCaseDTO testCaseDTO) {
+        return dbService.testCase(testCaseDTO, language, role);
     }
 
-    @PostMapping("/getCase")
-    public ResultVO getCase(@RequestBody CaseInputDTO caseInputDTO) {
-        return dbService.getCase(caseInputDTO);
-    }
-
-    @GetMapping("/get_exist_case")
-    public ResultVO getExistCase(@RequestParam("qname") String qname, @RequestParam("id") Integer id) {
-        return dbService.getExistCase(qname, id);
+    @GetMapping("/get_case")
+    public ResultVO<CaseFile> getCase(@RequestParam("problem_name") String problemName,
+                                      @RequestParam("id") Integer id) {
+        return dbService.getCase(problemName, id);
     }
 
     @GetMapping("/config_file")
-    public ResultVO getConfigFile(@RequestParam("qname") String qname) {
-        return dbService.getConfigFile(qname);
+    public ResultVO<byte[]> getConfigFile(@RequestParam("problem_name") String problemName) {
+        return dbService.getConfigFile(problemName);
     }
 
-    @PostMapping("/submitCase")
-    public ResultVO submitCase(@RequestBody CasePairDTO casePairDTO) {
-        return dbService.submitCase(casePairDTO);
+    @PostMapping("/save_case")
+    public ResultVO<Void> saveCase(@RequestBody CaseFile CaseFile) {
+        return dbService.saveCase(CaseFile);
     }
-
 }

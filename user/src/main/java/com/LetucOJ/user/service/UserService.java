@@ -1,30 +1,34 @@
 package com.LetucOJ.user.service;
 
 import com.LetucOJ.common.result.ResultVO;
+import com.LetucOJ.user.model.JwtInfoVO;
 import com.LetucOJ.user.model.RegisterRequestDTO;
 import com.LetucOJ.user.model.UserInfoDTO;
+import com.LetucOJ.user.model.UserManagerDTO;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public interface UserService {
-    ResultVO register(RegisterRequestDTO registerRequestDTO);
-    ResultVO login(RegisterRequestDTO registerRequestDTO);
-    ResultVO refreshToken(String userName);
-    ResultVO activateAccount(String userName);
-    ResultVO deactivateAccount(String userName);
-    ResultVO logout(String username);
-    ResultVO getAllUsers();
-    ResultVO getAllManagers();
-    ResultVO promoteToManager(String userName);
-    ResultVO demoteToUser(String userName);
-    ResultVO getUserRankings();
-    ResultVO updateUserFullInfo(UserInfoDTO userInfoDTO);
-    ResultVO getBackground(String username);
-    ResultVO getUserFullInfo(String username);
-    ResultVO updateBackground(String username, byte[] data);
-    ResultVO getHeadPortrait(String username);
-    ResultVO updateHeadPortrait(String username, byte[] data);
-    ResultVO getHeatmap(String username, int year);
-    ResultVO getSecretKey(String username);
-    ResultVO changePassword(String username, String secretKey, String newPassword);
+    ResultVO<Void> register(RegisterRequestDTO registerRequestDTO);
+    ResultVO<JwtInfoVO> login(RegisterRequestDTO registerRequestDTO);
+    ResultVO<JwtInfoVO> refreshToken(String userName);
+    ResultVO<Void> activateAccount(String userName);
+    ResultVO<Void> deactivateAccount(String userName);
+    ResultVO<Void> logout(String userName);
+    ResultVO<List<UserManagerDTO>> getAllUsers();
+    ResultVO<List<UserManagerDTO>> getAllManagers();
+    ResultVO<Void> promoteToManager(String userName);
+    ResultVO<Void> demoteToUser(String userName);
+    ResultVO<Object> getUserRankings();
+    ResultVO<Void> updateUserFullInfo(UserInfoDTO userInfoDTO);
+    ResultVO<byte[]> getBackground(String userName);
+    ResultVO<UserInfoDTO> getUserFullInfo(String userName);
+    ResultVO<Void> updateBackground(String userName, byte[] data);
+    ResultVO<byte[]> getHeadPortrait(String userName);
+    ResultVO<Void> updateHeadPortrait(String userName, byte[] data);
+    ResultVO<byte[]> getHeatmap(String userName, int year);
+    ResultVO<String> getSecretKey(String userName);
+    ResultVO<Void> changePassword(String userName, String secretKey, String newPassword);
 }

@@ -1,22 +1,25 @@
 package com.LetucOJ.practice.service;
 
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.practice.model.*;
+import com.LetucOJ.practice.model.CaseFile;
+import com.LetucOJ.practice.model.Problem;
+import com.LetucOJ.practice.model.DTO.ListConditionDTO;
+import com.LetucOJ.practice.model.DTO.TestCaseDTO;
+import com.LetucOJ.practice.model.VO.ProblemListVO;
+import com.LetucOJ.practice.model.VO.SubmitRecordListVO;
+import com.LetucOJ.practice.model.VO.TestTaskVO;
 
 public interface DBService {
-    ResultVO getList(ListServiceDTO dto, String name);
-    ResultVO getListInRoot(ListServiceDTO dto, String name);
-    ResultVO searchList(ListServiceDTO dto, String name);
-    ResultVO searchListInRoot(ListServiceDTO dto, String name);
-    ResultVO getProblem(String name);
-    ResultVO getProblemInRoot(String name);
-    ResultVO insertProblem(FullInfoDTO dto);
-    ResultVO updateProblem(FullInfoDTO dto);
-    ResultVO deleteProblem(String name);
-    ResultVO getCase(CaseInputDTO dto);
-    ResultVO submitCase(CasePairDTO dto);
-    ResultVO recordListByName(String pname, int start, int limit);
-    ResultVO recordListAll(int start, int limit);
-    ResultVO getExistCase(String qname, Integer id);
-    ResultVO getConfigFile(String qname);
+    ResultVO<ProblemListVO> getList(ListConditionDTO listConditionDTO, String user_name, String role);
+    ResultVO<ProblemListVO> searchList(ListConditionDTO listConditionDTO, String user_name, String role);
+    ResultVO<Problem> getProblem(String user_name, String role);
+    ResultVO<Void> insertProblem(Problem problem);
+    ResultVO<Void> updateProblem(Problem problem);
+    ResultVO<Void> deleteProblem(String user_name);
+    ResultVO<TestTaskVO> testCase(TestCaseDTO testCaseDTO, String language, String role);
+    ResultVO<Void> saveCase(CaseFile caseFile);
+    ResultVO<CaseFile> getCase(String problemName, Integer id);
+    ResultVO<SubmitRecordListVO> submitRecordListByName(String userName, int start, int limit);
+    ResultVO<SubmitRecordListVO> submitRecordListAll(int start, int limit);
+    ResultVO<byte[]> getConfigFile(String problemName);
 }

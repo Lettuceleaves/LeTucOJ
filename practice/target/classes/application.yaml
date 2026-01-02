@@ -10,8 +10,8 @@ spring:
     name: practice
   datasource:
     url: jdbc:mysql://mysql:3306/letucoj?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: 430103535
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
@@ -24,7 +24,7 @@ spring:
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.OMS.user_service.repository
+  type-aliases-package: com.LetucOJ
   configuration:
     map-underscore-to-camel-case: true
 
@@ -37,9 +37,4 @@ logging:
     com.OMS.practice_service: DEBUG
 
 
-rocketmq:
-  name-server: rocketmq-namesrv:9876
-  producer:
-    group: my-producer-group
-  consumer:
-    group: my-consumer-group
+

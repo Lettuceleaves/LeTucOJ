@@ -8,19 +8,6 @@
     <name>OMS2.0</name>
     <packaging>pom</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.kubernetes</groupId>
-            <artifactId>client-java-api</artifactId>
-            <version>16.0.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.kubernetes</groupId>
-            <artifactId>client-java</artifactId>
-        </dependency>
-    </dependencies>
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -58,10 +45,10 @@
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
         <jwt.version>0.12.6</jwt.version>
         <openfeign.version>4.1.1</openfeign.version>
-        <rocketmq.version>2.3.0</rocketmq.version>
         <hutool-all.version>5.8.27</hutool-all.version>
         <snowflake.version>1.2.0</snowflake.version>
         <thread-local.version>2.2.0</thread-local.version>
+        <grpc-lib.version>1.63.0</grpc-lib.version>
     </properties>
 
     <dependencyManagement>
@@ -213,14 +200,6 @@
                 <version>${openfeign.version}</version>
             </dependency>
 
-            <!-- rocketmq -->
-
-            <dependency>
-                <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-spring-boot-starter</artifactId>
-                <version>${rocketmq.version}</version>
-            </dependency>
-
             <!-- Hutool -->
             <dependency>
                 <groupId>cn.hutool</groupId>
@@ -233,6 +212,15 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>transmittable-thread-local</artifactId>
                 <version>${thread-local.version}</version>
+            </dependency>
+
+            <!-- grpc -->
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-bom</artifactId>
+                <version>${grpc-lib.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
         </dependencies>

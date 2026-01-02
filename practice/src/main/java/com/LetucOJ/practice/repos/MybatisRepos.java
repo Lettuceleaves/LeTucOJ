@@ -1,9 +1,13 @@
 package com.LetucOJ.practice.repos;
 
 import com.LetucOJ.common.anno.LanguageConfigDO;
-import com.LetucOJ.practice.model.*;
+import com.LetucOJ.practice.model.DTO.*;
+import com.LetucOJ.practice.model.Problem;
+import com.LetucOJ.practice.model.ProblemBrief;
+import com.LetucOJ.practice.model.ProblemStatus;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,77 +17,51 @@ import java.util.Set;
 @Mapper
 public interface MybatisRepos extends BaseMapper<LanguageConfigDO> {
 
-    @Select("SELECT public > 0 AS publicProblem, showsolution > 0 AS showSolution, caseAmount FROM problem WHERE name = #{name}")
-    ProblemStatusDTO getStatus(String name);
+    // === 题目相关 ===
 
-    @Update("UPDATE problem SET caseAmount = caseAmount + 1 WHERE name = #{name}")
-    Integer incrementCaseAmount(String name);
+    /**
+     * 通用查询列表（支持：前台/后台 + 搜索/不搜索）
+     * 依靠 DTO 中的 onlyPublic 字段区分权限，like 字段区分搜索
+     */
+    List<ProblemBrief> selectProblemList(ListConditionDTO listConditionDTO);
 
-    @Select("SELECT name, cnname, tags, difficulty, 0 AS accepted  FROM problem WHERE public = 1 ORDER BY ${order} LIMIT #{start}, #{limit}")
-    List<ListDTO> getList(ListServiceDTO listServiceDTO);
+    /**
+     * 通用查询数量
+     */
+    Integer countProblemList(ListConditionDTO listConditionDTO);
 
-    @Select("SELECT COUNT(*) FROM problem WHERE public = 1")
-    Integer getAmount(ListServiceDTO listServiceDTO);
+    /**
+     * 获取题目详情
+     * @param problemName 题目ID/名称
+     * @param onlyPublic true=只查公开(前台), false=查所有(后台)
+     */
+    Problem selectProblemDetail(@Param("problemName") String problemName, @Param("onlyPublic") Boolean onlyPublic);
 
-    @Select("SELECT name, cnname, tags, difficulty, 0 AS accepted FROM problem WHERE public = 1 AND (cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%')) ORDER BY ${order} LIMIT #{start}, #{limit}")
-    List<ListDTO> searchList(ListServiceDTO listServiceDTO);
+    ProblemStatus getStatus(@Param("problemName") String problemName);
 
-    @Select("SELECT COUNT(*) FROM problem WHERE public = 1 AND (cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%'))")
-    Integer getSearchAmount(ListServiceDTO listServiceDTO);
+    Integer incrementCaseAmount(@Param("problemName") String problemName);
 
-    @Select("SELECT name, cnname, tags, difficulty, 0 AS accepted FROM problem ORDER BY ${order} LIMIT #{start}, #{limit}")
-    List<ListDTO> getListInRoot(ListServiceDTO listServiceDTO);
+    Integer insertProblem(Problem problem);
 
-    @Select("SELECT COUNT(*) FROM problem")
-    Integer getAmountInRoot(ListServiceDTO listServiceDTO);
+    Integer updateProblem(Problem problem);
 
-    @Select("SELECT name, cnname, tags, difficulty, 0 AS accepted FROM problem WHERE cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%') ORDER BY ${order} LIMIT #{start}, #{limit}")
-    List<ListDTO> searchListInRoot(ListServiceDTO listServiceDTO);
+    void deleteProblem(@Param("problemName") String problemName); // 补充了 delete 方法定义
 
-    @Select("SELECT COUNT(*) FROM problem WHERE cnname LIKE CONCAT('%', #{like}, '%') OR tags LIKE CONCAT('%', #{like}, '%') OR content LIKE CONCAT('%', #{like}, '%')")
-    Integer getSearchAmountInRoot(ListServiceDTO listServiceDTO);
+    // === 记录相关 ===
 
-    @Select("SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public > 0 AS publicProblem, solution, showsolution " +
-            "FROM problem " +
-            "WHERE name = #{name} AND public = 1")
-    FullInfoDTO getProblem(String name);
+    /**
+     * 通用记录查询
+     * @param userName 如果为 null 则查所有用户
+     */
+    List<SubmitRecordDTO> selectRecordList(@Param("userName") String userName, @Param("start") int start, @Param("limit") int limit);
 
-    @Select("SELECT name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public > 0 AS publicProblem, solution, showsolution " +
-            "FROM problem " +
-            "WHERE name = #{name}")
-    FullInfoDTO getProblemInRoot(String name);
+    Integer countRecordList(@Param("userName") String userName);
 
-    @Insert("INSERT INTO problem (name, cnname, caseAmount, difficulty, tags, authors, createtime, updateat, content, freq, public, solution, showsolution) VALUES (#{name}, #{cnname}, #{caseAmount}, #{difficulty}, #{tags}, #{authors}, #{createtime}, #{updateat}, #{content}, #{freq}, #{publicProblem}, #{solution}, #{showsolution})")
-    Integer insertProblem(FullInfoDTO fullInfoDTO);
+    Integer insertRecord(SubmitRecordDTO submitRecordDTO);
 
-    @Update("UPDATE problem SET cnname = #{cnname}, caseAmount = #{caseAmount}, difficulty = #{difficulty}, tags = #{tags}, authors = #{authors}, updateat = #{updateat}, content = #{content}, freq = #{freq}, public = #{publicProblem}, solution = #{solution}, showsolution = #{showsolution} WHERE name = #{name}")
-    Integer updateProblem(FullInfoDTO fullInfoDTO);
+    // === 正确数相关 ===
 
-    @Delete("DELETE FROM problem WHERE name = #{name}")
-    Integer deleteProblem(String name);
-
-    @Select("SELECT * FROM record ORDER BY submitTime DESC LIMIT #{start}, #{limit}")
-    List<RecordDTO> getAllRecords(int start, int limit);
-
-    @Select("SELECT COUNT(*) FROM record")
-    Integer getAllRecordsCount();
-
-    @Select("SELECT * FROM record WHERE userName = #{userName} ORDER BY submitTime DESC LIMIT #{start}, #{limit}")
-    List<RecordDTO> getRecordsByName(String userName, int start, int limit);
-
-    @Select("SELECT COUNT(*) FROM record WHERE userName = #{userName}")
-    Integer getRecordsByNameCount(String userName);
-
-    @Insert("INSERT INTO record (userName, cnname, problemName, language, code, result, timeUsed, memoryUsed, submitTime) VALUES (#{userName}, #{cnname}, #{problemName}, #{language}, #{code}, #{result}, #{timeUsed}, #{memoryUsed}, #{submitTime})")
-    Integer insertRecord(RecordDTO recordDTO);
-
-    @Select("SELECT problem_name FROM correct WHERE user_name = #{userName}")
     Set<String> getCorrectByName(String userName);
 
-    @Insert("INSERT INTO correct (user_name, problem_name) VALUES (#{userName}, #{problemName})")
-    Integer insertCorrect(String userName, String problemName);
-
-    @Select("SELECT COUNT(*) FROM correct WHERE user_name = #{userName} AND problem_name = #{problemName}")
-    Integer checkCorrect(String userName, String problemName);
-
+    Integer insertCorrect(@Param("userName") String userName, @Param("problemName") String problemName);
 }

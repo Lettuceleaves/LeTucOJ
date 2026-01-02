@@ -1,23 +1,23 @@
 package com.LetucOJ.contest.service;
 
 import com.LetucOJ.common.result.ResultVO;
-import com.LetucOJ.contest.model.ContestProblemDTO;
-import com.LetucOJ.contest.model.ContestInfoDTO;
+import com.LetucOJ.contest.model.Contest;
+import com.LetucOJ.contest.model.DTO.ContestProblemDTO;
+import com.LetucOJ.contest.model.Problem;
+import com.LetucOJ.contest.model.VO.BoardVO;
+import com.LetucOJ.contest.model.VO.ContestListVO;
+import com.LetucOJ.contest.model.VO.ContestProblemListVO;
 
 public interface DBService {
-    ResultVO getProblemList(String contestName);
-    ResultVO getProblemListInRoot(String contestName);
-    ResultVO getContestList();
-    ResultVO getProblem(String name, String contestName, String userName);
-    ResultVO getProblemInRoot(String name, String contestName);
-    ResultVO deleteProblem(ContestProblemDTO dto);
-    ResultVO getBoard(String contestName);
-    ResultVO getBoardInRoot(String contestName);
-    ResultVO getContest(String ctname);
-    ResultVO getContestInRoot(String ctname);
-    ResultVO insertContest(ContestInfoDTO dto);
-    ResultVO updateContest(ContestInfoDTO dto);
-    ResultVO insertProblem(ContestProblemDTO dto);
-    ResultVO attend(String name, String cnname, String contestName);
-    ResultVO getUserStatus(String name, String contestName);
+    ResultVO<ContestProblemListVO> getProblemList(String contestName, String role);
+    ResultVO<ContestListVO> getContestList();
+    ResultVO<Problem> getProblem(String problemName, String contestName, String userName, String role);
+    ResultVO<Void> deleteProblem(ContestProblemDTO contestProblemDTO);
+    ResultVO<BoardVO> getBoard(String contestName, String role);
+    ResultVO<Contest> getContest(String contestName, String role);
+    ResultVO<Void> insertContest(Contest contest);
+    ResultVO<Void> updateContest(Contest contest);
+    ResultVO<Void> insertProblem(ContestProblemDTO contestProblemDTO);
+    ResultVO<Void> attend(String userName, String userNickName, String contestName, String password);
+    ResultVO<Void> attended(String userName, String contestName);
 }
